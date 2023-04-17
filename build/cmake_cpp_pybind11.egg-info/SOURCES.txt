@@ -1,0 +1,7 @@
+setup.py
+/Users/nathantormaschy/CLionProjects/Argus/build/Argus/Argus.so
+/Users/nathantormaschy/CLionProjects/Argus/build/Argus/__init__.py
+/Users/nathantormaschy/CLionProjects/Argus/build/cmake_cpp_pybind11.egg-info/PKG-INFO
+/Users/nathantormaschy/CLionProjects/Argus/build/cmake_cpp_pybind11.egg-info/SOURCES.txt
+/Users/nathantormaschy/CLionProjects/Argus/build/cmake_cpp_pybind11.egg-info/dependency_links.txt
+/Users/nathantormaschy/CLionProjects/Argus/build/cmake_cpp_pybind11.egg-info/top_level.txt

@@ -1,0 +1,5 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/nathantormaschy/CLionProjects/Argus -B /Users/nathantormaschy/CLionProjects/Argus/cmake-build-debug
+-- Found pybind11: /opt/homebrew/include (found version "2.10.4")
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/nathantormaschy/CLionProjects/Argus/cmake-build-debug
