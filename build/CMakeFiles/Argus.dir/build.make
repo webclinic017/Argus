@@ -69,28 +69,28 @@ include CMakeFiles/Argus.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Argus.dir/flags.make
 
-CMakeFiles/Argus.dir/src/test.cpp.o: CMakeFiles/Argus.dir/flags.make
-CMakeFiles/Argus.dir/src/test.cpp.o: /Users/nathantormaschy/CLionProjects/Argus/src/test.cpp
-CMakeFiles/Argus.dir/src/test.cpp.o: CMakeFiles/Argus.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Argus.dir/src/test.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Argus.dir/src/test.cpp.o -MF CMakeFiles/Argus.dir/src/test.cpp.o.d -o CMakeFiles/Argus.dir/src/test.cpp.o -c /Users/nathantormaschy/CLionProjects/Argus/src/test.cpp
+CMakeFiles/Argus.dir/src/asset.cpp.o: CMakeFiles/Argus.dir/flags.make
+CMakeFiles/Argus.dir/src/asset.cpp.o: /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp
+CMakeFiles/Argus.dir/src/asset.cpp.o: CMakeFiles/Argus.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Argus.dir/src/asset.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Argus.dir/src/asset.cpp.o -MF CMakeFiles/Argus.dir/src/asset.cpp.o.d -o CMakeFiles/Argus.dir/src/asset.cpp.o -c /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp
 
-CMakeFiles/Argus.dir/src/test.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Argus.dir/src/test.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/nathantormaschy/CLionProjects/Argus/src/test.cpp > CMakeFiles/Argus.dir/src/test.cpp.i
+CMakeFiles/Argus.dir/src/asset.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Argus.dir/src/asset.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp > CMakeFiles/Argus.dir/src/asset.cpp.i
 
-CMakeFiles/Argus.dir/src/test.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Argus.dir/src/test.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nathantormaschy/CLionProjects/Argus/src/test.cpp -o CMakeFiles/Argus.dir/src/test.cpp.s
+CMakeFiles/Argus.dir/src/asset.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Argus.dir/src/asset.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp -o CMakeFiles/Argus.dir/src/asset.cpp.s
 
 # Object files for target Argus
 Argus_OBJECTS = \
-"CMakeFiles/Argus.dir/src/test.cpp.o"
+"CMakeFiles/Argus.dir/src/asset.cpp.o"
 
 # External object files for target Argus
 Argus_EXTERNAL_OBJECTS =
 
-Argus/Argus.so: CMakeFiles/Argus.dir/src/test.cpp.o
+Argus/Argus.so: CMakeFiles/Argus.dir/src/asset.cpp.o
 Argus/Argus.so: CMakeFiles/Argus.dir/build.make
 Argus/Argus.so: /opt/homebrew/opt/python@3.11/Frameworks/Python.framework/Versions/3.11/lib/libpython3.11.dylib
 Argus/Argus.so: CMakeFiles/Argus.dir/link.txt

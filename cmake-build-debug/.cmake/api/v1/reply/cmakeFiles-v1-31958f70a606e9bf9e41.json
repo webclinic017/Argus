@@ -220,12 +220,6 @@
 			"isCMake" : true,
 			"isExternal" : true,
 			"path" : "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.25/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
-		},
-		{
-			"path" : "Argus/__init__.py"
-		},
-		{
-			"path" : "Argus/setup.py"
 		}
 	],
 	"kind" : "cmakeFiles",

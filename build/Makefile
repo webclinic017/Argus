@@ -129,29 +129,45 @@ Argus/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/build
 .PHONY : Argus/fast
 
-src/test.o: src/test.cpp.o
-.PHONY : src/test.o
+#=============================================================================
+# Target rules for targets named asset
+
+# Build rule for target.
+asset: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asset
+.PHONY : asset
+
+# fast build rule for target.
+asset/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/build
+.PHONY : asset/fast
+
+src/asset.o: src/asset.cpp.o
+.PHONY : src/asset.o
 
 # target to build an object file
-src/test.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/test.cpp.o
-.PHONY : src/test.cpp.o
+src/asset.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.o
+.PHONY : src/asset.cpp.o
 
-src/test.i: src/test.cpp.i
-.PHONY : src/test.i
+src/asset.i: src/asset.cpp.i
+.PHONY : src/asset.i
 
 # target to preprocess a source file
-src/test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/test.cpp.i
-.PHONY : src/test.cpp.i
+src/asset.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.i
+.PHONY : src/asset.cpp.i
 
-src/test.s: src/test.cpp.s
-.PHONY : src/test.s
+src/asset.s: src/asset.cpp.s
+.PHONY : src/asset.s
 
 # target to generate assembly for a file
-src/test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/test.cpp.s
-.PHONY : src/test.cpp.s
+src/asset.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.s
+.PHONY : src/asset.cpp.s
 
 # Help Target
 help:
@@ -162,9 +178,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Argus"
-	@echo "... src/test.o"
-	@echo "... src/test.i"
-	@echo "... src/test.s"
+	@echo "... asset"
+	@echo "... src/asset.o"
+	@echo "... src/asset.i"
+	@echo "... src/asset.s"
 .PHONY : help
 
 

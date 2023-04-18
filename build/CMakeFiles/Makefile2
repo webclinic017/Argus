@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /Users/nathantormaschy/CLionProjects/Argus/build
 
 # The main recursive "all" target.
 all: CMakeFiles/Argus.dir/all
+all: CMakeFiles/asset.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,6 +73,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/Argus.dir/clean
+clean: CMakeFiles/asset.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -99,6 +101,32 @@ Argus: CMakeFiles/Argus.dir/rule
 CMakeFiles/Argus.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/clean
 .PHONY : CMakeFiles/Argus.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/asset.dir
+
+# All Build rule for target.
+CMakeFiles/asset.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=3,4 "Built target asset"
+.PHONY : CMakeFiles/asset.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/asset.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/asset.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 0
+.PHONY : CMakeFiles/asset.dir/rule
+
+# Convenience name for target.
+asset: CMakeFiles/asset.dir/rule
+.PHONY : asset
+
+# clean rule for target.
+CMakeFiles/asset.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/clean
+.PHONY : CMakeFiles/asset.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

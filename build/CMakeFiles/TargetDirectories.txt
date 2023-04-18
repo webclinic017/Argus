@@ -1,3 +1,4 @@
 /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/Argus.dir
+/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/asset.dir
 /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/edit_cache.dir
 /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/rebuild_cache.dir

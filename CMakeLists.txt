@@ -40,13 +40,6 @@ IF( APPLE )
             )
 ENDIF()
 
-# Place the initialization file in the output directory for the Python
-# bindings. This will simplify the installation.
-CONFIGURE_FILE( Argus/__init__.py
-        ${CMAKE_CURRENT_BINARY_DIR}/Argus/__init__.py
-        )
-
-# Ditto for the setup file.
-CONFIGURE_FILE( Argus/setup.py
-        ${CMAKE_CURRENT_BINARY_DIR}/Argus/setup.py
-        )
+# Expose asset module to Python
+pybind11_add_module(asset src/asset.cpp)
+target_link_libraries(asset PRIVATE pybind11::module)
