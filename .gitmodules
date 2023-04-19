@@ -1,4 +1,7 @@
-[submodule "extern/pybind11"]
-	path = extern/pybind11
+[submodule "external/pybind11"]
+	path = external/pybind11
 	url = https://github.com/pybind/pybind11.git
 	branch = stable
+[submodule "external/robin-map"]
+	path = external/robin-map
+	url = https://github.com/Tessil/robin-map.git
