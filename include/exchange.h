@@ -6,10 +6,11 @@
 #define ARGUS_EXCHANGE_H
 #include <string>
 #include <memory>
-#include "unordered_map"
+#include <tsl/robin_map.h>
 #include "asset.h"
 
 using namespace std;
+
 
 class Exchange{
 private:
@@ -20,10 +21,10 @@ private:
     string exchange_id;
 
     ///map between asset id and asset pointer
-    unordered_map<string,shared_ptr<Asset>> market;
+    tsl::robin_map<string,shared_ptr<Asset>> market;
 
     ///mapping for asset's available at the current moment;
-    unordered_map<string, Asset*> market_view;
+    tsl::robin_map<string, Asset*> market_view;
 
     ///current exchange time
     long long exchange_time;

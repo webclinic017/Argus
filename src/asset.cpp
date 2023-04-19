@@ -33,7 +33,7 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
     if (this->is_built){
         throw runtime_error("asset is already built");
     }
-    /*---allocate memory---*/
+
     // allocate columns
     this->data = new double*[cols_];
     for (int i = 0; i < cols_; i++) {
@@ -42,7 +42,6 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
     }
     //allocate datetime index
     this->datetime_index = new long long[rows_];
-    /*--------------------*/
 
     //set the asset matrix size
     this->rows = rows_;
@@ -52,7 +51,7 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
         auto column = this->data[i];
         size_t offset = i * rows;
         size_t row_index = 0;
-        for (int j = offset; j < offset + rows_; j++) {
+        for (size_t j = offset; j < offset + rows_; j++) {
             column[row_index] = data_[j];
             row_index ++;
         }
@@ -100,8 +99,10 @@ double Asset::get(const std::string &column, size_t row_index) const {
 Asset::Asset(string asset_id) :
         asset_id(std::move(asset_id)),
         is_built(false),
+        is_view(false),
         rows(0),
-        cols(0)
+        cols(0),
+        current_index(0)
 {}
 
 Asset::~Asset() {

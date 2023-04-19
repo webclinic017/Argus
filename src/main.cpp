@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+
 #include "asset.h"
 
 namespace py = pybind11;
