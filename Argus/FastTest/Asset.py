@@ -13,14 +13,13 @@ import FastTest
 
 
 def asset_from_df(df: Type[pd.DataFrame], asset_id : str) -> Asset:
-    values = df.values.flatten().astype(np.float64)
-    epoch_index = df.index.values.astype(np.float64)
+    #extract underlying numpy arrays
+    values = df.values.astype(np.float64)
+    epoch_index = df.index.values.astype(np.int64)
 
-    values_p = values.ctypes.data_as(POINTER(c_double))
-    epoch_index_p = epoch_index.ctypes.data_as(POINTER(c_longlong))
-
+    #load the asset
     asset = FastTest.new_asset(asset_id)
     asset.load_headers(df.columns.tolist())
-    asset.load_data(values_p, epoch_index_p, df.shape[0], df.shape[1])
+    asset.load_data(values, epoch_index, df.shape[0], df.shape[1])
 
     return asset

@@ -7,17 +7,23 @@ sys.path.append(os.path.abspath('..'))
 import FastTest
 import Asset
 import helpers
+import time
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        asset = helpers.load_asset(
+class AssetTestMethods(unittest.TestCase):
+    def test_asset_load(self):
+        asset1 = helpers.load_asset(
             helpers.test1_file_path,
-            helpers.test1_asset_id
+            "asset1"
         )
-        print(asset)
+        assert(True);
 
-        self.assertEqual(True, True)  # add assertion here
-
+    def test_asset_get(self):
+        asset1 = helpers.load_asset(
+            helpers.test1_file_path,
+            "asset1"
+        )
+        assert(asset1.get("CLOSE",0) == 101)
+        assert(asset1.get("OPEN",3) == 105)
 
 if __name__ == '__main__':
     unittest.main()

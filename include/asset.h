@@ -9,6 +9,9 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
 
 using namespace std;
 
@@ -24,20 +27,23 @@ private:
     unordered_map<string, size_t> headers;
 
     ///datetime index of the asset (ns epoch time stamp)
-    vector<long long> datetime_index;
+    long long* datetime_index{};
 
     ///underlying data of the asset
-    vector<vector<double>> data;
+    double** data{};
 
     ///number of rows in the asset data
-    size_t  rows{};
+    size_t  rows;
 
     ///number of columns in the asset data
-    size_t cols{};
+    size_t cols;
 
 public:
     ///asset constructor
     explicit Asset(string asset_id);
+
+    ///asset destructor
+    ~ Asset();
 
     ///return the id of an asset
     [[nodiscard]] string get_asset_id() const;
@@ -51,10 +57,15 @@ public:
     ///load the asset data in from a pointer
     void load_data(const double *data, const long long * datetime_index, size_t rows, size_t cols);
 
+    //load the asset data using a python buffer
+    void py_load_data(const py::buffer& data, const py::buffer& datetime_index, size_t rows, size_t cols);
+
     ///get data point from asset
     [[nodiscard]] double get(const string& column, size_t row_index) const;
 };
 
 shared_ptr<Asset> new_asset(const string& asset_id);
+
+
 
 #endif //ARGUS_ASSET_H

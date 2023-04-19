@@ -1,4 +1,0 @@
-/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/Argus.dir
-/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/FastTest.dir
-/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/edit_cache.dir
-/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles/rebuild_cache.dir
