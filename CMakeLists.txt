@@ -7,7 +7,7 @@ set(CMAKE_OSX_ARCHITECTURES arm64)
 
 include_directories(include)
 file(GLOB SRCS src/*.cpp)
-add_library(Argus SHARED ${SRCS})
+add_library(Argus SHARED ${SRCS} include/exchange.h src/exchange.cpp)
 
 #Python dev components
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -40,6 +40,7 @@ IF( APPLE )
             )
 ENDIF()
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Argus/FastTest)
 # Expose asset module to Python
-pybind11_add_module(asset src/asset.cpp)
-target_link_libraries(asset PRIVATE pybind11::module)
+pybind11_add_module(FastTest ${SRCS})
+target_link_libraries(FastTest PRIVATE pybind11::module)

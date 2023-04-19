@@ -28,12 +28,16 @@ private:
 
     ///underlying data of the asset
     vector<vector<double>> data;
+
+    ///number of rows in the asset data
+    size_t  rows{};
+
+    ///number of columns in the asset data
+    size_t cols{};
+
 public:
     ///asset constructor
-    explicit Asset(string asset_id) :
-        asset_id(std::move(asset_id)),
-        is_built(false)
-        {}
+    explicit Asset(string asset_id);
 
     ///return the id of an asset
     [[nodiscard]] string get_asset_id() const;
@@ -44,6 +48,11 @@ public:
     ///load in the headers of an asset from python list
     void load_headers(const vector<string>& headers);
 
+    ///load the asset data in from a pointer
+    void load_data(const double *data, const long long * datetime_index, size_t rows, size_t cols);
+
+    ///get data point from asset
+    [[nodiscard]] double get(const string& column, size_t row_index) const;
 };
 
 shared_ptr<Asset> new_asset(const string& asset_id);

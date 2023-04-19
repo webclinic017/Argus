@@ -3,6 +3,10 @@ file(REMOVE_RECURSE
   "Argus/Argus.so"
   "CMakeFiles/Argus.dir/src/asset.cpp.o"
   "CMakeFiles/Argus.dir/src/asset.cpp.o.d"
+  "CMakeFiles/Argus.dir/src/exchange.cpp.o"
+  "CMakeFiles/Argus.dir/src/exchange.cpp.o.d"
+  "CMakeFiles/Argus.dir/src/main.cpp.o"
+  "CMakeFiles/Argus.dir/src/main.cpp.o.d"
 )
 
 # Per-language clean rules from dependency scanning.

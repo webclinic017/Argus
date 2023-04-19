@@ -69,10 +69,38 @@ include CMakeFiles/FastTest.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/FastTest.dir/flags.make
 
+CMakeFiles/FastTest.dir/src/asset.cpp.o: CMakeFiles/FastTest.dir/flags.make
+CMakeFiles/FastTest.dir/src/asset.cpp.o: /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp
+CMakeFiles/FastTest.dir/src/asset.cpp.o: CMakeFiles/FastTest.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/FastTest.dir/src/asset.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FastTest.dir/src/asset.cpp.o -MF CMakeFiles/FastTest.dir/src/asset.cpp.o.d -o CMakeFiles/FastTest.dir/src/asset.cpp.o -c /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp
+
+CMakeFiles/FastTest.dir/src/asset.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FastTest.dir/src/asset.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp > CMakeFiles/FastTest.dir/src/asset.cpp.i
+
+CMakeFiles/FastTest.dir/src/asset.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FastTest.dir/src/asset.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp -o CMakeFiles/FastTest.dir/src/asset.cpp.s
+
+CMakeFiles/FastTest.dir/src/exchange.cpp.o: CMakeFiles/FastTest.dir/flags.make
+CMakeFiles/FastTest.dir/src/exchange.cpp.o: /Users/nathantormaschy/CLionProjects/Argus/src/exchange.cpp
+CMakeFiles/FastTest.dir/src/exchange.cpp.o: CMakeFiles/FastTest.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/FastTest.dir/src/exchange.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FastTest.dir/src/exchange.cpp.o -MF CMakeFiles/FastTest.dir/src/exchange.cpp.o.d -o CMakeFiles/FastTest.dir/src/exchange.cpp.o -c /Users/nathantormaschy/CLionProjects/Argus/src/exchange.cpp
+
+CMakeFiles/FastTest.dir/src/exchange.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/FastTest.dir/src/exchange.cpp.i"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/nathantormaschy/CLionProjects/Argus/src/exchange.cpp > CMakeFiles/FastTest.dir/src/exchange.cpp.i
+
+CMakeFiles/FastTest.dir/src/exchange.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/FastTest.dir/src/exchange.cpp.s"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nathantormaschy/CLionProjects/Argus/src/exchange.cpp -o CMakeFiles/FastTest.dir/src/exchange.cpp.s
+
 CMakeFiles/FastTest.dir/src/main.cpp.o: CMakeFiles/FastTest.dir/flags.make
 CMakeFiles/FastTest.dir/src/main.cpp.o: /Users/nathantormaschy/CLionProjects/Argus/src/main.cpp
 CMakeFiles/FastTest.dir/src/main.cpp.o: CMakeFiles/FastTest.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/FastTest.dir/src/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/FastTest.dir/src/main.cpp.o"
 	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/FastTest.dir/src/main.cpp.o -MF CMakeFiles/FastTest.dir/src/main.cpp.o.d -o CMakeFiles/FastTest.dir/src/main.cpp.o -c /Users/nathantormaschy/CLionProjects/Argus/src/main.cpp
 
 CMakeFiles/FastTest.dir/src/main.cpp.i: cmake_force
@@ -85,20 +113,24 @@ CMakeFiles/FastTest.dir/src/main.cpp.s: cmake_force
 
 # Object files for target FastTest
 FastTest_OBJECTS = \
+"CMakeFiles/FastTest.dir/src/asset.cpp.o" \
+"CMakeFiles/FastTest.dir/src/exchange.cpp.o" \
 "CMakeFiles/FastTest.dir/src/main.cpp.o"
 
 # External object files for target FastTest
 FastTest_EXTERNAL_OBJECTS =
 
-FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/src/main.cpp.o
-FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/build.make
-FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX shared module FastTest.cpython-311-darwin.so"
+/Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/src/asset.cpp.o
+/Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/src/exchange.cpp.o
+/Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/src/main.cpp.o
+/Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/build.make
+/Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so: CMakeFiles/FastTest.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX shared module /Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/FastTest.dir/link.txt --verbose=$(VERBOSE)
-	/Library/Developer/CommandLineTools/usr/bin/strip -x /Users/nathantormaschy/CLionProjects/Argus/build/FastTest.cpython-311-darwin.so
+	/Library/Developer/CommandLineTools/usr/bin/strip -x /Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so
 
 # Rule to build all files generated by this target.
-CMakeFiles/FastTest.dir/build: FastTest.cpython-311-darwin.so
+CMakeFiles/FastTest.dir/build: /Users/nathantormaschy/CLionProjects/Argus/Argus/FastTest/FastTest.cpython-311-darwin.so
 .PHONY : CMakeFiles/FastTest.dir/build
 
 CMakeFiles/FastTest.dir/clean:

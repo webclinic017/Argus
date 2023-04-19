@@ -130,17 +130,17 @@ Argus/fast:
 .PHONY : Argus/fast
 
 #=============================================================================
-# Target rules for targets named asset
+# Target rules for targets named FastTest
 
 # Build rule for target.
-asset: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asset
-.PHONY : asset
+FastTest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 FastTest
+.PHONY : FastTest
 
 # fast build rule for target.
-asset/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/build
-.PHONY : asset/fast
+FastTest/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/build
+.PHONY : FastTest/fast
 
 src/asset.o: src/asset.cpp.o
 .PHONY : src/asset.o
@@ -148,7 +148,7 @@ src/asset.o: src/asset.cpp.o
 # target to build an object file
 src/asset.cpp.o:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.o
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/asset.cpp.o
 .PHONY : src/asset.cpp.o
 
 src/asset.i: src/asset.cpp.i
@@ -157,7 +157,7 @@ src/asset.i: src/asset.cpp.i
 # target to preprocess a source file
 src/asset.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/asset.cpp.i
 .PHONY : src/asset.cpp.i
 
 src/asset.s: src/asset.cpp.s
@@ -166,8 +166,62 @@ src/asset.s: src/asset.cpp.s
 # target to generate assembly for a file
 src/asset.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/asset.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/src/asset.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/asset.cpp.s
 .PHONY : src/asset.cpp.s
+
+src/exchange.o: src/exchange.cpp.o
+.PHONY : src/exchange.o
+
+# target to build an object file
+src/exchange.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/exchange.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/exchange.cpp.o
+.PHONY : src/exchange.cpp.o
+
+src/exchange.i: src/exchange.cpp.i
+.PHONY : src/exchange.i
+
+# target to preprocess a source file
+src/exchange.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/exchange.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/exchange.cpp.i
+.PHONY : src/exchange.cpp.i
+
+src/exchange.s: src/exchange.cpp.s
+.PHONY : src/exchange.s
+
+# target to generate assembly for a file
+src/exchange.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/exchange.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/exchange.cpp.s
+.PHONY : src/exchange.cpp.s
+
+src/main.o: src/main.cpp.o
+.PHONY : src/main.o
+
+# target to build an object file
+src/main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/main.cpp.o
+.PHONY : src/main.cpp.o
+
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
 
 # Help Target
 help:
@@ -178,10 +232,16 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Argus"
-	@echo "... asset"
+	@echo "... FastTest"
 	@echo "... src/asset.o"
 	@echo "... src/asset.i"
 	@echo "... src/asset.s"
+	@echo "... src/exchange.o"
+	@echo "... src/exchange.i"
+	@echo "... src/exchange.s"
+	@echo "... src/main.o"
+	@echo "... src/main.i"
+	@echo "... src/main.s"
 .PHONY : help
 
 

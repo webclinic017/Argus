@@ -64,7 +64,7 @@ CMAKE_BINARY_DIR = /Users/nathantormaschy/CLionProjects/Argus/build
 
 # The main recursive "all" target.
 all: CMakeFiles/Argus.dir/all
-all: CMakeFiles/asset.dir/all
+all: CMakeFiles/FastTest.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -73,7 +73,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/Argus.dir/clean
-clean: CMakeFiles/asset.dir/clean
+clean: CMakeFiles/FastTest.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -83,12 +83,12 @@ clean: CMakeFiles/asset.dir/clean
 CMakeFiles/Argus.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Argus.dir/build.make CMakeFiles/Argus.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=1,2 "Built target Argus"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=1,2,3,4 "Built target Argus"
 .PHONY : CMakeFiles/Argus.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Argus.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Argus.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 0
 .PHONY : CMakeFiles/Argus.dir/rule
@@ -103,30 +103,30 @@ CMakeFiles/Argus.dir/clean:
 .PHONY : CMakeFiles/Argus.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/asset.dir
+# Target rules for target CMakeFiles/FastTest.dir
 
 # All Build rule for target.
-CMakeFiles/asset.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=3,4 "Built target asset"
-.PHONY : CMakeFiles/asset.dir/all
+CMakeFiles/FastTest.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles --progress-num=5,6,7,8 "Built target FastTest"
+.PHONY : CMakeFiles/FastTest.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/asset.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/asset.dir/all
+CMakeFiles/FastTest.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 4
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/FastTest.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/nathantormaschy/CLionProjects/Argus/build/CMakeFiles 0
-.PHONY : CMakeFiles/asset.dir/rule
+.PHONY : CMakeFiles/FastTest.dir/rule
 
 # Convenience name for target.
-asset: CMakeFiles/asset.dir/rule
-.PHONY : asset
+FastTest: CMakeFiles/FastTest.dir/rule
+.PHONY : FastTest
 
 # clean rule for target.
-CMakeFiles/asset.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/asset.dir/build.make CMakeFiles/asset.dir/clean
-.PHONY : CMakeFiles/asset.dir/clean
+CMakeFiles/FastTest.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/FastTest.dir/build.make CMakeFiles/FastTest.dir/clean
+.PHONY : CMakeFiles/FastTest.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

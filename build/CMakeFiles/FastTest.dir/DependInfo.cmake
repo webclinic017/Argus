@@ -8,6 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/nathantormaschy/CLionProjects/Argus/src/asset.cpp" "CMakeFiles/FastTest.dir/src/asset.cpp.o" "gcc" "CMakeFiles/FastTest.dir/src/asset.cpp.o.d"
+  "/Users/nathantormaschy/CLionProjects/Argus/src/exchange.cpp" "CMakeFiles/FastTest.dir/src/exchange.cpp.o" "gcc" "CMakeFiles/FastTest.dir/src/exchange.cpp.o.d"
   "/Users/nathantormaschy/CLionProjects/Argus/src/main.cpp" "CMakeFiles/FastTest.dir/src/main.cpp.o" "gcc" "CMakeFiles/FastTest.dir/src/main.cpp.o.d"
   )
 
