@@ -49,10 +49,10 @@ private:
     size_t current_index;
 
     /// index of the open column;
-    size_t open_column;
+    size_t open_column{};
 
     ///index of the close column
-    size_t close_column;
+    size_t close_column{};
 
 public:
     /// asset constructor
@@ -61,8 +61,17 @@ public:
     /// asset destructor
     ~Asset();
 
+    /// return the number of rows in the asset
+    [[nodiscard]] size_t get_rows() const {return this->rows;}
+
+    /// return the number of columns in the asset
+    [[nodiscard]] size_t get_cols() const {return this->cols;}
+
     /// return the id of an asset
     [[nodiscard]] string get_asset_id() const;
+
+    /// return pointer to the first element of the datetime index;
+    [[nodiscard]] long long* get_datetime_index() const;
 
     /// test if the function is built
     [[nodiscard]] bool get_is_built() const;

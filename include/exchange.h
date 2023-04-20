@@ -30,9 +30,18 @@ private:
     long long exchange_time;
 
     ///exchange datetime index
-    vector<long long> datetime_index;
+    long long* datetime_index;
+
+    ///length of datetime index
+    size_t datetime_index_length;
 
 public:
+    ///destructor for the exchange
+    ~Exchange();
+
+    ///build the exchange
+    void build();
+
     ///register an asset on the exchange
     void register_asset(shared_ptr<Asset>& asset);
 

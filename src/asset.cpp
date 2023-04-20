@@ -6,7 +6,7 @@
 
 #include "../include/asset.h"
 #include "../include/settings.h"
-#include "../include/string_helpers.h"
+#include "../include/utils_string.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -126,6 +126,10 @@ double Asset::get(const std::string &column, size_t row_index) const {
         throw out_of_range("row index out of range");
     }
     return this->data[column_index][row_index];
+}
+
+long long *Asset::get_datetime_index() const {
+    return &this->datetime_index[0];
 }
 
 Asset::Asset(string asset_id) :

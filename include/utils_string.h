@@ -2,8 +2,8 @@
 // Created by Nathan Tormaschy on 4/19/23.
 //
 
-#ifndef ARGUS_STRING_HELPERS_H
-#define ARGUS_STRING_HELPERS_H
+#ifndef ARGUS_UTILS_STRING_H
+#define ARGUS_UTILS_STRING_H
 
 
 bool case_ins_str_compare(const std::string& str1, const std::string& str2) {
@@ -23,11 +23,11 @@ size_t case_ins_str_index(const vector<std::string> &columns, string& column){
     }
 }
 
-tuple<::size_t , size_t > parse_headers(const vector<std::string> &columns){
+tuple<size_t , size_t > parse_headers(const vector<std::string> &columns){
     return std::make_tuple(
             case_ins_str_index(columns, (string &) "open"),
     case_ins_str_index(columns, (string &) "close"));
 
 }
 
-#endif //ARGUS_STRING_HELPERS_H
+#endif //ARGUS_UTILS_STRING_H
