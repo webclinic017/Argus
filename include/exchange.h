@@ -6,11 +6,11 @@
 #define ARGUS_EXCHANGE_H
 #include <string>
 #include <memory>
+#include <utility>
 #include <tsl/robin_map.h>
 #include "asset.h"
 
 using namespace std;
-
 
 class Exchange{
 private:
@@ -34,8 +34,19 @@ private:
 
 public:
     ///register an asset on the exchange
-    void register_asset(shared_ptr<Asset> asset);
+    void register_asset(shared_ptr<Asset>& asset);
+
+    ///build a new asset on the exchange
+    std::shared_ptr<Asset> new_asset(const string& asset_id);
+
+    ///get smart pointer to existing asset on the exchange
+    std::shared_ptr<Asset> get_asset(const string& asset_id);
+
+    Exchange(string exchange_id_): exchange_id(std::move(exchange_id_)){};
 
 };
+
+///function for creating a shared pointer to a asset
+shared_ptr<Exchange> new_exchange(const string &exchange_id);
 
 #endif //ARGUS_EXCHANGE_H

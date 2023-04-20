@@ -21,7 +21,10 @@ private:
     /// has the asset been built
     bool is_built;
 
-    /// is the asset a view on borrowed data
+    /// is the asset a view on borrowed data. If set to true the columns of the asset data are
+    /// not allocated on the heap, the are simply set to point to a location owned by a different object.
+    /// if that object goes out of scope before the asset and we still point to it, bad stuff happens.
+    /// use with cautions, prevents copying of data and is much faster but asset no longer owns data
     bool is_view;
 
     /// unique id of the asset
@@ -45,6 +48,12 @@ private:
     /// index of the current row the asset is at
     size_t current_index;
 
+    /// index of the open column;
+    size_t open_column;
+
+    ///index of the close column
+    size_t close_column;
+
 public:
     /// asset constructor
     explicit Asset(string asset_id);
@@ -61,16 +70,24 @@ public:
     /// load in the headers of an asset from python list
     void load_headers(const vector<string> &headers);
 
-    /// load the asset data in from a pointer
+    /// load the asset data in from a pointer, copy to dynamically allocated double**
     void load_data(const double *data, const long long *datetime_index, size_t rows, size_t cols);
 
-    // load the asset data using a python buffer
-    void py_load_data(const py::buffer &data, const py::buffer &datetime_index, size_t rows, size_t cols);
+    /// load the asset data in from a pointer, set pointers to data owned by someone else
+    void load_data_view(double *data, long long *datetime_index, size_t rows, size_t cols);
+
+    /// load the asset data using a python buffer
+    void py_load_data(const py::buffer &data, const py::buffer &datetime_index, size_t rows, size_t cols, bool is_view);
 
     /// get data point from asset
     [[nodiscard]] double get(const string &column, size_t row_index) const;
 };
 
+///function for creating a shared pointer to a asset
 shared_ptr<Asset> new_asset(const string &asset_id);
+
+///function for identifying index locations of open and close column
+tuple<::size_t , size_t > parse_headers(const vector<std::string> &columns);
+
 
 #endif // ARGUS_ASSET_H

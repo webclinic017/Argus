@@ -8,11 +8,9 @@ from ctypes import *
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from FastTest import Asset
 import FastTest
 
-
-def asset_from_df(df: Type[pd.DataFrame], asset_id : str) -> Asset:
+def asset_from_df(df: Type[pd.DataFrame], asset_id : str, is_view = False) -> FastTest.Asset:
     #extract underlying numpy arrays
     values = df.values.astype(np.float64)
     epoch_index = df.index.values.astype(np.int64)
@@ -20,6 +18,6 @@ def asset_from_df(df: Type[pd.DataFrame], asset_id : str) -> Asset:
     #load the asset
     asset = FastTest.new_asset(asset_id)
     asset.load_headers(df.columns.tolist())
-    asset.load_data(values, epoch_index, df.shape[0], df.shape[1])
+    asset.load_data(values, epoch_index, df.shape[0], df.shape[1], is_view)
 
     return asset

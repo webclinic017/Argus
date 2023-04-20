@@ -6,6 +6,7 @@
 
 #include "../include/asset.h"
 #include "../include/settings.h"
+#include "../include/string_helpers.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -19,6 +20,10 @@ bool Asset::get_is_built() const{
 }
 
 void Asset::load_headers(const vector<std::string> &columns) {
+    auto column_indecies = parse_headers(columns);
+    this->open_column = get<0>(column_indecies);
+    this->close_column = get<1>(column_indecies);
+    
     size_t i = 0;
     for (const auto& column_name : columns) {
         this->headers.emplace(column_name, i);
@@ -68,16 +73,43 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
 #endif
 }
 
-void Asset::py_load_data(const py::buffer& py_data, const py::buffer&  py_datetime_index, size_t rows_, size_t cols_) {
+void Asset::load_data_view(double *data_, long long *datetime_index_, size_t rows_, size_t cols_) {
+    if (this->is_built){
+        throw runtime_error("asset is already built");
+    }
+
+    //allocate columns, underlying data is in row major format. Point the start of each column
+    //to the appropriate index in the underlying data
+    this->data = new double*[cols_];
+    for (int i = 0; i < cols_; i++) {
+        size_t offset = i * rows_;
+        this->data[i] = &data_[offset];
+    }
+    this->rows = rows_;
+    this->cols = cols_;
+
+    //allocate datetime index
+    this->datetime_index = &datetime_index_[0];
+
+    this->is_built = true;
+    this->is_view = true;
+}
+
+void Asset::py_load_data(const py::buffer& py_data, const py::buffer&  py_datetime_index, size_t rows_, size_t cols_, bool is_view) {
     py::buffer_info data_info = py_data.request();
     py::buffer_info datetime_index_info = py_datetime_index.request();
 
     //cast the python buffers to raw pointer
-    auto data_ = static_cast<const double*>(data_info.ptr);
-    auto datetime_index_ = static_cast<const long long *>(datetime_index_info.ptr);
+    auto data_ = static_cast<double*>(data_info.ptr);
+    auto datetime_index_ = static_cast<long long *>(datetime_index_info.ptr);
 
     //pass raw pointer to c loading function
-    this->load_data(data_, datetime_index_, rows_, cols_);
+    if(!is_view){
+        this->load_data(data_, datetime_index_, rows_, cols_);
+    } else{
+        this->load_data_view(data_, datetime_index_, rows_, cols_);
+    }
+
 }
 
 double Asset::get(const std::string &column, size_t row_index) const {
@@ -114,15 +146,20 @@ Asset::~Asset() {
     if (!this->is_built){
         return;
     }
-    //free each column data
-    for (int i = 0; i < this->cols; i++) {
-        delete[] this->data[i];
+
+    if(!this->is_view) {
+        //free each column data
+        for (int i = 0; i < this->cols; i++) {
+            delete[] this->data[i];
+        }
     }
     //free the data itself
     delete[] this->data;
 
     //free the datetime index
-    delete[] this->datetime_index;
+    if (!this->is_view) {
+        delete[] this->datetime_index;
+    }
 
 #ifdef DEBUGGING
     printf("MEMORY: DESTRUCTOR ON: %p COMPLETE \n", this);
@@ -132,3 +169,4 @@ Asset::~Asset() {
 std::shared_ptr<Asset> new_asset(const string& asset_id) {
     return std::make_shared<Asset>(asset_id);
 }
+
