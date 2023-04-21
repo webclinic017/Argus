@@ -142,9 +142,9 @@ py::array_t<long long> Asset::get_datetime_index_view() {
     }
     return to_py_array(
             this->datetime_index,
-            this->rows);
+            this->rows,
+            true);
 };
-
 
 Asset::Asset(string asset_id) :
         asset_id(std::move(asset_id)),

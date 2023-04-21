@@ -106,6 +106,20 @@ void Exchange::register_asset(shared_ptr<Asset> asset_) {
     }
 }
 
+py::array_t<long long> Exchange::get_datetime_index_view() {
+    if(!this->is_built){
+        throw std::runtime_error("exchange is not built");
+    }
+    return to_py_array(
+            this->datetime_index,
+            this->datetime_index_length,
+            true);
+}
+
+void Exchange::place_order(shared_ptr<Order> order) {
+    this->open_orders.push_back(order);
+}
+
 shared_ptr<Exchange> new_exchange(const string& exchange_id) {
     return std::make_shared<Exchange>(exchange_id);
 }

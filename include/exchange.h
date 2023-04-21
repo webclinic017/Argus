@@ -12,6 +12,7 @@
 #include <pybind11/numpy.h>
 
 #include "asset.h"
+#include "order.h"
 #include "utils_array.h"
 
 using namespace std;
@@ -31,6 +32,9 @@ private:
 
     ///mapping for asset's available at the current moment;
     tsl::robin_map<string, Asset*> market_view;
+
+    ///open orders on the exchange
+    vector<shared_ptr<Order>> open_orders;
 
     ///current exchange time
     long long exchange_time;
@@ -57,18 +61,17 @@ public:
     ///get smart pointer to existing asset on the exchange
     std::shared_ptr<Asset> get_asset(const string& asset_id);
 
+    ///place order to the exchange
+    void place_order(shared_ptr<Order> order);
+
+    ///exchange constructor
     Exchange(string exchange_id_): exchange_id(std::move(exchange_id_)), is_built(false){};
 
-    py::array_t<long long> get_datetime_index_view(){
-        if(!this->is_built){
-            throw std::runtime_error("exchange is not built");
-        }
-        return to_py_array(
-                this->datetime_index,
-                this->datetime_index_length);
-    };
+    ///get read only view into the exchange's datetime index
+    py::array_t<long long> get_datetime_index_view();
 
-    bool get_is_built(){return this->is_built;}
+    ///is the exchange built yet
+    [[nodiscard]] bool get_is_built() const {return this->is_built;}
 };
 
 ///function for creating a shared pointer to a asset

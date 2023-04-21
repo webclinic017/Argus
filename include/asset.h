@@ -52,10 +52,10 @@ private:
     size_t current_index;
 
     /// index of the open column;
-    size_t open_column{};
+    size_t open_column;
 
     ///index of the close column
-    size_t close_column{};
+    size_t close_column;
 
 public:
     /// asset constructor

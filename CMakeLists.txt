@@ -8,7 +8,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 include_directories(include)
 file(GLOB SRCS src/*.cpp)
-add_library(Argus SHARED ${SRCS} src/hydra.cpp include/utils_array.h)
+add_library(Argus SHARED ${SRCS} src/broker.cpp src/order.cpp)
 
 #----external libraries----#
 #fmt
