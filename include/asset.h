@@ -10,6 +10,9 @@
 #include <vector>
 #include <tsl/robin_map.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+
+#include "utils_array.h"
 
 namespace py = pybind11;
 
@@ -34,10 +37,10 @@ private:
     tsl::robin_map<string, size_t> headers;
 
     /// datetime index of the asset (ns epoch time stamp)
-    long long *datetime_index{};
+    long long *datetime_index;
 
     /// underlying data of the asset
-    double **data{};
+    double **data;
 
     /// number of rows in the asset data
     size_t rows;
@@ -90,6 +93,9 @@ public:
 
     /// get data point from asset
     [[nodiscard]] double get(const string &column, size_t row_index) const;
+
+    py::array_t<long long> get_datetime_index_view();
+
 };
 
 ///function for creating a shared pointer to a asset
@@ -97,6 +103,5 @@ shared_ptr<Asset> new_asset(const string &asset_id);
 
 ///function for identifying index locations of open and close column
 tuple<::size_t , size_t > parse_headers(const vector<std::string> &columns);
-
 
 #endif // ARGUS_ASSET_H

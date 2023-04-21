@@ -69,7 +69,8 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
     this->is_built = true;
 
 #ifdef DEBUGGING
-    printf("MEMORY: ASSET %s load_data(): %p ALLOCATED \n",this->asset_id.c_str(), this);
+    printf("MEMORY:   asset %s datetime index at: %p \n",this->asset_id.c_str(), this->datetime_index);
+    printf("MEMORY:   asset %s load_data() allocated at: %p  \n",this->asset_id.c_str(), this);
 #endif
 }
 
@@ -132,6 +133,19 @@ long long *Asset::get_datetime_index() const {
     return &this->datetime_index[0];
 }
 
+py::array_t<long long> Asset::get_datetime_index_view() {
+    if(!this->is_built){
+        throw std::runtime_error("asset is not built");
+    }
+    if(this->rows == 0){
+        throw std::runtime_error("no data to return");
+    }
+    return to_py_array(
+            this->datetime_index,
+            this->rows);
+};
+
+
 Asset::Asset(string asset_id) :
         asset_id(std::move(asset_id)),
         is_built(false),
@@ -144,7 +158,7 @@ Asset::Asset(string asset_id) :
 Asset::~Asset() {
 
 #ifdef DEBUGGING
-    printf("MEMORY: CALLING ASSET %s DESTRUCTOR ON: %p \n",this->asset_id.c_str(), this);
+    printf("MEMORY:   CALLING ASSET %s DESTRUCTOR ON: %p \n",this->asset_id.c_str(), this);
 #endif
 
     if (!this->is_built){
@@ -166,7 +180,7 @@ Asset::~Asset() {
     }
 
 #ifdef DEBUGGING
-    printf("MEMORY: DESTRUCTOR ON: %p COMPLETE \n", this);
+    printf("MEMORY:   DESTRUCTOR ON: %p COMPLETE \n", this);
 #endif
 }
 

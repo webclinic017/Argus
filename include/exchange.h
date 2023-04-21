@@ -8,9 +8,15 @@
 #include <memory>
 #include <utility>
 #include <tsl/robin_map.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
 #include "asset.h"
+#include "utils_array.h"
 
 using namespace std;
+
+namespace py = pybind11;
 
 class Exchange{
 private:
@@ -43,7 +49,7 @@ public:
     void build();
 
     ///register an asset on the exchange
-    void register_asset(shared_ptr<Asset>& asset);
+    void register_asset(shared_ptr<Asset> asset);
 
     ///build a new asset on the exchange
     std::shared_ptr<Asset> new_asset(const string& asset_id);
@@ -51,8 +57,18 @@ public:
     ///get smart pointer to existing asset on the exchange
     std::shared_ptr<Asset> get_asset(const string& asset_id);
 
-    Exchange(string exchange_id_): exchange_id(std::move(exchange_id_)){};
+    Exchange(string exchange_id_): exchange_id(std::move(exchange_id_)), is_built(false){};
 
+    py::array_t<long long> get_datetime_index_view(){
+        if(!this->is_built){
+            throw std::runtime_error("exchange is not built");
+        }
+        return to_py_array(
+                this->datetime_index,
+                this->datetime_index_length);
+    };
+
+    bool get_is_built(){return this->is_built;}
 };
 
 ///function for creating a shared pointer to a asset

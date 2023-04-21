@@ -20,6 +20,9 @@ private:
     tsl::robin_map<string,shared_ptr<Exchange>> exchanges;
 
 public:
+    ///hydra destructor
+    ~Hydra();
+
     ///build new exchange
     shared_ptr<Exchange> new_exchange(string exchange_id);
 

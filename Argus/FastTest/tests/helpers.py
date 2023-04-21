@@ -9,9 +9,12 @@ import FastTest
 import Asset
 
 test1_file_path = "./data/test1.csv"
+test2_file_path = "./data/test2.csv"
+
 test_spy_file_path = "./data/SPY_DAILY.csv"
 
 test1_asset_id = "asset_id1"
+test2_asset_id = "asset_id2"
 spy_asset_id = "asset_id1"
 
 def load_df(file_path, asset_id):

@@ -11,6 +11,9 @@ file(GLOB SRCS src/*.cpp)
 add_library(Argus SHARED ${SRCS} src/hydra.cpp include/utils_array.h)
 
 #----external libraries----#
+#fmt
+include_directories(external/fmt/include)
+
 #robin-map
 find_package(tsl-robin-map REQUIRED)
 include_directories(external/robin-map/include)

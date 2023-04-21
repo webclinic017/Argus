@@ -5,6 +5,34 @@
 #ifndef ARGUS_UTILS_ARRAY_H
 #define ARGUS_UTILS_ARRAY_H
 #include <queue>
+#include <span>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
+using namespace std;
+
+namespace py = pybind11;
+
+template<typename T>
+inline py::array_t<T> to_py_array(T* data, long length)
+{
+    auto capsule = py::capsule(data, [](void *data) {});
+    return py::array_t<T> {
+        length,
+        data,
+        capsule
+    };
+}
+
+template<class T>
+bool array_eq(T* a, T* b, size_t length){
+    for(size_t i = 0; i< length; i++){
+        if(a[i] != b[i]){
+            return false;
+        }
+    }
+    return true;
+}
 
 template<class T>
 tuple<T* , int> sorted_union(T* a, T* b, size_t n, size_t m) {
@@ -46,8 +74,9 @@ tuple<T* , int> sorted_union(T* a, T* b, size_t n, size_t m) {
     auto* temp = (T*)realloc(result, k * sizeof(T));
     if (temp != nullptr) {
         result = temp;
+    } else{
+        throw std::runtime_error("failed to realloc array");
     }
-
     return std::make_tuple(result, k);
 }
 
