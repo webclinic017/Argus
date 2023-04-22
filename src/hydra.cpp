@@ -131,7 +131,7 @@ void Hydra::evaluate_portfolio(bool on_close) {
         auto position = position_pair.second;
 
         //get the exchange the asset is listed on
-        auto exchange_id = *position->get_exchange_id();
+        auto exchange_id = position->get_exchange_id();
         auto exchange = this->exchanges.at(exchange_id);
         auto market_price = exchange->get_market_price(asset_id, on_close);
 

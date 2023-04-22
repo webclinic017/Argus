@@ -6,5 +6,6 @@
 #define ARGUS_SETTINGS_H
 
 //#define DEBUGGING
+//#define ASSERT_CHECK
 
 #endif //ARGUS_SETTINGS_H

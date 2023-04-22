@@ -9,7 +9,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 include_directories(include)
 file(GLOB SRCS src/*.cpp)
-add_library(Argus SHARED ${SRCS} src/broker.cpp src/order.cpp)
+add_library(Argus SHARED ${SRCS} src/broker.cpp src/order.cpp src/position.cpp)
 
 #----external libraries----#
 #fmt

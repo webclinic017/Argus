@@ -52,11 +52,20 @@ private:
     ///number of bars the positions has been held for
     unsigned int bars_held;
 
-    tsl::robin_map<string,shared_ptr<Trade>> trades;
+    tsl::robin_map<unsigned int,shared_ptr<Trade>> trades;
 
 public:
+    ///position constructor
+    Position(shared_ptr<Order>& filled_order, unsigned int position_id);
+
     ///get exchange id
-    string* get_exchange_id(){return &this->exchange_id;}
+    string get_exchange_id(){return this->exchange_id;}
+
+    ///get unit
+    double get_units(){return this->units;}
+
+    ///get a smart pointer to child trade
+    shared_ptr<Trade> get_trade(unsigned int trade_id){return this->trades.at(trade_id);}
 
     inline void evaluate(double market_price, bool on_close){
         this->last_price = market_price;

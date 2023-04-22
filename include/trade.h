@@ -24,6 +24,9 @@ private:
     ///unique id of the underlying asset of the trade
     string asset_id;
 
+    ///unique id of the exchange the underlying asset is on
+    string exchange_id;
+
     ///how many units in the trade
     double units;
 
@@ -56,7 +59,7 @@ private:
 
 public:
     ///trade constructor
-    Trade(unsigned int trade_id, double units_, double average_price_, long long trade_create_time_);
+    Trade(shared_ptr<Order>& filled_order, unsigned int trade_id_);
 
     ///remove open order that has been canceled;
     shared_ptr<Order> cancel_child_order(unsigned int order_id);

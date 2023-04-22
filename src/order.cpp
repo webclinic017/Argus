@@ -15,8 +15,8 @@ shared_ptr<Order> Order::cancel_child_order(unsigned int order_id) {
     return order;
 }
 
-Order::Order(OrderType order_type_, string asset_id_, double units_,
-             string exchange_id_, string broker_id_, string account_id_, string strategy_id_) {
+Order::Order(OrderType order_type_, string asset_id_, double units_,string exchange_id_,
+             string broker_id_, string account_id_, string strategy_id_, int trade_id_) {
     this->order_type = order_type_;
     this->units = units_;
 
@@ -32,6 +32,9 @@ Order::Order(OrderType order_type_, string asset_id_, double units_,
 
     //set the limit to 0, broker will populate of the order type is tp or sl
     this->limit = 0;
+
+    //set the trade id (-1 default value implies use the default trade of a position
+    this->trade_id = trade_id_;
 
     //set the order state equal to PENDING (yet to be place)
     this->order_state = PENDING;

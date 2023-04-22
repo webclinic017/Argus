@@ -66,7 +66,10 @@ private:
     vector<shared_ptr<Order>> child_orders;
 
     ///unique id of the order
-    unsigned int order_id{};
+    unsigned int order_id;
+
+    ///unique id of the trade the order is applied to
+    int trade_id;
 
     ///number of units in the order
     double units;
@@ -97,8 +100,8 @@ private:
 
 public:
     ///order constructor
-    Order(OrderType order_type_, string asset_id_, double units_,
-          string exchange_id_, string broker_id_, string account_id_, string strategy_id_);
+    Order(OrderType order_type_, string asset_id_, double units_,string exchange_id_,
+          string broker_id_, string account_id_, string strategy_id_, int trade_id_ = -1);
 
     shared_ptr<Order> cancel_child_order(unsigned int order_id);
 
@@ -106,10 +109,13 @@ public:
     [[nodiscard]] unsigned int get_order_id() const {return this->order_id;}
 
     ///get the unique id of the exchange the order was placed to
-    [[nodiscard]] string& get_exchange_id()  {return this->exchange_id;}
+    [[nodiscard]] string get_exchange_id()  {return this->exchange_id;}
 
     ///get the unique asset id of the order
-    [[nodiscard]] string get_asset_id() const {return this->asset_id;}
+    [[nodiscard]] string get_asset_id() {return this->asset_id;}
+
+    ///get the unique trade id of the order
+    [[nodiscard]] int get_trade_id() const {return this->trade_id;}
 
     ///get the units in the order
     [[nodiscard]] double get_units() const {return this->units;}
