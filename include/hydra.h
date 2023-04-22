@@ -18,6 +18,9 @@ using namespace std;
 
 class Hydra{
 private:
+    ///is the hydra built
+    bool is_built;
+
     ///mapping between exchange id and smart pointer to an exchange
     tsl::robin_map<string,shared_ptr<Exchange>> exchanges;
 
@@ -30,6 +33,12 @@ private:
     ///portfolio containing all positions
     tsl::robin_map<string,shared_ptr<Position>> portfolio;
 
+    ///master datetime index of the combined exchanges
+    long long* datetime_index;
+
+    ///length of datetime index
+    size_t datetime_index_length;
+
 public:
     ///hydra destructor
     ~Hydra();
@@ -38,16 +47,16 @@ public:
     void build();
 
     ///add a  new exchange
-    shared_ptr<Exchange> new_exchange(string exchange_id);
+    shared_ptr<Exchange> new_exchange(const string& exchange_id);
 
     ///add a new broker
     shared_ptr<Broker> new_broker(const string& broker_id, double cash);
 
     ///get shared pointer to an exchange
-    shared_ptr<Exchange> get_exchange(string exchange_id);
+    shared_ptr<Exchange> get_exchange(const string& exchange_id);
 
     ///get shared pointer to a broker
-    shared_ptr<Broker> get_broker(string broker_id);
+    shared_ptr<Broker> get_broker(const string& broker_id);
 
 };
 

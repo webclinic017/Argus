@@ -24,33 +24,14 @@ void Exchange::build() {
         delete [] this->datetime_index;
     }
 
-    this->datetime_index = new long long[0];
-    this->datetime_index_length = 0;
+    auto datetime_index_ = container_sorted_union(
+            this->market,
+            [](const shared_ptr<Asset> &obj) { return obj->get_datetime_index(); },
+            [](const shared_ptr<Asset> &obj) { return obj->get_rows(); }
+    );
 
-    //generate the sorted datetime index of all assets on the exchange
-    for(const auto & it : this->market) {
-        auto asset = it.second;
-
-        if(this->datetime_index_length == asset->get_rows()){
-            if(array_eq(this->datetime_index, asset->get_datetime_index(), this->datetime_index_length)){
-                continue;
-            }
-        }
-
-        //get sorted union of the two datetime indecies
-        auto sorted_index_tuple = sorted_union(
-                this->datetime_index,       asset->get_datetime_index(),
-                this->datetime_index_length,asset->get_rows());
-
-        auto sorted_index = get<0>(sorted_index_tuple);
-        auto sorted_index_size = get<1>(sorted_index_tuple);
-
-        //swap pointers between the new sorted union and the existing one
-        std::swap(this->datetime_index , sorted_index);
-        this->datetime_index_length = sorted_index_size;
-
-        delete [] sorted_index;
-    }
+    this->datetime_index = get<0>(datetime_index_);
+    this->datetime_index_length = get<1>(datetime_index_);
     this->is_built = true;
 
 #ifdef DEBUGGING

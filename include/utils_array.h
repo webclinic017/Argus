@@ -109,4 +109,48 @@ tuple<T* , int> sorted_union(T* a, T* b, size_t n, size_t m) {
     return std::make_tuple(result, k);
 }
 
+/**
+ * Returns a sorted array of each each element's child array
+ *
+ * @param hash_map the container holding the elements to iterate over
+ * @return pointer to dynamically allocated array
+ *
+ * @tparam Hashmap The type of the container. It must support iteration over its values.
+ * @tparam IndexLoc function to call on container elements to get array location
+ * @tparam IndexLen function to call on container elements to get array length
+ */
+template<typename Hashmap, typename IndexLoc, typename IndexLen>
+tuple<long long* , int> inline container_sorted_union(
+        Hashmap& hash_map,
+        IndexLoc index_loc,
+        IndexLen index_len) {
+    //allocate location for new sorted array
+    auto* sorted_array = new long long[0];
+    size_t length = 0;
+
+    for(const auto & it : hash_map) {
+        auto element = it.second;
+
+        if(length == index_len(element)){
+            if(array_eq( sorted_array,index_loc(element),length)){
+                continue;
+            }
+        }
+        //get sorted union of the two datetime indecies
+        auto sorted_index_tuple = sorted_union(
+                sorted_array, index_loc(element),
+                length,       index_len(element));
+
+        auto sorted_index = get<0>(sorted_index_tuple);
+        auto sorted_index_size = get<1>(sorted_index_tuple);
+
+        //swap pointers between the new sorted union and the existing one
+        std::swap(sorted_array , sorted_index);
+        length = sorted_index_size;
+
+        delete [] sorted_index;
+    }
+    return std::make_tuple(sorted_array, length);
+}
+
 #endif //ARGUS_UTILS_ARRAY_H

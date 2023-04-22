@@ -67,11 +67,17 @@ public:
     ///exchange constructor
     Exchange(string exchange_id_): exchange_id(std::move(exchange_id_)), is_built(false){};
 
-    ///get read only view into the exchange's datetime index
+    ///get numpy array read only view into the exchange's datetime index
     py::array_t<long long> get_datetime_index_view();
+
+    ///get read only pointer to datetime index
+    long long * get_datetime_index(){return this->datetime_index;}
 
     ///is the exchange built yet
     [[nodiscard]] bool get_is_built() const {return this->is_built;}
+
+    /// return the number of rows in the asset
+    [[nodiscard]] size_t get_rows() const {return this->datetime_index_length;}
 };
 
 ///function for creating a shared pointer to a asset
