@@ -13,6 +13,23 @@
 namespace py = pybind11;
 using namespace std;
 
+Hydra::~Hydra() {
+#ifdef DEBUGGING
+    printf("MEMORY:   deallocating hydra at : %p \n", this);
+#endif
+    if(this->is_built) {
+        delete[] this->datetime_index;
+    }
+}
+
+shared_ptr<Hydra> new_hydra() {
+    auto hydra =  make_shared<Hydra>();
+#ifdef DEBUGGING
+    printf("MEMORY: allocating new hydra at : %p \n", hydra.get());
+#endif
+    return hydra;
+}
+
 void Hydra::build(){
     //check to see if the exchange has been built before
     if(this->is_built){
@@ -97,19 +114,54 @@ shared_ptr<Broker> Hydra::get_broker(const std::string& broker_id) {
     }
 }
 
-Hydra::~Hydra() {
-#ifdef DEBUGGING
-    printf("MEMORY:   deallocating hydra at : %p \n", this);
-#endif
-    if(this->is_built) {
-        delete[] this->datetime_index;
+void Hydra::evaluate_portfolio(bool on_close) {
+    //loop over open positions and evaluate them at current market price
+    for(auto &position_pair : this->portfolio){
+        auto asset_id = position_pair.first;
+        auto position = position_pair.second;
+
+        //get the exchange the asset is listed on
+        auto exchange_id = *position->get_exchange_id();
+        auto exchange = this->exchanges.at(exchange_id);
+        auto market_price = exchange->get_market_price(asset_id, on_close);
+
+        if(market_price != 0){
+            position->evaluate(market_price, on_close);
+        }
     }
 }
 
-shared_ptr<Hydra> new_hydra() {
-    auto hydra =  make_shared<Hydra>();
-#ifdef DEBUGGING
-    printf("MEMORY: allocating new hydra at : %p \n", hydra.get());
-#endif
-    return hydra;
+bool Hydra::forward_pass() {
+    //check to see if we have reached the end
+    if(this->current_index == datetime_index_length){
+        return false;
+    }
+
+    auto hydra_time = this->datetime_index[this->current_index];
+
+    //build market views for exchanges
+    for(auto & exchange_pair : this->exchanges){
+        auto exchange = exchange_pair.second;
+        //if the exchange time is equal to the hydra time then build market view
+        if(exchange->get_datetime() == hydra_time){
+            auto exchange_steaming = exchange->get_market_view();
+        }
+    }
+
+    //increment the hydra's current index
+    this->current_index++;
+
+    //evaluate the portfolio at the current datetime
+    this->evaluate_portfolio(false);
+
+    //allow exchanges to process open order
+    for(auto &exchange_pair: this->exchanges){
+        exchange_pair.second->process_orders(false);
+    }
+
+    //TODO broker process filled orders
+
+
+    return true;
 }
+

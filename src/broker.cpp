@@ -98,6 +98,9 @@ void Broker::send_orders( tsl::robin_map<string,shared_ptr<Exchange>>& exchanges
         //send order to rest on the exchange
         exchange->place_order(order);
 
+        //set the order to state to open as it is now open on exchange
+        order->set_order_state(OPEN);
+
         //add the order to current open orders
         this->open_orders.push_back(order);
     }

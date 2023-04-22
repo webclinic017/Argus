@@ -22,6 +22,9 @@ private:
     ///unique id of the underlying asset of the position
     string asset_id;
 
+    ///unique id of the exchange the underlying asset is on
+    string exchange_id;
+
     ///how many units in the position
     double units;
 
@@ -50,6 +53,23 @@ private:
     unsigned int bars_held;
 
     tsl::robin_map<string,shared_ptr<Trade>> trades;
+
+public:
+    ///get exchange id
+    string* get_exchange_id(){return &this->exchange_id;}
+
+    inline void evaluate(double market_price, bool on_close){
+        this->last_price = market_price;
+        this->unrealized_pl = this->units * (market_price - this->average_price);
+        if(on_close){
+            this->bars_held++;
+        }
+        for(auto& trade : this->trades){
+            trade.second->evaluate(market_price, on_close);
+        }
+    };
+
 };
+
 
 #endif //ARGUS_POSITION_H

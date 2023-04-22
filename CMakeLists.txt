@@ -1,3 +1,4 @@
+#scc -M external -i cpp,py,h
 cmake_minimum_required(VERSION 3.25)
 project(Argus)
 

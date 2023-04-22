@@ -184,6 +184,15 @@ Asset::~Asset() {
 #endif
 }
 
+long long* Asset::get_asset_time() const {
+    if(this->current_index == this->rows){
+        return nullptr;
+    }
+    else {
+        return &this->datetime_index[this->current_index];
+    }
+}
+
 std::shared_ptr<Asset> new_asset(const string& asset_id) {
     return std::make_shared<Asset>(asset_id);
 }

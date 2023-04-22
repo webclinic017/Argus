@@ -33,15 +33,16 @@ Order::Order(OrderType order_type_, string asset_id_, double units_,
     //set the limit to 0, broker will populate of the order type is tp or sl
     this->limit = 0;
 
+    //set the order state equal to PENDING (yet to be place)
+    this->order_state = PENDING;
+
     this->order_parent = nullptr;
 }
 
-void Order::set_limit(double limit_) {
-    if(this->order_id == MARKET_ORDER){
-        throw std::runtime_error("attempting to set limit on market order");
-    }
-    else{
-        this->limit = limit_;
-    }
+void Order::fill(double market_price, long long fill_time) {
+    this->fill_price = market_price;
+    this->order_fill_time = fill_time;
+    this->order_state = FILLED;
 }
+
 

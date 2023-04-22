@@ -94,7 +94,22 @@ public:
     /// get data point from asset
     [[nodiscard]] double get(const string &column, size_t row_index) const;
 
+    /// get the current index of the asset
+    [[nodiscard]] inline double get_market_price(bool on_close) const{
+        if (on_close)
+            return this->data[current_index - 1][this->close_column];
+        else
+            return this->data[current_index - 1][this->open_column];
+    };
+
+    /// get the current index of the asset
+    [[nodiscard]] long long* get_asset_time() const;
+
+    ///get read only numpy array of the asset's datetime index
     py::array_t<long long> get_datetime_index_view();
+
+    ///step the asset forward in time
+    void step(){this->current_index++;}
 
 };
 

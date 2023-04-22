@@ -36,6 +36,9 @@ private:
     ///master datetime index of the combined exchanges
     long long* datetime_index;
 
+    ///current index of the datetime
+    size_t current_index;
+
     ///length of datetime index
     size_t datetime_index_length;
 
@@ -45,6 +48,12 @@ public:
 
     ///build all members
     void build();
+
+    //forward pass of hydra
+    bool forward_pass();
+
+    ///evaluate the portfolio at the current market prices
+    void evaluate_portfolio(bool on_close);
 
     ///add a  new exchange
     shared_ptr<Exchange> new_exchange(const string& exchange_id);

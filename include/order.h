@@ -22,6 +22,14 @@ enum OrderType {
     TAKE_PROFIT_ORDER
 };
 
+enum OrderState {
+    PENDING,        //order has been created but yet to be sent
+    ACCEPETED,      //order has been accepted by broker
+    OPEN,			//order is open on the exchange
+    FILLED,			//order has been filled by the exchange
+    CANCELED,		//order has been canceled by a strategy
+};
+
 enum OrderParentType{
     ///parent of the order is a smart pointer to a trade
     TRADE,
@@ -47,6 +55,9 @@ private:
     ///type of the order
     OrderType order_type;
 
+    ///current state of the order;
+    OrderState order_state;
+
     ///parent of the order. Used to link orders to be placed on conditional fill of another order
     ///or to link stop losses and take profits to existing trades
     OrderParent*  order_parent;
@@ -60,8 +71,14 @@ private:
     ///number of units in the order
     double units;
 
+    ///price the order was filled at
+    double fill_price;
+
+    ///time the order was filled
+    long long order_fill_time;
+
     ///limit use for stop loss and take profit orders
-    double limit{};
+    double limit;
 
     ///unique id of the underlying asset of the order
     string asset_id;
@@ -94,6 +111,18 @@ public:
     ///get the unique asset id of the order
     [[nodiscard]] string get_asset_id() const {return this->asset_id;}
 
+    ///get the units in the order
+    [[nodiscard]] double get_units() const {return this->units;}
+
+    ///get the limit of the order
+    [[nodiscard]] double get_limit() const {return this->limit;}
+
+    ///get the type of the order
+    [[nodiscard]] OrderType get_order_type() const {return this->order_type;}
+
+    ///get the state of the order
+    [[nodiscard]] OrderState get_order_state() const {return this->order_state;}
+
     ///get pointer to an OrderParent struct containing information about the order's parent
     [[nodiscard]] OrderParent* get_order_parent() const {return this->order_parent;}
 
@@ -101,7 +130,13 @@ public:
     [[nodiscard]] vector<shared_ptr<Order>>& get_child_orders() {return this->child_orders;}
 
     ///set the limit of the order
-    void set_limit(double limit);
+    inline void set_limit(double limit_){this->limit = limit_;}
+
+    ///set the order state of the order
+    inline void set_order_state(OrderState order_state_){this->order_state = order_state_;};
+
+    ///fill the order at a given price and time
+    void fill(double market_price, long long fill_time);
 
 };
 

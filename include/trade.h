@@ -16,7 +16,7 @@ using namespace std;
 class Trade{
 private:
     ///is the trade currently open
-    bool is_open;
+    bool is_open{};
 
     ///unique id of the trade
     unsigned int trade_id;
@@ -60,6 +60,8 @@ public:
 
     ///remove open order that has been canceled;
     shared_ptr<Order> cancel_child_order(unsigned int order_id);
+
+    void evaluate(double market_price, bool on_close);
 
 };
 
