@@ -18,7 +18,7 @@ class ExchangeTestMethods(unittest.TestCase):
             "asset1"
         )
 
-        hydra = FastTest.new_hydra()
+        hydra = FastTest.Hydra(1)
         exchange = hydra.new_exchange("exchange1")
         exchange.register_asset(asset1)
         exchange.build()
@@ -35,7 +35,7 @@ class ExchangeTestMethods(unittest.TestCase):
             helpers.test2_asset_id,
         )
 
-        hydra = FastTest.new_hydra()
+        hydra = FastTest.Hydra(1)
         exchange = hydra.new_exchange("exchange1")
         exchange.register_asset(asset1)
         exchange.register_asset(asset2)

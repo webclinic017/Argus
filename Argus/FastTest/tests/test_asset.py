@@ -47,7 +47,7 @@ class AssetTestMethods(unittest.TestCase):
             "asset1"
         )
 
-        hydra = FastTest.new_hydra()
+        hydra = FastTest.new_hydra(1)
         exchange = hydra.new_exchange("exchange1")
 
         #register the existing asset to the exchange, the asset in the exchange's market

@@ -234,6 +234,6 @@ bool Exchange::get_market_view() {
     return true;
 }
 
-shared_ptr<Exchange> new_exchange(const string& exchange_id) {
-    return std::make_shared<Exchange>(exchange_id);
+shared_ptr<Exchange> new_exchange(const string& exchange_id, int logging_) {
+    return std::make_shared<Exchange>(exchange_id, logging_);
 }

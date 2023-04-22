@@ -4,15 +4,18 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <fmt/core.h>
 
 #include "broker.h"
 #include "utils_array.h"
+#include "utils_time.h"
 
 using namespace std;
 
-Broker::Broker(string broker_id_, double cash_){
+Broker::Broker(string broker_id_, double cash_, int logging_){
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
+    this->logging = logging_;
 }
 
 shared_ptr<Order> Broker::cancel_order(unsigned int order_id) {
@@ -108,3 +111,40 @@ void Broker::send_orders( tsl::robin_map<string,shared_ptr<Exchange>>& exchanges
     //clear the order buffer as all orders are now open
     this->open_orders_buffer.clear();
 }
+
+
+void Broker::log_order_fill(shared_ptr<Order>& filled_order){
+    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
+    fmt::print("{}:  BROKER {}: ORDER {} FILLED AT {}, ASSET_ID: {}",
+               datetime_str,
+               broker_id,
+               filled_order->get_order_id(),
+               filled_order->get_fill_price(),
+               filled_order->get_asset_id());
+};
+
+void Broker::process_orders(){
+    vector<size_t> filled_order_indecies;
+    size_t index = 0;
+    for(auto& open_order : this->open_orders){
+        if(open_order->get_order_state() == FILLED){
+
+        }
+    }
+    //remove filled orders
+    for(auto order_index : filled_order_indecies){
+        //pop filled order off of the back
+        std::swap(this->open_orders[order_index], this->open_orders.back());
+        auto filled_order = this->open_orders.back();
+        this->open_orders.pop_back();
+
+        //log the order if needed
+        if(this->logging == 1){
+            this->log_order_fill(filled_order);
+        }
+
+        //push the filled order to the history
+        historical_orders.push_back(filled_order);
+    }
+};
+

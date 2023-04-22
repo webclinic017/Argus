@@ -114,8 +114,14 @@ public:
     ///get the units in the order
     [[nodiscard]] double get_units() const {return this->units;}
 
+    ///get the fill price in the order
+    [[nodiscard]] double get_fill_price() const {return this->fill_price;}
+
     ///get the limit of the order
     [[nodiscard]] double get_limit() const {return this->limit;}
+
+    ///get the limit of the order
+    [[nodiscard]] long long get_fill_time() const {return this->order_fill_time;}
 
     ///get the type of the order
     [[nodiscard]] OrderType get_order_type() const {return this->order_type;}

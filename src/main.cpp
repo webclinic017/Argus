@@ -45,6 +45,7 @@ void init_exchange_ext(py::module &m) {
 
 void init_hydra_ext(py::module &m) {
     py::class_<Hydra, std::shared_ptr<Hydra>>(m, "Hydra")
+        .def(py::init<int>())
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange",  py::return_value_policy::reference)
         .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange")
         .def("new_broker", &Hydra::new_broker, "builds a new broker object",  py::return_value_policy::reference)
@@ -60,7 +61,7 @@ void init_account_ext(py::module &m) {
 
 void init_broker_ext(py::module &m) {
     py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker")
-        .def(py::init<string, double>())
+        .def(py::init<string, double, int>())
         .def("place_market_order", &Broker::place_market_order, "place market order")
         .def("place_limit_order", &Broker::place_limit_order, "place limit order");
 

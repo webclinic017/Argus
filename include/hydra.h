@@ -18,8 +18,11 @@ using namespace std;
 
 class Hydra{
 private:
+    ///logging level
+    int logging;
+
     ///is the hydra built
-    bool is_built;
+    bool is_built{};
 
     ///mapping between exchange id and smart pointer to an exchange
     tsl::robin_map<string,shared_ptr<Exchange>> exchanges;
@@ -34,15 +37,18 @@ private:
     tsl::robin_map<string,shared_ptr<Position>> portfolio;
 
     ///master datetime index of the combined exchanges
-    long long* datetime_index;
+    long long* datetime_index{};
 
     ///current index of the datetime
-    size_t current_index;
+    size_t current_index{};
 
     ///length of datetime index
-    size_t datetime_index_length;
+    size_t datetime_index_length{};
 
 public:
+    ///hydra constructor
+    Hydra(int logging_): logging(logging_){}
+
     ///hydra destructor
     ~Hydra();
 
@@ -70,6 +76,6 @@ public:
 };
 
 ///function for creating a shared pointer to a hydra
-shared_ptr<Hydra> new_hydra();
+shared_ptr<Hydra> new_hydra(int logging);
 
 #endif //ARGUS_HYDRA_H

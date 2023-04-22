@@ -14,6 +14,7 @@ add_library(Argus SHARED ${SRCS} src/broker.cpp src/order.cpp)
 #----external libraries----#
 #fmt
 include_directories(external/fmt/include)
+add_subdirectory(external/fmt)
 
 #robin-map
 find_package(tsl-robin-map REQUIRED)
@@ -43,3 +44,4 @@ ENDIF()
 # Expose asset module to Python
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Argus/FastTest)
 pybind11_add_module(FastTest ${SRCS})
+target_link_libraries(FastTest PRIVATE fmt::fmt-header-only)

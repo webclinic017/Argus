@@ -5,6 +5,8 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <fmt/core.h>
+
 #include "asset.h"
 #include "exchange.h"
 #include "hydra.h"
@@ -22,8 +24,8 @@ Hydra::~Hydra() {
     }
 }
 
-shared_ptr<Hydra> new_hydra() {
-    auto hydra =  make_shared<Hydra>();
+shared_ptr<Hydra> new_hydra(int logging_) {
+    auto hydra =  make_shared<Hydra>(logging_);
 #ifdef DEBUGGING
     printf("MEMORY: allocating new hydra at : %p \n", hydra.get());
 #endif
@@ -64,10 +66,14 @@ shared_ptr<Exchange> Hydra::new_exchange(const string& exchange_id){
     }
 
     //build new exchange wrapped in shared pointer
-    auto exchange = make_shared<Exchange>(exchange_id);
+    auto exchange = make_shared<Exchange>(exchange_id, this->logging);
 
     //insert a clone of the smart pointer into the exchange
     this->exchanges.emplace(exchange_id, exchange);
+
+    if(this->logging == 1){
+        fmt::print("HYDRA: NEW EXCHANGE: {} AT {}", exchange_id, static_cast<void*>(exchange.get()));
+    }
 
 #ifdef DEBUGGING
     printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
@@ -83,10 +89,14 @@ shared_ptr<Broker> Hydra::new_broker(const std::string& broker_id, double cash) 
     }
 
     //build new exchange wrapped in shared pointer
-    auto broker = make_shared<Broker>(broker_id, cash);
+    auto broker = make_shared<Broker>(broker_id, cash, this->logging);
 
     //insert a clone of the smart pointer into the exchange
     this->brokers.emplace(broker_id, broker);
+
+    if(this->logging == 1){
+        fmt::print("HYDRA: NEW BROKER: {} AT {}", broker_id, static_cast<void*>(broker.get()));
+    }
 
 #ifdef DEBUGGING
     printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
