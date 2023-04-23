@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include <vector>
 #include <fmt/core.h>
 
 #include "asset.h"
@@ -14,6 +13,12 @@
 
 namespace py = pybind11;
 using namespace std;
+
+
+Hydra::Hydra(int logging_) : logging(logging_){
+    this->history = std::make_shared<History>();
+}
+
 
 Hydra::~Hydra() {
 #ifdef DEBUGGING
@@ -88,8 +93,13 @@ shared_ptr<Broker> Hydra::new_broker(const std::string& broker_id, double cash) 
         throw std::runtime_error("exchange already exists");
     }
 
-    //build new exchange wrapped in shared pointer
-    auto broker = make_shared<Broker>(broker_id, cash, this->logging);
+    //build new broker wrapped in shared pointer
+    auto broker = make_shared<Broker>(
+            broker_id,
+            cash,
+            this->logging,
+            this->history
+            );
 
     //insert a clone of the smart pointer into the exchange
     this->brokers.emplace(broker_id, broker);
@@ -170,8 +180,12 @@ bool Hydra::forward_pass() {
     }
 
     //TODO broker process filled orders
-
+    for(auto &broker_pair : this->brokers){
+        broker_pair.second->process_orders(
+                this->portfolio,
+                this->accounts
+                );
+    }
 
     return true;
 }
-

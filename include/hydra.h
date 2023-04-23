@@ -12,6 +12,7 @@
 #include "asset.h"
 #include "exchange.h"
 #include "account.h"
+#include "history.h"
 #include "broker.h"
 
 using namespace std;
@@ -36,6 +37,9 @@ private:
     ///portfolio containing all positions
     tsl::robin_map<string,shared_ptr<Position>> portfolio;
 
+    ///container for remembering historical events and structs
+    shared_ptr<History> history;
+
     ///master datetime index of the combined exchanges
     long long* datetime_index{};
 
@@ -47,7 +51,7 @@ private:
 
 public:
     ///hydra constructor
-    Hydra(int logging_): logging(logging_){}
+    explicit Hydra(int logging_);
 
     ///hydra destructor
     ~Hydra();

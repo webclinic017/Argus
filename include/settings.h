@@ -6,6 +6,6 @@
 #define ARGUS_SETTINGS_H
 
 //#define DEBUGGING
-//#define ASSERT_CHECK
+#define ARGUS_RUNTIME_ASSERT
 
 #endif //ARGUS_SETTINGS_H

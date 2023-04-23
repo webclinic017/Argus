@@ -8,6 +8,7 @@
 #include <string>
 #include <tsl/robin_map.h>
 
+#include "history.h"
 #include "position.h"
 #include "order.h"
 #include "account.h"
@@ -15,7 +16,11 @@
 
 using namespace std;
 
-class Broker{
+typedef tsl::robin_map<string,shared_ptr<Position>> Portfolio;
+typedef tsl::robin_map<string, Account> Accounts;
+
+
+class Broker {
 private:
     ///logging level
     int logging;
@@ -32,24 +37,21 @@ private:
     ///cash held at the broker
     double cash;
 
-    ///dummy portfolio containing positions held at the broker
-    tsl::robin_map<string,shared_ptr<Position>> portfolio;
-
     ///open orders held at the broker
     vector<shared_ptr<Order>> open_orders;
 
     ///open orders held at the broker that have not been sent
     vector<shared_ptr<Order>> open_orders_buffer;
 
-    ///container for historical orders place to the broker
-    vector<shared_ptr<Order>> historical_orders;
+    ///smart pointer to historical values container
+    shared_ptr<History> history;
 
 public:
     /// constructor for the broker class
     /// \param broker_id unique id of the broker
     /// \param cash      amount of cash held by the broker
     /// \param logging   logging level of the broker
-    Broker(string broker_id, double cash, int logging);
+    Broker(string broker_id, double cash, int logging, shared_ptr<History> history);
 
     /// cancel an existing order by order's unique id
     /// \param order_id id of the order to cancel
@@ -58,47 +60,61 @@ public:
 
     /// send orders in the open order buffer to their corresponding exchange
     /// \param exchanges reference to hashmap containing all the possible exchanges
-    void send_orders(tsl::robin_map<string,shared_ptr<Exchange>>& exchanges);
+    void send_orders(tsl::robin_map<string, shared_ptr<Exchange>> &exchanges);
 
     /// process a filled order that contains an asset id not in the portfolio
     /// \param filled_order reference to smart pointer containing a filled order
     /// \return smart pointer to a new trade
-    shared_ptr<Trade> open_position(shared_ptr<Order>&filled_order);
+    void open_position(
+            Portfolio &portfolio,
+            Account &account,
+            shared_ptr<Order> &filled_order
+            );
 
     ///  process a filled order that contains an asset id already exists in the portfolio
     /// \param filled_order reference to smart pointer containing a filled order
     /// \return smart pointer to the trade that the order modified
-    shared_ptr<Trade> modify_position(shared_ptr<Order>&filled_order);
+    void modify_position(shared_ptr<Order> &filled_order);
 
-    /// process a filled order who's units is the additive inverse of existing positions units
-    /// \param filled_order reference to smart pointer containing a filled order
-    void close_position(shared_ptr<Order>&filled_order);
+    ///
+    /// \param portfolio
+    /// \param accounts
+    /// \param filled_order
+    void close_position(Portfolio &portfolio,
+            Accounts &accounts,
+            shared_ptr<Order> &filled_order
+    );
 
     /// process all open orders to check for fills
-    /// \param accounts  reference to hashmap containing accounts so we can update on order fills
     /// \param portfolio reference to hashmap containing all positions to update on order fills
+    /// \param accounts  reference to hashmap containing accounts so we can update on order fills
     void process_orders(
-            tsl::robin_map<string, Account>& accounts
+            tsl::robin_map<string, shared_ptr<Position>> &portfolio,
+            tsl::robin_map<string, Account> &accounts
     );
 
     ///order placement wrappers exposed to python
-    void place_market_order(const string& asset_id, double units,
-                            const string& exchange_id,
-                            const string& account_id,
-                            const string& strategy_id);
-    void place_limit_order(const string& asset_id, double units, double limit,
-                            const string& exchange_id,
-                            const string& account_id,
-                            const string& strategy_id);
+    void place_market_order(const string &asset_id, double units,
+                            const string &exchange_id,
+                            const string &account_id,
+                            const string &strategy_id);
+
+    void place_limit_order(const string &asset_id, double units, double limit,
+                           const string &exchange_id,
+                           const string &account_id,
+                           const string &strategy_id);
 
     //void place_limit_order();
     //void place_stop_loss_order();
     //void place_take_profit_order();
 
-    ///
+    /// log order fill
     /// \param filled_order filled order to log
-    void log_order_fill(shared_ptr<Order>& filled_order);
+    void log_order_fill(shared_ptr<Order> &filled_order);
+
+    /// log position open
+    /// \param new_position new position to log
+    void log_position_open(shared_ptr<Position> &new_position);
 
 };
-
 #endif //ARGUS_BROKER_H

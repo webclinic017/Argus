@@ -41,3 +41,18 @@ Position::Position(shared_ptr<Order>& filled_order, unsigned int position_id_){
         std::make_shared<Trade>(filled_order, filled_order->get_trade_id())
     });
 }
+
+void Position::close(double market_price_, long long int position_close_time_) {
+    //close the position
+    this->is_open = false;
+    this->close_price = market_price_;
+    this->position_close_time = position_close_time_;
+    this->realized_pl += this->units * (market_price_ - this->average_price);
+    this->unrealized_pl = 0;
+
+    //close each of the individual child trades
+    for(auto &trade_pair : this->trades){
+        auto &existing_trade = trade_pair.second;
+        existing_trade->close(close_price, position_close_time);
+    }
+}

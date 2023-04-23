@@ -114,6 +114,12 @@ public:
     ///get the unique asset id of the order
     [[nodiscard]] string get_asset_id() {return this->asset_id;}
 
+    ///get the unique trade id of the broker the order was placed to
+    [[nodiscard]] string get_broker_id() const {return this->broker_id;}
+
+    ///get the unique trade id of the account the order was placed to
+    [[nodiscard]] string get_account_id() const {return this->account_id;}
+
     ///get the unique trade id of the order
     [[nodiscard]] int get_trade_id() const {return this->trade_id;}
 

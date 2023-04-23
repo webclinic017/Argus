@@ -8,12 +8,14 @@
 
 #include "broker.h"
 #include "position.h"
+#include "settings.h"
 #include "utils_array.h"
 #include "utils_time.h"
 
 using namespace std;
 
-Broker::Broker(string broker_id_, double cash_, int logging_){
+Broker::Broker(string broker_id_, double cash_, int logging_, shared_ptr<History> history_){
+    this->history = std::move(history_);
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
     this->logging = logging_;
@@ -115,22 +117,56 @@ void Broker::send_orders( tsl::robin_map<string,shared_ptr<Exchange>>& exchanges
     this->open_orders_buffer.clear();
 }
 
+void Broker::modify_position(shared_ptr<Order>&filled_order){}
 
-void Broker::log_order_fill(shared_ptr<Order>& filled_order){
-    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
-    fmt::print("{}:  BROKER {}: ORDER {} FILLED AT {}, ASSET_ID: {}",
-               datetime_str,
-               broker_id,
-               filled_order->get_order_id(),
-               filled_order->get_fill_price(),
-               filled_order->get_asset_id());
-};
+void Broker::close_position(
+        Portfolio &portfolio,
+        Accounts &accounts,
+        shared_ptr<Order> &filled_order
+        ){
+    //get the position to close
+    auto asset_id = filled_order->get_asset_id();
+    auto position = portfolio.at(asset_id);
 
-shared_ptr<Trade> Broker::modify_position(shared_ptr<Order>&filled_order){}
+    //adjust cash held at the broker
+    this->cash += filled_order->get_units() * filled_order->get_fill_price();
 
-void Broker::close_position(shared_ptr<Order>&filled_order){}
+    //close all child trade of the position whose broker is equal to current broker id
+    auto trades = position->get_trades();
+    for(auto it = trades.begin(); it != trades.end(); ) {
+        auto trade = it->second;
 
-shared_ptr<Trade> Broker::open_position(shared_ptr<Order>&filled_order){
+        //close the child trade
+        trade->close(filled_order->get_fill_price(), filled_order->get_fill_time());
+
+        //adjust the corresponding account and remove the trade from its portfolio
+        auto account = &accounts.at(filled_order->get_account_id());
+        account->close_trade(filled_order->get_asset_id());
+
+        //remove the trade from the position container
+        it = trades.erase(it);
+
+        //cancel orders whose parent is the closed trade
+        for(auto &order : trade->get_open_orders()){
+            this->cancel_order(order->get_order_id());
+        }
+
+        //push the trade to history
+        this->history->remember_trade(std::move(trade));
+    }
+
+    //remove the position from master portfolio
+    portfolio.erase(asset_id);
+
+    //push position to history
+    this->history->remember_position(std::move(position));
+}
+
+void Broker::open_position(
+        Portfolio& portfolio,
+        Account& account,
+        shared_ptr<Order>&filled_order
+        ){
     //build the new position and increment position counter used to set ids
     auto position = make_shared<Position>(filled_order, this->position_counter);
     this->position_counter++;
@@ -138,19 +174,34 @@ shared_ptr<Trade> Broker::open_position(shared_ptr<Order>&filled_order){
     //adjust cash held by broker accordingly
     this->cash -= filled_order->get_units() * filled_order->get_fill_price();
 
-    //insert the new position into the broker's portfolio
-    this->portfolio.insert({filled_order->get_asset_id(), position});
+    //insert the new position into the master portfolio object
+    portfolio.insert({filled_order->get_asset_id(), position});
 
-    //extract smart pointer to the new trade, so it can be passed on to account map
+    //extract smart pointer to the new trade, so it can be passed on to account map and transform
+    //trade id to unsigned int, -1 => 0 implies no trade id passed so set to position base trade
     auto trade_id_int = filled_order->get_trade_id();
     if(trade_id_int == -1){trade_id_int++;}
     auto trade_id_uint = static_cast<unsigned int>(trade_id_int);
     auto trade = position->get_trade(trade_id_uint);
+    account.new_trade(trade);
 
-    return trade;
+    //log the position if needed
+    if(this->logging == 1){
+        this->log_position_open(position);
+    }
+
+#ifdef ARGUS_RUNTIME_ASSERT
+    //assert trade pointer count is 3, one in the position, one in the account then one
+    //in the local function scope
+    assert(trade.use_count() == 3);
+#endif
+
 }
 
-void Broker::process_orders(tsl::robin_map<string, Account> &accounts){
+void Broker::process_orders(
+        tsl::robin_map<string,shared_ptr<Position>>& portfolio,
+        tsl::robin_map<string, Account> &accounts
+        ){
     vector<size_t> filled_order_indecies;
     size_t index = 0;
     for(auto& open_order : this->open_orders){
@@ -161,22 +212,25 @@ void Broker::process_orders(tsl::robin_map<string, Account> &accounts){
                 this->log_order_fill(open_order);
             }
 
+            //get the account corresponding to the filled order
+            auto account_id = open_order->get_account_id();
+            auto account = accounts.at(account_id);
+
             //no position exists in the portfolio with the filled order's asset_id
-            if(!this->portfolio.contains(open_order->get_asset_id())){
-                this->open_position(open_order);
+            if(!portfolio.contains(open_order->get_asset_id())){
+                this->open_position(portfolio, account, open_order);
             }
             else{
-                auto position = this->portfolio.at(open_order->get_asset_id());
+                auto position = portfolio.at(open_order->get_asset_id());
                 //filled order is not closing existing position
                 if(position->get_units() + open_order->get_units() > 1e-7){
-                    auto trade = this->modify_position(open_order);
+                    this->modify_position(open_order);
                 }
+                //filled order is closing an existing position
                 else{
-                    this->close_position(open_order);
+                    this->close_position(portfolio, accounts, open_order);
                 }
             }
-            //modify an existing position
-
             filled_order_indecies.push_back(index);
         }
         index++;
@@ -189,7 +243,27 @@ void Broker::process_orders(tsl::robin_map<string, Account> &accounts){
         this->open_orders.pop_back();
 
         //push the filled order to the history
-        historical_orders.push_back(filled_order);
+        this->history->remember_order(std::move(filled_order));
     }
 };
+
+void Broker::log_order_fill(shared_ptr<Order>& filled_order){
+    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
+    fmt::print("{}:  BROKER {}: ORDER {} FILLED AT {}, ASSET_ID: {}",
+               datetime_str,
+               this->broker_id,
+               filled_order->get_order_id(),
+               filled_order->get_fill_price(),
+               filled_order->get_asset_id());
+};
+
+void Broker::log_position_open(shared_ptr<Position>& new_position){
+    auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_open_time());
+    fmt::print("{}:  BROKER {}: POSITION {} AVERAGE PRICE AT {}, ASSET_ID: {}",
+               datetime_str,
+               this->broker_id,
+               new_position->get_position_id(),
+               new_position->get_average_price(),
+               new_position->get_asset_id());
+}
 

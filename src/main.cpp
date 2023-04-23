@@ -61,7 +61,6 @@ void init_account_ext(py::module &m) {
 
 void init_broker_ext(py::module &m) {
     py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker")
-        .def(py::init<string, double, int>())
         .def("place_market_order", &Broker::place_market_order, "place market order")
         .def("place_limit_order", &Broker::place_limit_order, "place limit order");
 
