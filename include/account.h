@@ -12,6 +12,9 @@
 
 using namespace std;
 
+class Account;
+typedef tsl::robin_map<string,Account> Accounts;
+
 class Account{
 private:
     ///unique id of the account

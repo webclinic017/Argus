@@ -11,13 +11,12 @@
 
 using namespace std;
 
-shared_ptr<Order> Trade::cancel_child_order(unsigned int order_id) {
-    auto order = unsorted_vector_remove(
+void Trade::cancel_child_order(unsigned int order_id) {
+    auto _order = unsorted_vector_remove(
             this->open_orders,
             [](const shared_ptr<Order> &obj) { return obj->get_order_id(); },
             order_id
     );
-    return order;
 }
 
 Trade::Trade(shared_ptr<Order>& filled_order, unsigned int trade_id_) {

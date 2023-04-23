@@ -54,6 +54,15 @@ void Hydra::build(){
         it.value()->build();
     }
 
+    //build the brokers
+    for(auto it = this->brokers.begin(); it != this->brokers.end(); ++it){
+        it.value()->build(
+                &this->exchanges,
+                &this->portfolio,
+                &this->accounts
+                );
+    }
+
     //build the combined datetime index from all the exchanges
     auto datetime_index_ = container_sorted_union(
             this->exchanges,
@@ -77,7 +86,7 @@ shared_ptr<Exchange> Hydra::new_exchange(const string& exchange_id){
     this->exchanges.emplace(exchange_id, exchange);
 
     if(this->logging == 1){
-        fmt::print("HYDRA: NEW EXCHANGE: {} AT {}", exchange_id, static_cast<void*>(exchange.get()));
+        fmt::print("HYDRA: NEW EXCHANGE: {} AT {} \n", exchange_id, static_cast<void*>(exchange.get()));
     }
 
 #ifdef DEBUGGING
@@ -143,7 +152,7 @@ void Hydra::evaluate_portfolio(bool on_close) {
         //get the exchange the asset is listed on
         auto exchange_id = position->get_exchange_id();
         auto exchange = this->exchanges.at(exchange_id);
-        auto market_price = exchange->get_market_price(asset_id, on_close);
+        auto market_price = exchange->get_market_price(asset_id);
 
         if(market_price != 0){
             position->evaluate(market_price, on_close);
@@ -162,6 +171,10 @@ bool Hydra::forward_pass() {
     //build market views for exchanges
     for(auto & exchange_pair : this->exchanges){
         auto exchange = exchange_pair.second;
+
+        //set the exchange is_close
+        exchange->set_on_close(false);
+
         //if the exchange time is equal to the hydra time then build market view
         if(exchange->get_datetime() == hydra_time){
             auto exchange_steaming = exchange->get_market_view();
@@ -176,15 +189,12 @@ bool Hydra::forward_pass() {
 
     //allow exchanges to process open order
     for(auto &exchange_pair: this->exchanges){
-        exchange_pair.second->process_orders(false);
+        exchange_pair.second->process_orders();
     }
 
     //TODO broker process filled orders
     for(auto &broker_pair : this->brokers){
-        broker_pair.second->process_orders(
-                this->portfolio,
-                this->accounts
-                );
+        broker_pair.second->process_orders();
     }
 
     return true;

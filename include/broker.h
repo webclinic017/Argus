@@ -43,6 +43,15 @@ private:
     ///open orders held at the broker that have not been sent
     vector<shared_ptr<Order>> open_orders_buffer;
 
+    ///pointer to exchange map for routing incoming orders
+    Exchanges* exchanges;
+
+    ///pointer to master portfolio
+    Portfolio* portfolio;
+
+    ///pointer to master account map
+    Accounts* accounts;
+
     ///smart pointer to historical values container
     shared_ptr<History> history;
 
@@ -53,56 +62,57 @@ public:
     /// \param logging   logging level of the broker
     Broker(string broker_id, double cash, int logging, shared_ptr<History> history);
 
+    /// build the broker, set memeber pointers
+    /// \param exchanges    container for master exchange map
+    /// \param portfolio    container for master position map
+    /// \param accounts     container for master account map
+    void build(
+            Exchanges* exchanges,
+            Portfolio* portfolio,
+            Accounts* accounts
+            );
+
     /// cancel an existing order by order's unique id
     /// \param order_id id of the order to cancel
     /// \return         smart pointer to the order that has been canceled
-    shared_ptr<Order> cancel_order(unsigned int order_id);
+    void cancel_order(unsigned int order_id);
 
     /// send orders in the open order buffer to their corresponding exchange
-    /// \param exchanges reference to hashmap containing all the possible exchanges
-    void send_orders(tsl::robin_map<string, shared_ptr<Exchange>> &exchanges);
+    void send_orders();
 
-    /// process a filled order that contains an asset id not in the portfolio
-    /// \param filled_order reference to smart pointer containing a filled order
-    /// \return smart pointer to a new trade
-    void open_position(
-            Portfolio &portfolio,
-            Account &account,
-            shared_ptr<Order> &filled_order
-            );
+    /// open a new position
+    /// \param filled_order order that has been filled
+    void open_position(shared_ptr<Order> &filled_order);
 
     ///  process a filled order that contains an asset id already exists in the portfolio
     /// \param filled_order reference to smart pointer containing a filled order
-    /// \return smart pointer to the trade that the order modified
     void modify_position(shared_ptr<Order> &filled_order);
 
-    ///
-    /// \param portfolio
-    /// \param accounts
-    /// \param filled_order
-    void close_position(Portfolio &portfolio,
-            Accounts &accounts,
-            shared_ptr<Order> &filled_order
-    );
+    /// close existing position
+    /// \param filled_order order that caused the position close
+    void close_position(shared_ptr<Order> &filled_order);
 
-    /// process all open orders to check for fills
-    /// \param portfolio reference to hashmap containing all positions to update on order fills
-    /// \param accounts  reference to hashmap containing accounts so we can update on order fills
-    void process_orders(
-            tsl::robin_map<string, shared_ptr<Position>> &portfolio,
-            tsl::robin_map<string, Account> &accounts
-    );
+    /// process a filled order
+    /// \param open_order order that has been filled
+    void process_filled_order(shared_ptr<Order>& open_order);
+
+    /// process all open orders
+    void process_orders();
+
+    void place_order(shared_ptr<Order>& order);
 
     ///order placement wrappers exposed to python
     void place_market_order(const string &asset_id, double units,
                             const string &exchange_id,
                             const string &account_id,
-                            const string &strategy_id);
+                            const string &strategy_id,
+                            OrderExecutionType order_execution_type = LAZY);
 
     void place_limit_order(const string &asset_id, double units, double limit,
                            const string &exchange_id,
                            const string &account_id,
-                           const string &strategy_id);
+                           const string &strategy_id,
+                           OrderExecutionType order_execution_type = LAZY);
 
     //void place_limit_order();
     //void place_stop_loss_order();

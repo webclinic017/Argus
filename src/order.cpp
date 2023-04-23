@@ -3,22 +3,24 @@
 //
 #include "order.h"
 
-#include <utility>
+#include "settings.h"
 #include "utils_array.h"
 
-shared_ptr<Order> Order::cancel_child_order(unsigned int order_id) {
-    auto order = unsorted_vector_remove(
+void Order::cancel_child_order(unsigned int order_id_) {
+    auto _order = unsorted_vector_remove(
             this->child_orders,
             [](const shared_ptr<Order> &obj) { return obj->get_order_id(); },
-            order_id
+            order_id_
     );
-    return order;
 }
 
 Order::Order(OrderType order_type_, string asset_id_, double units_,string exchange_id_,
              string broker_id_, string account_id_, string strategy_id_, int trade_id_) {
+
     this->order_type = order_type_;
     this->units = units_;
+    this->fill_price = 0.0;
+    this->order_fill_time = 0;
 
     //populate the ids of the order
     this->asset_id = std::move(asset_id_);
@@ -39,6 +41,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_,string excha
     //set the order state equal to PENDING (yet to be place)
     this->order_state = PENDING;
 
+    //set the order parent to nullptr at first
     this->order_parent = nullptr;
 }
 
@@ -46,6 +49,14 @@ void Order::fill(double market_price, long long fill_time) {
     this->fill_price = market_price;
     this->order_fill_time = fill_time;
     this->order_state = FILLED;
+}
+
+OrderParent *Order::get_order_parent() const {
+#ifdef ARGUS_RUNTIME_ASSERT
+    //asser that order parent is not nullptr
+    assert(this->order_parent);
+#endif
+    return this->order_parent;
 }
 
 

@@ -97,12 +97,12 @@ py::array_t<long long> Exchange::get_datetime_index_view() {
             true);
 }
 
-void Exchange::place_order(const shared_ptr<Order>& order) {
-    this->open_orders.push_back(order);
+void Exchange::place_order(shared_ptr<Order>& order_) {
+    this->process_order(order_);
 }
 
-void Exchange::process_market_order(shared_ptr<Order> &open_order, bool on_close){
-    auto market_price = this->get_market_price(open_order->get_asset_id(), on_close);
+void Exchange::process_market_order(shared_ptr<Order> &open_order){
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if(market_price == 0){
         throw std::invalid_argument("received order for which asset is not currently streaming");
     }
@@ -110,8 +110,8 @@ void Exchange::process_market_order(shared_ptr<Order> &open_order, bool on_close
 
 }
 
-void Exchange::process_limit_order(shared_ptr<Order> &open_order, bool on_close){
-    auto market_price = this->get_market_price(open_order->get_asset_id(), on_close);
+void Exchange::process_limit_order(shared_ptr<Order> &open_order){
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if(market_price == 0){
         throw std::invalid_argument("received order for which asset is not currently streaming");
     }
@@ -123,8 +123,8 @@ void Exchange::process_limit_order(shared_ptr<Order> &open_order, bool on_close)
     }
 }
 
-void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order, bool on_close){
-    auto market_price = this->get_market_price(open_order->get_asset_id(), on_close);
+void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order){
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if(market_price == 0){
         throw std::invalid_argument("received order for which asset is not currently streaming");
     }
@@ -136,8 +136,8 @@ void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order, bool on_cl
     }
 }
 
-void Exchange::process_take_profit_order(shared_ptr<Order> &open_order, bool on_close){
-    auto market_price = this->get_market_price(open_order->get_asset_id(), on_close);
+void Exchange::process_take_profit_order(shared_ptr<Order> &open_order){
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if(market_price == 0){
         throw std::invalid_argument("received order for which asset is not currently streaming");
     }
@@ -149,51 +149,59 @@ void Exchange::process_take_profit_order(shared_ptr<Order> &open_order, bool on_
     }
 }
 
-void Exchange::process_orders(bool on_close) {
-    vector<size_t> filled_order_indecies;
-    size_t index = 0;
-    for(auto& order : this->open_orders){
-        auto asset_id = order->get_asset_id();
-        auto asset = this->market_view.at(asset_id);
+void Exchange::process_order(shared_ptr<Order> &order) {
+    auto asset_id = order->get_asset_id();
+    auto asset = this->market_view.at(asset_id);
 
-        //check to see if asset is currently streaming
-        if(!asset){
-            continue;
-        }
-
-        //switch on order type and process accordingly
-        switch (order->get_order_type()) {
-            case MARKET_ORDER: {
-                this->process_market_order(order, on_close);
-                break;
-            }
-            case LIMIT_ORDER:{
-                this->process_limit_order(order, on_close);
-                break;
-            }
-            case STOP_LOSS_ORDER:{
-                this->process_stop_loss_order(order, on_close);
-                break;
-            }
-            case TAKE_PROFIT_ORDER:{
-                this->process_take_profit_order(order, on_close);
-                break;
-            }
-        }
-
-        //if the order was filled mark its index
-        if(order->get_order_state() == FILLED){
-            filled_order_indecies.push_back(index);
-        }
-        index++;
+    //check to see if asset is currently streaming
+    if(!asset){
+        throw std::runtime_error("failed to find asset in market view");
     }
 
-    //remove filled orders
-    for(auto order_index : filled_order_indecies){
-        std::swap(this->open_orders[order_index], this->open_orders.back());
-        this->open_orders.pop_back();
+    //switch on order type and process accordingly
+    switch (order->get_order_type()) {
+        case MARKET_ORDER: {
+            this->process_market_order(order);
+            break;
+        }
+        case LIMIT_ORDER:{
+            this->process_limit_order(order);
+            break;
+        }
+        case STOP_LOSS_ORDER:{
+            this->process_stop_loss_order(order);
+            break;
+        }
+        case TAKE_PROFIT_ORDER:{
+            this->process_take_profit_order(order);
+            break;
+        }
+    }
+
+    //check to see if order was filled, if not push to open order
+    if(order->get_order_state() == PENDING){
+        order->set_order_state(OPEN);
+        this->open_orders.push_back(order);
     }
 }
+
+void Exchange::process_orders() {
+    vector<size_t> filled_order_indecies;
+    size_t index = 0;
+    for (auto it = this->open_orders.begin(); it != this->open_orders.end();) {
+        auto order = *it;
+        this->process_order(order);
+
+        //if order was filled remove from open orders, else move to next
+        if(order->get_order_state() == FILLED){
+            it = this->open_orders.erase(it);
+        }
+        else{
+            it++;
+        };
+    }
+}
+
 
 bool Exchange::get_market_view() {
     //if the current index is the last then return false, all assets listed on this exchange

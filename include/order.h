@@ -24,18 +24,19 @@ enum OrderType {
 
 enum OrderState {
     PENDING,        //order has been created but yet to be sent
-    ACCEPETED,      //order has been accepted by broker
     OPEN,			//order is open on the exchange
     FILLED,			//order has been filled by the exchange
     CANCELED,		//order has been canceled by a strategy
 };
 
-enum OrderParentType{
-    ///parent of the order is a smart pointer to a trade
-    TRADE,
+enum OrderExecutionType{
+    EAGER,          //order will be placed as soon as the broker gets it
+    LAZY            //order will be placed in broker send orders sweep
+};
 
-    ///parent of the order is a smart pointer to another open order
-    ORDER
+enum OrderParentType{
+    TRADE,          ///parent of the order is a smart pointer to a trade
+    ORDER           ///parent of the order is a smart pointer to another open order
 };
 
 struct OrderParent{
@@ -103,7 +104,7 @@ public:
     Order(OrderType order_type_, string asset_id_, double units_,string exchange_id_,
           string broker_id_, string account_id_, string strategy_id_, int trade_id_ = -1);
 
-    shared_ptr<Order> cancel_child_order(unsigned int order_id);
+    void cancel_child_order(unsigned int order_id);
 
     ///get the unique id of the order
     [[nodiscard]] unsigned int get_order_id() const {return this->order_id;}
@@ -142,7 +143,7 @@ public:
     [[nodiscard]] OrderState get_order_state() const {return this->order_state;}
 
     ///get pointer to an OrderParent struct containing information about the order's parent
-    [[nodiscard]] OrderParent* get_order_parent() const {return this->order_parent;}
+    [[nodiscard]] OrderParent* get_order_parent() const;
 
     ///get reference to vector containing orders to be placed on fill
     [[nodiscard]] vector<shared_ptr<Order>>& get_child_orders() {return this->child_orders;}

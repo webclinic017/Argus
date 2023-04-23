@@ -73,7 +73,7 @@ public:
     void close(double market_price, long long trade_close_time);
 
     ///remove open order that has been canceled;
-    shared_ptr<Order> cancel_child_order(unsigned int order_id);
+    void cancel_child_order(unsigned int order_id);
 
     /// is the trade currently open
     /// \return is the trade open

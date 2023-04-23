@@ -13,11 +13,15 @@
 
 #include "asset.h"
 #include "order.h"
+
 #include "utils_array.h"
 
 using namespace std;
-
 namespace py = pybind11;
+
+//forward exchange class definition for typedef
+class Exchange;
+typedef tsl::robin_map<string,shared_ptr<Exchange>> Exchanges;
 
 class Exchange{
 private:
@@ -26,6 +30,9 @@ private:
 
     ///is the exchange built
     bool is_built;
+
+    ///is the close of a candle
+    bool on_close;
 
     ///unique id of the exchange
     string exchange_id;
@@ -54,6 +61,21 @@ private:
     ///current position in datetime index
     size_t current_index;
 
+    ///process open orders on the exchange
+    void process_order(shared_ptr<Order>& open_order);
+
+    ///process a market order currently open
+    void process_market_order(shared_ptr<Order> &open_order);
+
+    ///process a limit order currently open
+    void process_limit_order(shared_ptr<Order> &open_order);
+
+    ///process a stop loss order currently open
+    void process_stop_loss_order(shared_ptr<Order> &open_order);
+
+    ///process a take profit order currently open
+    void process_take_profit_order(shared_ptr<Order> &open_order);
+
 public:
     ///exchange constructor
     Exchange(string exchange_id_, int logging_):
@@ -80,24 +102,13 @@ public:
     ///register an asset on the exchange
     void register_asset(const shared_ptr<Asset>& asset);
 
-    ///place order to the exchange
-    void place_order(const shared_ptr<Order>& order);
-
     ///process open orders on the exchange
-    void process_orders(bool on_close);
+    void process_orders();
 
-    ///process a market order currently open
-    void process_market_order(shared_ptr<Order> &open_order, bool on_close);
+    ///place order to the exchange
+    void place_order(shared_ptr<Order>& order);
 
-    ///process a limit order currently open
-    void process_limit_order(shared_ptr<Order> &open_order, bool on_close);
-
-    ///process a stop loss order currently open
-    void process_stop_loss_order(shared_ptr<Order> &open_order, bool on_close);
-
-    ///process a take profit order currently open
-    void process_take_profit_order(shared_ptr<Order> &open_order, bool on_close);
-
+    void set_on_close(bool on_close_){this->on_close = on_close_;}
 
     ///build a new asset on the exchange
     std::shared_ptr<Asset> new_asset(const string& asset_id);
@@ -120,11 +131,11 @@ public:
     /// return the number of rows in the asset
     [[nodiscard]] size_t get_rows() const {return this->datetime_index_length;}
 
-    inline double get_market_price(const string& asset_id, bool on_close){
+    inline double get_market_price(const string& asset_id){
         //get pointer to asset, nullptr if asset is not currently streaming
         auto asset_raw_pointer = this->market_view.at(asset_id);
         if(asset_raw_pointer){
-            return asset_raw_pointer->get_market_price(on_close);
+            return asset_raw_pointer->get_market_price(this->on_close);
         }
         else{
             return 0.0;
