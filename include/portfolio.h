@@ -15,11 +15,17 @@
 #include "position.h"
 #include "account.h"
 #include "history.h"
+#include "exchange.h"
 
-class Portfolio {
+class Portfolio
+{
 public:
     using position_sp_t = Position::position_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
+
+    typedef shared_ptr<Portfolio> portfolio_sp_t;
+    typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
+    typedef tsl::robin_map<std::string, portfolio_sp_t> portfolios_map_t;
 
     /// portfolio constructor
     /// \param logging logging level
@@ -39,12 +45,13 @@ public:
     /// \tparam Func template function that cancels all child orders of a trade
     /// \param filled_order ref to a sp to a filled order
     /// \param func function used to cancel all orders linked to a trade if needed
-    template<typename Func>
+    template <typename Func>
     void modify_position(shared_ptr<Order> &filled_order, Func trade_cancel_orders);
 
     /// generate a iterator begin and end for the position map
     /// \return pair of iteratores, begin and end, for postion map
-    auto get_iterator() {
+    auto get_iterator()
+    {
         return std::make_pair(this->positions_map.begin(), this->positions_map.end());
     }
 
@@ -67,18 +74,37 @@ public:
     /// \param asset_id asset id of the position to delete
     void delete_position(const string &asset_id);
 
+    /// add new sub portfolio to the portfolio
+    /// \param portfolio_id portfolio id of the new sub portfolio
+    /// \param portfolio smart pointer to sub portfolio
+    void add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio);
+
+    /// @brief get smartpointer to a sub portfolio
+    /// @param portfolio_id id of the sub portfolio
+    /// @return smart pointer to the sub portfolio
+    portfolio_sp_t get_sub_portfolio(const string &portfolio_id);
+
+    /// @brief evaluate the portfolio on open or close
+    /// @param on_close are we at close of the candle
+    void evaluate(bool on_close);
+
 private:
-    typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
-    ///unique id of the portfolio
+    /// unique id of the portfolio
     std::string portfolio_id;
 
     /// logging level
     int logging;
 
-    ///mapping between asset id and position smart pointer
+    /// mapping between asset id and position smart pointer
     positions_map_t positions_map;
 
-    ///position counter for position ids
+    /// mapping between sub portfolio id and potfolio smart poitner
+    portfolios_map_t portfolio_map;
+
+    /// smart pointer to exchanges map
+    exchanges_sp_t exchanges_sp;
+
+    /// position counter for position ids
     unsigned int position_counter{};
 
     /// cash held by the portfolio
@@ -93,43 +119,45 @@ private:
     /// helped function to log new position
     /// \param new_position ref to sp of new position
     void log_position_open(position_sp_t &new_position);
-
 };
 
-template<typename Func>
-void Portfolio::modify_position(shared_ptr<Order> &filled_order, Func trade_cancel_orders) {
-    //get the position and account to modify
+template <typename Func>
+void Portfolio::modify_position(shared_ptr<Order> &filled_order, Func trade_cancel_orders)
+{
+    // get the position and account to modify
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id);
     auto account = &accounts->at(filled_order->get_account_id());
 
-    //adjust position and close out trade if needed
+    // adjust position and close out trade if needed
     auto trade = position->adjust(filled_order);
-    if(!trade->get_is_open()){
+    if (!trade->get_is_open())
+    {
 
-        //remove trade from account's portfolio
+        // remove trade from account's portfolio
         account->close_trade(asset_id);
 
-        //cancel any orders linked to the closed traded
+        // cancel any orders linked to the closed traded
         trade_cancel_orders(trade);
 
-        //remember the trade
+        // remember the trade
         this->history->remember_trade(std::move(trade));
     }
 
-    //adjust cash for increasing position
+    // adjust cash for increasing position
     auto order_units = filled_order->get_units();
     auto order_fill_price = filled_order->get_fill_price();
-    if(order_units * position->get_units() > 0){
-        account->add_cash( -1 * order_units * order_fill_price);
+    if (order_units * position->get_units() > 0)
+    {
+        account->add_cash(-1 * order_units * order_fill_price);
         this->cash -= order_units * order_fill_price;
     }
-        //adjust cash for reducing position
-    else{
+    // adjust cash for reducing position
+    else
+    {
         account->add_cash(abs(order_units) * order_fill_price);
         this->cash += abs(order_units) * order_fill_price;
     }
 }
 
-
-#endif //ARGUS_PORTFOLIO_H
+#endif // ARGUS_PORTFOLIO_H

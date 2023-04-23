@@ -19,42 +19,11 @@ using namespace std;
 
 typedef tsl::robin_map<string, Account> Accounts;
 
-class Broker {
-private:
-    ///logging level
-    int logging;
-
-    ///unique id of the broker
-    string broker_id;
-
-    ///order counter
-    unsigned int order_counter;
-
-    ///positions counter
-    unsigned int position_counter;
-
-    ///cash held at the broker
-    double cash;
-
-    ///open orders held at the broker
-    vector<shared_ptr<Order>> open_orders;
-
-    ///open orders held at the broker that have not been sent
-    vector<shared_ptr<Order>> open_orders_buffer;
-
-    ///pointer to exchange map for routing incoming orders
-    Exchanges* exchanges;
-
-    ///brokers portfolio
-    shared_ptr<Portfolio> portfolio;
-
-    ///pointer to master account map
-    Accounts* accounts;
-
-    ///smart pointer to historical values container
-    shared_ptr<History> history;
+class Broker
+{
 
 public:
+    using portfolio_sp_t = Portfolio::portfolio_sp_t;
     using position_sp_t = Position::position_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
 
@@ -63,20 +32,19 @@ public:
     /// \param cash      amount of cash held by the broker
     /// \param logging   logging level of the broker
     Broker(
-            string broker_id,
-            double cash,
-            int logging,
-            shared_ptr<History> history,
-            shared_ptr<Portfolio> portfolio);
+        string broker_id,
+        double cash,
+        int logging,
+        shared_ptr<History> history,
+        shared_ptr<Portfolio> portfolio);
 
     /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map
     /// \param portfolio    container for portfolio position map
     /// \param accounts     container for master account map
     void build(
-            Exchanges* exchanges,
-            Accounts* accounts
-            );
+        Exchanges *exchanges,
+        Accounts *accounts);
 
     /// cancel orders by order_id or by class obj
     void cancel_order(unsigned int order_id);
@@ -100,14 +68,14 @@ public:
 
     /// process a filled order
     /// \param open_order order that has been filled
-    void process_filled_order(shared_ptr<Order>& open_order);
+    void process_filled_order(shared_ptr<Order> &open_order);
 
     /// process all open orders
     void process_orders();
 
-    void place_order(shared_ptr<Order>& order);
+    void place_order(shared_ptr<Order> &order);
 
-    ///order placement wrappers exposed to python
+    /// order placement wrappers exposed to python
     void place_market_order(const string &asset_id, double units,
                             const string &exchange_id,
                             const string &account_id,
@@ -120,9 +88,9 @@ public:
                            const string &strategy_id,
                            OrderExecutionType order_execution_type = LAZY);
 
-    //void place_limit_order();
-    //void place_stop_loss_order();
-    //void place_take_profit_order();
+    // void place_limit_order();
+    // void place_stop_loss_order();
+    // void place_take_profit_order();
 
     /// log order fill
     /// \param filled_order filled order to log
@@ -132,5 +100,38 @@ public:
     /// \param new_position new position to log
     void log_position_open(shared_ptr<Position> &new_position);
 
+private:
+    /// logging level
+    int logging;
+
+    /// unique id of the broker
+    string broker_id;
+
+    /// order counter
+    unsigned int order_counter;
+
+    /// positions counter
+    unsigned int position_counter;
+
+    /// cash held at the broker
+    double cash;
+
+    /// open orders held at the broker
+    vector<shared_ptr<Order>> open_orders;
+
+    /// open orders held at the broker that have not been sent
+    vector<shared_ptr<Order>> open_orders_buffer;
+
+    /// pointer to exchange map for routing incoming orders
+    Exchanges *exchanges;
+
+    /// brokers portfolio
+    portfolio_sp_t portfolio;
+
+    /// pointer to master account map
+    Accounts *accounts;
+
+    /// smart pointer to historical values container
+    shared_ptr<History> history;
 };
-#endif //ARGUS_BROKER_H
+#endif // ARGUS_BROKER_H

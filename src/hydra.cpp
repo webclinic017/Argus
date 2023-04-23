@@ -14,195 +14,201 @@
 namespace py = pybind11;
 using namespace std;
 
-
-Hydra::Hydra(int logging_) : logging(logging_){
+Hydra::Hydra(int logging_) : logging(logging_),
+                             master_portfolio(logging_, 0, "master")
+{
     this->history = std::make_shared<History>();
 }
 
-
-Hydra::~Hydra() {
+Hydra::~Hydra()
+{
 #ifdef DEBUGGING
     printf("MEMORY:   deallocating hydra at : %p \n", this);
 #endif
-    if(this->is_built) {
+    if (this->is_built)
+    {
         delete[] this->datetime_index;
     }
 }
 
-shared_ptr<Hydra> new_hydra(int logging_) {
-    auto hydra =  make_shared<Hydra>(logging_);
+shared_ptr<Hydra> new_hydra(int logging_)
+{
+    auto hydra = make_shared<Hydra>(logging_);
 #ifdef DEBUGGING
     printf("MEMORY: allocating new hydra at : %p \n", hydra.get());
 #endif
     return hydra;
 }
 
-void Hydra::build(){
-    //check to see if the exchange has been built before
-    if(this->is_built){
-        delete [] this->datetime_index;
+void Hydra::build()
+{
+    // check to see if the exchange has been built before
+    if (this->is_built)
+    {
+        delete[] this->datetime_index;
     }
-    if(this->exchanges.empty()){
+    if (this->exchanges.empty())
+    {
         throw std::runtime_error("no exchanges to build");
     }
 
     this->datetime_index = new long long[0];
     this->datetime_index_length = 0;
 
-    //build the exchanges
-    for(auto it = this->exchanges.begin(); it != this->exchanges.end(); ++it){
+    // build the exchanges
+    for (auto it = this->exchanges.begin(); it != this->exchanges.end(); ++it)
+    {
         it.value()->build();
     }
 
-    //build the brokers
-    for(auto it = this->brokers.begin(); it != this->brokers.end(); ++it){
+    // build the brokers
+    for (auto it = this->brokers.begin(); it != this->brokers.end(); ++it)
+    {
         it.value()->build(
-                &this->exchanges,
-                &this->accounts
-                );
+            &this->exchanges,
+            &this->accounts);
     }
 
-    //build the combined datetime index from all the exchanges
+    // build the combined datetime index from all the exchanges
     auto datetime_index_ = container_sorted_union(
-            this->exchanges,
-            [](const shared_ptr<Exchange> &obj) { return obj->get_datetime_index(); },
-            [](const shared_ptr<Exchange> &obj) { return obj->get_rows(); }
-    );
+        this->exchanges,
+        [](const shared_ptr<Exchange> &obj)
+        { return obj->get_datetime_index(); },
+        [](const shared_ptr<Exchange> &obj)
+        { return obj->get_rows(); });
     this->datetime_index = get<0>(datetime_index_);
     this->datetime_index_length = get<1>(datetime_index_);
     this->is_built = true;
 };
 
-shared_ptr<Exchange> Hydra::new_exchange(const string& exchange_id){
-    if(this->exchanges.contains(exchange_id)){
+shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
+{
+    if (this->exchanges.contains(exchange_id))
+    {
         throw std::runtime_error("exchange already exists");
     }
 
-    //build new exchange wrapped in shared pointer
+    // build new exchange wrapped in shared pointer
     auto exchange = make_shared<Exchange>(exchange_id, this->logging);
 
-    //insert a clone of the smart pointer into the exchange
+    // insert a clone of the smart pointer into the exchange
     this->exchanges.emplace(exchange_id, exchange);
 
-    if(this->logging == 1){
-        fmt::print("HYDRA: NEW EXCHANGE: {} AT {} \n", exchange_id, static_cast<void*>(exchange.get()));
+    if (this->logging == 1)
+    {
+        fmt::print("HYDRA: NEW EXCHANGE: {} AT {} \n", exchange_id, static_cast<void *>(exchange.get()));
     }
 
 #ifdef DEBUGGING
     printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
 #endif
 
-    //return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
+    // return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
     return exchange;
 }
 
-shared_ptr<Broker> Hydra::new_broker(const std::string& broker_id, double cash) {
-    if(this->exchanges.contains(broker_id)){
+shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
+{
+    if (this->exchanges.contains(broker_id))
+    {
         throw std::runtime_error("exchange already exists");
     }
 
-    //add a new portfolio for the broker
-    this->portfolios.insert({
+    // add a new portfolio for the broker
+    this->master_portfolio.add_sub_portfolio(
         broker_id,
-        make_shared<Portfolio>(logging, cash, broker_id)});
+        make_shared<Portfolio>(logging, cash, broker_id));
 
-    //build new broker wrapped in shared pointer
+    // build new broker wrapped in shared pointer
     auto broker = make_shared<Broker>(
-            broker_id,
-            cash,
-            this->logging,
-            this->history,
-            this->portfolios.at(broker_id)
-            );
+        broker_id,
+        cash,
+        this->logging,
+        this->history,
+        this->master_portfolio.get_sub_portfolio(broker_id));
 
-    //insert a clone of the smart pointer into the exchange
+    // insert a clone of the smart pointer into the exchange
     this->brokers.emplace(broker_id, broker);
 
-    if(this->logging == 1){
-        fmt::print("HYDRA: NEW BROKER: {} AT {}", broker_id, static_cast<void*>(broker.get()));
+    if (this->logging == 1)
+    {
+        fmt::print("HYDRA: NEW BROKER: {} AT {}", broker_id, static_cast<void *>(broker.get()));
     }
 
 #ifdef DEBUGGING
     printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
 #endif
 
-    //return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
+    // return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
     return broker;
 }
 
-shared_ptr<Exchange> Hydra::get_exchange(const std::string& exchange_id) {
-    try {
+shared_ptr<Exchange> Hydra::get_exchange(const std::string &exchange_id)
+{
+    try
+    {
         return this->exchanges.at(exchange_id);
-    } catch (const std::out_of_range& e) {
+    }
+    catch (const std::out_of_range &e)
+    {
         // Catch the exception and re-raise it as a Python KeyError
         throw py::key_error(e.what());
     }
 }
 
-shared_ptr<Broker> Hydra::get_broker(const std::string& broker_id) {
-    try {
+shared_ptr<Broker> Hydra::get_broker(const std::string &broker_id)
+{
+    try
+    {
         return this->brokers.at(broker_id);
-    } catch (const std::out_of_range& e) {
+    }
+    catch (const std::out_of_range &e)
+    {
         // Catch the exception and re-raise it as a Python KeyError
         throw py::key_error(e.what());
     }
 }
 
-void Hydra::evaluate_portfolio(bool on_close) {
-    //loop over open positions and evaluate them at current market price
-    for(auto &portfolio_pair : this->portfolios) {
-        auto iterator_pair = portfolio_pair.second->get_iterator();
-
-        for(auto it = iterator_pair.first; it != iterator_pair.second; ++it) {
-            auto asset_id = it->first;
-            auto position = it->second;
-
-            //get the exchange the asset is listed on
-            auto exchange_id = position->get_exchange_id();
-            auto exchange = this->exchanges.at(exchange_id);
-            auto market_price = exchange->get_market_price(asset_id);
-
-            if (market_price != 0) {
-                position->evaluate(market_price, on_close);
-            }
-        }
-    }
-}
-
-bool Hydra::forward_pass() {
-    //check to see if we have reached the end
-    if(this->current_index == datetime_index_length){
+bool Hydra::forward_pass()
+{
+    // check to see if we have reached the end
+    if (this->current_index == datetime_index_length)
+    {
         return false;
     }
 
     auto hydra_time = this->datetime_index[this->current_index];
 
-    //build market views for exchanges
-    for(auto & exchange_pair : this->exchanges){
+    // build market views for exchanges
+    for (auto &exchange_pair : this->exchanges)
+    {
         auto exchange = exchange_pair.second;
 
-        //set the exchange is_close
+        // set the exchange is_close
         exchange->set_on_close(false);
 
-        //if the exchange time is equal to the hydra time then build market view
-        if(exchange->get_datetime() == hydra_time){
+        // if the exchange time is equal to the hydra time then build market view
+        if (exchange->get_datetime() == hydra_time)
+        {
             auto exchange_steaming = exchange->get_market_view();
         }
     }
 
-    //increment the hydra's current index
+    // increment the hydra's current index
     this->current_index++;
 
-    //evaluate the portfolio at the current datetime
-    this->evaluate_portfolio(false);
+    // evaluate the master portfolio at the current datetime
+    this->master_portfolio.evaluate(false);
 
-    //allow exchanges to process open orders
-    for(auto &exchange_pair: this->exchanges){
+    // allow exchanges to process open orders
+    for (auto &exchange_pair : this->exchanges)
+    {
         exchange_pair.second->process_orders();
     }
 
-    //allow broker to process orders that have been filled
-    for(auto &broker_pair : this->brokers){
+    // allow broker to process orders that have been filled
+    for (auto &broker_pair : this->brokers)
+    {
         broker_pair.second->process_orders();
     }
 
