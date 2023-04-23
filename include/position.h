@@ -58,6 +58,9 @@ private:
     tsl::robin_map<unsigned int,shared_ptr<Trade>> trades;
 
 public:
+    ///smart pointer position typedef
+    using position_sp_t = std::shared_ptr<Position>;
+
     ///position constructor
     Position(shared_ptr<Order>& filled_order, unsigned int position_id);
 
@@ -115,6 +118,7 @@ public:
             trade.second->evaluate(market_price, on_close);
         }
     };
-
 };
+
+
 #endif //ARGUS_POSITION_H

@@ -102,7 +102,9 @@ shared_ptr<Broker> Hydra::new_broker(const std::string& broker_id, double cash) 
     }
 
     //add a new portfolio for the broker
-    this->portfolios.insert({broker_id, make_shared<Portfolio>()});
+    this->portfolios.insert({
+        broker_id,
+        make_shared<Portfolio>(logging, cash, broker_id)});
 
     //build new broker wrapped in shared pointer
     auto broker = make_shared<Broker>(
@@ -149,10 +151,11 @@ shared_ptr<Broker> Hydra::get_broker(const std::string& broker_id) {
 void Hydra::evaluate_portfolio(bool on_close) {
     //loop over open positions and evaluate them at current market price
     for(auto &portfolio_pair : this->portfolios) {
-        auto portfolio = portfolio_pair.second;
-        for (auto &position_pair: *portfolio) {
-            auto asset_id = position_pair.first;
-            auto position = position_pair.second;
+        auto iterator_pair = portfolio_pair.second->get_iterator();
+
+        for(auto it = iterator_pair.first; it != iterator_pair.second; ++it) {
+            auto asset_id = it->first;
+            auto position = it->second;
 
             //get the exchange the asset is listed on
             auto exchange_id = position->get_exchange_id();

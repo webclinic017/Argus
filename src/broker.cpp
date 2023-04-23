@@ -3,7 +3,6 @@
 //
 #include <string>
 #include <memory>
-#include <utility>
 #include <fmt/core.h>
 
 #include "broker.h"
@@ -35,6 +34,23 @@ void Broker::build(
 {
     this->exchanges = exchanges_;
     this->accounts = accounts_;
+}
+
+void Broker::position_cancel_order(Broker::position_sp_t position_sp) {
+    auto trades = position_sp->get_trades();
+    for(auto it = trades.begin(); it != trades.end(); ) {
+        auto trade = it->second;
+        //cancel orders whose parent is the closed trade
+        for(auto &order : trade->get_open_orders()){
+            this->cancel_order(order->get_order_id());
+        }
+    }
+}
+
+void Broker::trade_cancel_order(Broker::trade_sp_t trade_sp) {
+    for(auto &order : trade_sp->get_open_orders()) {
+        this->cancel_order(order->get_order_id());
+    }
 }
 
 void Broker::cancel_order(unsigned int order_id) {
@@ -170,110 +186,6 @@ void Broker::send_orders(){
     this->open_orders_buffer.clear();
 }
 
-void Broker::modify_position(shared_ptr<Order>&filled_order){
-    //get the position and account to modify
-    auto asset_id = filled_order->get_asset_id();
-    auto position = portfolio->at(asset_id);
-    auto account = &accounts->at(filled_order->get_account_id());
-
-    //adjust position and close out trade if needed
-    auto trade = position->adjust(filled_order);
-    if(!trade->get_is_open()){
-        //remove trade from account's portfolio
-        account->close_trade(asset_id);
-
-        //remember the trade
-        this->history->remember_trade(std::move(trade));
-    }
-
-    //adjust cash for increasing position
-    auto order_units = filled_order->get_units();
-    auto order_fill_price = filled_order->get_fill_price();
-    if(order_units * position->get_units() > 0){
-        account->add_cash( -1 * order_units * order_fill_price);
-        this->cash -= order_units * order_fill_price;
-    }
-    //adjust cash for reducing position
-    else{
-        account->add_cash(abs(order_units) * order_fill_price);
-        this->cash += abs(order_units) * order_fill_price;
-    }
-}
-
-void Broker::close_position(
-        shared_ptr<Order> &filled_order
-        ){
-    //get the position to close
-    auto asset_id = filled_order->get_asset_id();
-    auto position = portfolio->at(asset_id);
-
-    //adjust cash held at the broker
-    this->cash += filled_order->get_units() * filled_order->get_fill_price();
-
-    //close all child trade of the position whose broker is equal to current broker id
-    auto trades = position->get_trades();
-    for(auto it = trades.begin(); it != trades.end(); ) {
-        auto trade = it->second;
-
-        //close the child trade
-        trade->close(filled_order->get_fill_price(), filled_order->get_fill_time());
-
-        //adjust the corresponding account and remove the trade from its portfolio
-        auto account = &accounts->at(filled_order->get_account_id());
-        account->close_trade(filled_order->get_asset_id());
-
-        //remove the trade from the position container
-        it = trades.erase(it);
-
-        //cancel orders whose parent is the closed trade
-        for(auto &order : trade->get_open_orders()){
-            this->cancel_order(order->get_order_id());
-        }
-
-        //push the trade to history
-        this->history->remember_trade(std::move(trade));
-    }
-
-    //remove the position from master portfolio
-    portfolio->erase(asset_id);
-
-    //push position to history
-    this->history->remember_position(std::move(position));
-}
-
-void Broker::open_position(shared_ptr<Order>& filled_order){
-    //build the new position and increment position counter used to set ids
-    auto position = make_shared<Position>(filled_order, this->position_counter);
-    this->position_counter++;
-
-    //adjust cash held by broker accordingly
-    this->cash -= filled_order->get_units() * filled_order->get_fill_price();
-
-    //insert the new position into the master portfolio object
-    portfolio->insert({filled_order->get_asset_id(), position});
-
-    //extract smart pointer to the new trade, so it can be passed on to account map and transform
-    //trade id to unsigned int, -1 => 0 implies no trade id passed so set to position base trade
-    auto trade_id = filled_order->get_unsigned_trade_id();
-    auto trade = position->get_trade(trade_id);
-
-    //get the account corresponding to the filled order and add trade to it
-    auto account_id = filled_order->get_account_id();
-    auto account = accounts->at(account_id);
-    account.new_trade(trade);
-
-    //log the position if needed
-    if(this->logging == 1){
-        this->log_position_open(position);
-    }
-
-#ifdef ARGUS_RUNTIME_ASSERT
-    //assert trade pointer count is 3, one in the position, one in the account then one
-    //in the local function scope
-    assert(trade.use_count() == 3);
-#endif
-}
-
 void Broker::process_filled_order(shared_ptr<Order>& open_order) {
     //log the order if needed
     if (this->logging == 1) {
@@ -281,17 +193,21 @@ void Broker::process_filled_order(shared_ptr<Order>& open_order) {
     }
 
     //no position exists in the portfolio with the filled order's asset_id
-    if (!portfolio->contains(open_order->get_asset_id())) {
-        this->open_position(open_order);
+    if (!portfolio->position_exists(open_order->get_asset_id())) {
+        portfolio->open_position(open_order);
     } else {
-        auto position = portfolio->at(open_order->get_asset_id());
+        auto position = portfolio->get_position(open_order->get_asset_id());
         //filled order is not closing existing position
         if (position->get_units() + open_order->get_units() > 1e-7) {
-            this->modify_position(open_order);
+            portfolio->modify_position(
+                    open_order,
+                    [this](trade_sp_t trade_sp) { this->trade_cancel_order(trade_sp);});
         }
-            //filled order is closing an existing position
+        //filled order is closing an existing position
         else {
-            this->close_position(open_order);
+            //cancel an open orders linked to position's child trades
+            this->position_cancel_order(position);
+            portfolio->close_position(open_order);
         }
     }
 
@@ -332,14 +248,3 @@ void Broker::log_order_fill(shared_ptr<Order>& filled_order){
                filled_order->get_fill_price(),
                filled_order->get_asset_id());
 };
-
-void Broker::log_position_open(shared_ptr<Position>& new_position){
-    auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_open_time());
-    fmt::print("{}:  BROKER {}: POSITION {} AVERAGE PRICE AT {}, ASSET_ID: {}",
-               datetime_str,
-               this->broker_id,
-               new_position->get_position_id(),
-               new_position->get_average_price(),
-               new_position->get_asset_id());
-}
-

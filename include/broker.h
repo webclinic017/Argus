@@ -10,15 +10,14 @@
 
 #include "history.h"
 #include "position.h"
+#include "portfolio.h"
 #include "order.h"
 #include "account.h"
 #include "exchange.h"
 
 using namespace std;
 
-typedef tsl::robin_map<string,shared_ptr<Position>> Portfolio;
 typedef tsl::robin_map<string, Account> Accounts;
-
 
 class Broker {
 private:
@@ -56,6 +55,9 @@ private:
     shared_ptr<History> history;
 
 public:
+    using position_sp_t = Position::position_sp_t;
+    using trade_sp_t = Trade::trade_sp_t;
+
     /// constructor for the broker class
     /// \param broker_id unique id of the broker
     /// \param cash      amount of cash held by the broker
@@ -76,10 +78,10 @@ public:
             Accounts* accounts
             );
 
-    /// cancel an existing order by order's unique id
-    /// \param order_id id of the order to cancel
-    /// \return         smart pointer to the order that has been canceled
+    /// cancel orders by order_id or by class obj
     void cancel_order(unsigned int order_id);
+    void position_cancel_order(position_sp_t position_sp);
+    void trade_cancel_order(trade_sp_t trade_sp);
 
     /// send orders in the open order buffer to their corresponding exchange
     void send_orders();

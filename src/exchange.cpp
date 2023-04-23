@@ -10,6 +10,17 @@
 
 using namespace std;
 
+Exchange::Exchange(std::string exchange_id_, int logging_) :
+    exchange_id(std::move(exchange_id_)),
+            is_built(false),
+            on_close(false),
+            logging(logging_){
+    this->datetime_index = new long long[0];
+    this->current_index = 0;
+    this->datetime_index_length = 0;
+    this->exchange_time = 0;
+}
+
 void Exchange::build() {
     #ifdef DEBUGGING
         printf("EXCHANGE: BUILDING EXCHANGE: %s\n", this->exchange_id.c_str());
@@ -44,9 +55,7 @@ Exchange::~Exchange(){
     printf("MEMORY:   calling exchange %s DESTRUCTOR ON: %p \n",this->exchange_id.c_str(), this);
     printf("EXCHANGE: is built: %d", this->is_built);
 #endif
-    if(this->is_built){
-        delete[] this->datetime_index;
-    }
+    delete[] this->datetime_index;
 #ifdef DEBUGGING
     printf("MEMORY:   exchange %s DESTRUCTOR complete\n",this->exchange_id.c_str());
 #endif
@@ -202,7 +211,6 @@ void Exchange::process_orders() {
         };
     }
 }
-
 
 bool Exchange::get_market_view() {
     //if the current index is the last then return false, all assets listed on this exchange

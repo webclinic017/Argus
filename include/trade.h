@@ -14,59 +14,9 @@
 using namespace std;
 
 class Trade{
-private:
-    ///is the trade currently open
-    bool is_open;
-
-    ///unique id of the trade
-    unsigned int trade_id;
-
-    ///unique id of the underlying asset of the trade
-    string asset_id;
-
-    ///unique id of the exchange the underlying asset is on
-    string exchange_id;
-
-    ///unique id of the broker the trade was placed on
-    string broker_id;
-
-    ///unique id of the account the trade belongs to
-    string account_id;
-
-    ///how many units in the trade
-    double units;
-
-    ///average price of the trade
-    double average_price;
-
-    ///closing price of the trade
-    double close_price;
-
-    ///last price the trade was evaluated at
-    double last_price;
-
-    ///unrealized pl of the trade
-    double unrealized_pl;
-
-    ///realized pl of the trade
-    double realized_pl;
-
-    ///time the trade was opened
-    long long trade_open_time;
-
-    ///time the trade was closed
-    long long trade_close_time;
-
-    ///time the trade was changed
-    long long trade_change_time;
-
-    ///number of bars the positions has been held for
-    unsigned int bars_held;
-
-    ///child orders currently open, used for take profit and stop loss orders
-    vector<shared_ptr<Order>> open_orders;
 
 public:
+    typedef shared_ptr<Trade> trade_sp_t;
     ///trade constructor
     Trade(shared_ptr<Order>& filled_order, unsigned int trade_id_);
 
@@ -123,6 +73,57 @@ public:
     /// \param on_close is it the open or close of current candle
     void evaluate(double market_price, bool on_close);
 
+private:
+    ///is the trade currently open
+    bool is_open;
+
+    ///unique id of the trade
+    unsigned int trade_id;
+
+    ///unique id of the underlying asset of the trade
+    string asset_id;
+
+    ///unique id of the exchange the underlying asset is on
+    string exchange_id;
+
+    ///unique id of the broker the trade was placed on
+    string broker_id;
+
+    ///unique id of the account the trade belongs to
+    string account_id;
+
+    ///how many units in the trade
+    double units;
+
+    ///average price of the trade
+    double average_price;
+
+    ///closing price of the trade
+    double close_price;
+
+    ///last price the trade was evaluated at
+    double last_price;
+
+    ///unrealized pl of the trade
+    double unrealized_pl;
+
+    ///realized pl of the trade
+    double realized_pl;
+
+    ///time the trade was opened
+    long long trade_open_time;
+
+    ///time the trade was closed
+    long long trade_close_time;
+
+    ///time the trade was changed
+    long long trade_change_time;
+
+    ///number of bars the positions has been held for
+    unsigned int bars_held;
+
+    ///child orders currently open, used for take profit and stop loss orders
+    vector<shared_ptr<Order>> open_orders;
 };
 
 #endif //ARGUS_TRADE_H

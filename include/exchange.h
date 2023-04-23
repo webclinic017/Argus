@@ -78,11 +78,7 @@ private:
 
 public:
     ///exchange constructor
-    Exchange(string exchange_id_, int logging_):
-        exchange_id(std::move(exchange_id_)),
-        is_built(false),
-        logging(logging_)
-        {};
+    Exchange(string exchange_id_, int logging_);
 
     ///destructor for the exchange
     ~Exchange();

@@ -12,12 +12,11 @@
 #include "asset.h"
 #include "exchange.h"
 #include "account.h"
+#include "portfolio.h"
 #include "history.h"
 #include "broker.h"
 
 using namespace std;
-
-typedef tsl::robin_map<string,shared_ptr<Position>> Portfolio;
 
 class Hydra{
 private:
