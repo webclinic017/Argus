@@ -51,6 +51,13 @@ void Order::fill(double market_price, long long fill_time) {
     this->order_state = FILLED;
 }
 
+unsigned int Order::get_unsigned_trade_id() const {
+    auto trade_id_int = this->trade_id;
+    if(trade_id_int == -1){trade_id_int++;}
+    auto trade_id_uint = static_cast<unsigned int>(trade_id_int);
+    return trade_id_int;
+};
+
 OrderParent *Order::get_order_parent() const {
 #ifdef ARGUS_RUNTIME_ASSERT
     //asser that order parent is not nullptr

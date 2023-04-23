@@ -48,7 +48,11 @@ public:
     /// \param trade smart pointer to a a new trade
     void new_trade(const shared_ptr<Trade>& trade);
 
+    /// close an existing trade
+    /// \param asset_id asset id of the trade to close
     void close_trade(const string & asset_id);
+
+    void add_cash(double cash_) {this->cash += cash_;};
 
 };
 

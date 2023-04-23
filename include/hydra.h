@@ -17,6 +17,8 @@
 
 using namespace std;
 
+typedef tsl::robin_map<string,shared_ptr<Position>> Portfolio;
+
 class Hydra{
 private:
     ///logging level
@@ -34,8 +36,8 @@ private:
     ///mapping between account id and an account
     tsl::robin_map<string, Account> accounts;
 
-    ///portfolio containing all positions
-    tsl::robin_map<string,shared_ptr<Position>> portfolio;
+    ///mapping between broker id and portfolio held at broker
+    tsl::robin_map<string,shared_ptr<Portfolio>> portfolios;
 
     ///container for remembering historical events and structs
     shared_ptr<History> history;

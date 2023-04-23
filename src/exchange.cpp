@@ -178,7 +178,7 @@ void Exchange::process_order(shared_ptr<Order> &order) {
         }
     }
 
-    //check to see if order was filled, if not push to open order
+    //if the order is still pending then set to open ad push to open order vector
     if(order->get_order_state() == PENDING){
         order->set_order_state(OPEN);
         this->open_orders.push_back(order);
@@ -186,10 +186,11 @@ void Exchange::process_order(shared_ptr<Order> &order) {
 }
 
 void Exchange::process_orders() {
-    vector<size_t> filled_order_indecies;
-    size_t index = 0;
+    //iterate over open order and process any filled orders
     for (auto it = this->open_orders.begin(); it != this->open_orders.end();) {
         auto order = *it;
+
+        //process the order
         this->process_order(order);
 
         //if order was filled remove from open orders, else move to next
@@ -215,11 +216,11 @@ bool Exchange::get_market_view() {
     for (auto& _asset_pair : this->market) {
         auto asset_raw_pointer = _asset_pair.second.get();
 
-        //get the asset's current time
+        //get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
+        auto asset_id = asset_raw_pointer->get_asset_id();
 
         //asset has not reached the end of its data
-        auto asset_id = asset_raw_pointer->get_asset_id();
         if(asset_datetime){
             if(*asset_datetime == this->exchange_time){
                 //add asset to market view, step the asset forward in time
@@ -232,6 +233,7 @@ bool Exchange::get_market_view() {
         }
         //asset has reached the end of its data
         else{
+            //TODO handle expired assets
             expired_asset_ids.push_back(asset_id);
         }
     }

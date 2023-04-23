@@ -14,8 +14,14 @@
 
 using namespace std;
 
-Broker::Broker(string broker_id_, double cash_, int logging_, shared_ptr<History> history_){
+Broker::Broker(string broker_id_,
+               double cash_,
+               int logging_,
+               shared_ptr<History> history_,
+               shared_ptr<Portfolio> portfolio){
     this->history = std::move(history_);
+    this->portfolio = std::move(portfolio);
+
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
     this->logging = logging_;
@@ -25,11 +31,9 @@ Broker::Broker(string broker_id_, double cash_, int logging_, shared_ptr<History
 
 void Broker::build(
         Exchanges* exchanges_,
-        Portfolio* portfolio_,
         Accounts* accounts_)
 {
     this->exchanges = exchanges_;
-    this->portfolio = portfolio_;
     this->accounts = accounts_;
 }
 
@@ -81,8 +85,13 @@ void Broker::place_order(shared_ptr<Order>& order) {
     //send the order
     exchange->place_order(order);
 
+    //if the order was filled then process fill
     if(order->get_order_state() == FILLED){
         this->process_filled_order(order);
+    }
+    //else push the order to the open order vector to be monitored
+    else{
+        this->open_orders.push_back(order);
     }
 }
 
@@ -148,18 +157,48 @@ void Broker::send_orders(){
         //send order to rest on the exchange
         exchange->place_order(order);
 
-        //set the order to state to open as it is now open on exchange
-        order->set_order_state(OPEN);
-
-        //add the order to current open orders
-        this->open_orders.push_back(order);
+        if(order->get_order_state() == FILLED){
+            //process order that has been filled
+            this->process_filled_order(order);
+        }
+        else{
+            //add the order to current open orders
+            this->open_orders.push_back(order);
+        }
     }
-
     //clear the order buffer as all orders are now open
     this->open_orders_buffer.clear();
 }
 
-void Broker::modify_position(shared_ptr<Order>&filled_order){}
+void Broker::modify_position(shared_ptr<Order>&filled_order){
+    //get the position and account to modify
+    auto asset_id = filled_order->get_asset_id();
+    auto position = portfolio->at(asset_id);
+    auto account = &accounts->at(filled_order->get_account_id());
+
+    //adjust position and close out trade if needed
+    auto trade = position->adjust(filled_order);
+    if(!trade->get_is_open()){
+        //remove trade from account's portfolio
+        account->close_trade(asset_id);
+
+        //remember the trade
+        this->history->remember_trade(std::move(trade));
+    }
+
+    //adjust cash for increasing position
+    auto order_units = filled_order->get_units();
+    auto order_fill_price = filled_order->get_fill_price();
+    if(order_units * position->get_units() > 0){
+        account->add_cash( -1 * order_units * order_fill_price);
+        this->cash -= order_units * order_fill_price;
+    }
+    //adjust cash for reducing position
+    else{
+        account->add_cash(abs(order_units) * order_fill_price);
+        this->cash += abs(order_units) * order_fill_price;
+    }
+}
 
 void Broker::close_position(
         shared_ptr<Order> &filled_order
@@ -215,15 +254,12 @@ void Broker::open_position(shared_ptr<Order>& filled_order){
 
     //extract smart pointer to the new trade, so it can be passed on to account map and transform
     //trade id to unsigned int, -1 => 0 implies no trade id passed so set to position base trade
-    auto trade_id_int = filled_order->get_trade_id();
-    if(trade_id_int == -1){trade_id_int++;}
-    auto trade_id_uint = static_cast<unsigned int>(trade_id_int);
-    auto trade = position->get_trade(trade_id_uint);
+    auto trade_id = filled_order->get_unsigned_trade_id();
+    auto trade = position->get_trade(trade_id);
 
-    //get the account corresponding to the filled order
+    //get the account corresponding to the filled order and add trade to it
     auto account_id = filled_order->get_account_id();
     auto account = accounts->at(account_id);
-
     account.new_trade(trade);
 
     //log the position if needed

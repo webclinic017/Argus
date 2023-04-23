@@ -124,6 +124,9 @@ public:
     ///get the unique trade id of the order
     [[nodiscard]] int get_trade_id() const {return this->trade_id;}
 
+    ///convert trade id unsigned int, map -1 => 0 (base position trade)
+    [[nodiscard]] unsigned int get_unsigned_trade_id() const;
+
     ///get the units in the order
     [[nodiscard]] double get_units() const {return this->units;}
 

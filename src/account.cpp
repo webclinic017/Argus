@@ -35,5 +35,4 @@ void Account::close_trade(const string& asset_id) {
 
     //update account's realized pl and cash
     this->realized_pl += trade->get_realized_pl();
-    this->cash += trade->get_units() * trade->get_close_price();
 }

@@ -52,6 +52,9 @@ private:
     ///number of bars the positions has been held for
     unsigned int bars_held;
 
+    ///counter for setting trade id's
+    unsigned int trade_counter;
+
     tsl::robin_map<unsigned int,shared_ptr<Trade>> trades;
 
 public:
@@ -62,6 +65,14 @@ public:
     /// \param market_price price the trade was closed out at
     /// \param position_close_time time the trade was closed out at
     void close(double market_price, long long position_close_time);
+
+    /// adjust a position's size and adjust the child trade the order was placed to
+    /// \param market_price price the adjustment order was filled at
+    /// \param units number of units to increase
+    /// \param position_change_time time the order was filled at
+    /// \param trade_id id of the child trade to adjust
+    /// \return smart pointer to the trade that was adjusted
+    shared_ptr<Trade> adjust(shared_ptr<Order>& filled_order);
 
     /// get the id of the position
     /// \return position id

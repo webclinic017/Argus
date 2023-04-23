@@ -58,7 +58,6 @@ void Hydra::build(){
     for(auto it = this->brokers.begin(); it != this->brokers.end(); ++it){
         it.value()->build(
                 &this->exchanges,
-                &this->portfolio,
                 &this->accounts
                 );
     }
@@ -102,12 +101,16 @@ shared_ptr<Broker> Hydra::new_broker(const std::string& broker_id, double cash) 
         throw std::runtime_error("exchange already exists");
     }
 
+    //add a new portfolio for the broker
+    this->portfolios.insert({broker_id, make_shared<Portfolio>()});
+
     //build new broker wrapped in shared pointer
     auto broker = make_shared<Broker>(
             broker_id,
             cash,
             this->logging,
-            this->history
+            this->history,
+            this->portfolios.at(broker_id)
             );
 
     //insert a clone of the smart pointer into the exchange
@@ -145,17 +148,20 @@ shared_ptr<Broker> Hydra::get_broker(const std::string& broker_id) {
 
 void Hydra::evaluate_portfolio(bool on_close) {
     //loop over open positions and evaluate them at current market price
-    for(auto &position_pair : this->portfolio){
-        auto asset_id = position_pair.first;
-        auto position = position_pair.second;
+    for(auto &portfolio_pair : this->portfolios) {
+        auto portfolio = portfolio_pair.second;
+        for (auto &position_pair: *portfolio) {
+            auto asset_id = position_pair.first;
+            auto position = position_pair.second;
 
-        //get the exchange the asset is listed on
-        auto exchange_id = position->get_exchange_id();
-        auto exchange = this->exchanges.at(exchange_id);
-        auto market_price = exchange->get_market_price(asset_id);
+            //get the exchange the asset is listed on
+            auto exchange_id = position->get_exchange_id();
+            auto exchange = this->exchanges.at(exchange_id);
+            auto market_price = exchange->get_market_price(asset_id);
 
-        if(market_price != 0){
-            position->evaluate(market_price, on_close);
+            if (market_price != 0) {
+                position->evaluate(market_price, on_close);
+            }
         }
     }
 }
@@ -187,12 +193,12 @@ bool Hydra::forward_pass() {
     //evaluate the portfolio at the current datetime
     this->evaluate_portfolio(false);
 
-    //allow exchanges to process open order
+    //allow exchanges to process open orders
     for(auto &exchange_pair: this->exchanges){
         exchange_pair.second->process_orders();
     }
 
-    //TODO broker process filled orders
+    //allow broker to process orders that have been filled
     for(auto &broker_pair : this->brokers){
         broker_pair.second->process_orders();
     }

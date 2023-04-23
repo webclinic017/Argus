@@ -57,6 +57,9 @@ private:
     ///time the trade was closed
     long long trade_close_time;
 
+    ///time the trade was changed
+    long long trade_change_time;
+
     ///number of bars the positions has been held for
     unsigned int bars_held;
 
@@ -67,10 +70,24 @@ public:
     ///trade constructor
     Trade(shared_ptr<Order>& filled_order, unsigned int trade_id_);
 
+    void adjust(shared_ptr<Order>& filled_order);
+
     /// close the trade out at given time and price
     /// \param market_price price the trade was closed out at
     /// \param trade_close_time time the trade was closed out at
     void close(double market_price, long long trade_close_time);
+
+    /// reduce trade side at given time and price
+    /// \param market_price market price the adjustment order was filled at
+    /// \param units number of units to reduce
+    /// \param trade_change_time time the trade was changed
+    void reduce(double market_price, double units, long long trade_change_time);
+
+    /// increase trade side at given time and price
+    /// \param market_price market price the adjustment order was filled at
+    /// \param units number of units increase
+    /// \param trade_change_time time the trade was changed
+    void increase(double market_price, double units, long long trade_change_time);
 
     ///remove open order that has been canceled;
     void cancel_child_order(unsigned int order_id);

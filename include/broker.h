@@ -46,8 +46,8 @@ private:
     ///pointer to exchange map for routing incoming orders
     Exchanges* exchanges;
 
-    ///pointer to master portfolio
-    Portfolio* portfolio;
+    ///brokers portfolio
+    shared_ptr<Portfolio> portfolio;
 
     ///pointer to master account map
     Accounts* accounts;
@@ -60,15 +60,19 @@ public:
     /// \param broker_id unique id of the broker
     /// \param cash      amount of cash held by the broker
     /// \param logging   logging level of the broker
-    Broker(string broker_id, double cash, int logging, shared_ptr<History> history);
+    Broker(
+            string broker_id,
+            double cash,
+            int logging,
+            shared_ptr<History> history,
+            shared_ptr<Portfolio> portfolio);
 
-    /// build the broker, set memeber pointers
+    /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map
-    /// \param portfolio    container for master position map
+    /// \param portfolio    container for portfolio position map
     /// \param accounts     container for master account map
     void build(
             Exchanges* exchanges,
-            Portfolio* portfolio,
             Accounts* accounts
             );
 
