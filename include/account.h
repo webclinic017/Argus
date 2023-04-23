@@ -1,59 +1,35 @@
-//
-// Created by Nathan Tormaschy on 4/21/23.
-//
-
 #ifndef ARGUS_ACCOUNT_H
 #define ARGUS_ACCOUNT_H
-#include <string>
+
 #include <memory>
+#include <string>
 #include <tsl/robin_map.h>
 
 #include "trade.h"
+#include "order.h"
 
-using namespace std;
+class Account
+{
+public:
+    using order_sp_t = Order::order_sp_t;
 
-class Account;
-typedef tsl::robin_map<string,Account> Accounts;
+    /// @brief account constructor
+    /// @param account_id
+    Account(std::string account_id, double cash);
 
-class Account{
-private:
-    ///unique id of the account
-    string account_id;
+    /// @brief unique id of the account
+    std::string account_id;
 
-    ///amount of cash initially held by the account
-    double starting_cash;
-
-    ///amount of cash held by the account
+    /// @brief cash held by the portfolio
     double cash;
 
-    ///net liquidation value of the account
-    double nlv;
+    /// @brief process a filled order for the account
+    /// @param filled_order reference to a smart pointer for a filled order
+    void on_order_fill(order_sp_t &filled_order);
 
-    ///unrealize pl of the account
-    double unrealized_pl;
-
-    ///realized pl of the account
-    double realized_pl;
-
-    ///trades help by the account
-    tsl::robin_map<string,shared_ptr<Trade>> portfolio;
-
-public:
-    /// account constructor
-    /// \param account_id unique id of the account
-    /// \param starting_cash amount of starting cash in the account
-    Account(string account_id, double starting_cash);
-
-    /// handle a new trade created for the account
-    /// \param trade smart pointer to a a new trade
-    void new_trade(const shared_ptr<Trade>& trade);
-
-    /// close an existing trade
-    /// \param asset_id asset id of the trade to close
-    void close_trade(const string & asset_id);
-
-    void add_cash(double cash_) {this->cash += cash_;};
-
+private:
+    /// @brief map between asset ids and trades
+    tsl::robin_map<std::string, Trade> trades;
 };
 
-#endif //ARGUS_ACCOUNT_H
+#endif

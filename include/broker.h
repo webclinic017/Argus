@@ -8,16 +8,14 @@
 #include <string>
 #include <tsl/robin_map.h>
 
+#include "portfolio.h"
 #include "history.h"
 #include "position.h"
-#include "portfolio.h"
 #include "order.h"
 #include "account.h"
 #include "exchange.h"
 
 using namespace std;
-
-typedef tsl::robin_map<string, Account> Accounts;
 
 class Broker
 {
@@ -26,6 +24,7 @@ public:
     using portfolio_sp_t = Portfolio::portfolio_sp_t;
     using position_sp_t = Position::position_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
+    using order_sp_t = Order::order_sp_t;
 
     /// constructor for the broker class
     /// \param broker_id unique id of the broker
@@ -40,31 +39,13 @@ public:
 
     /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map
-    /// \param portfolio    container for portfolio position map
-    /// \param accounts     container for master account map
-    void build(
-        Exchanges *exchanges,
-        Accounts *accounts);
+    void build(Exchanges *exchanges);
 
-    /// cancel orders by order_id or by class obj
+    /// cancel orders by order_id
     void cancel_order(unsigned int order_id);
-    void position_cancel_order(position_sp_t position_sp);
-    void trade_cancel_order(trade_sp_t trade_sp);
 
     /// send orders in the open order buffer to their corresponding exchange
     void send_orders();
-
-    /// open a new position
-    /// \param filled_order order that has been filled
-    void open_position(shared_ptr<Order> &filled_order);
-
-    ///  process a filled order that contains an asset id already exists in the portfolio
-    /// \param filled_order reference to smart pointer containing a filled order
-    void modify_position(shared_ptr<Order> &filled_order);
-
-    /// close existing position
-    /// \param filled_order order that caused the position close
-    void close_position(shared_ptr<Order> &filled_order);
 
     /// process a filled order
     /// \param open_order order that has been filled
@@ -78,27 +59,19 @@ public:
     /// order placement wrappers exposed to python
     void place_market_order(const string &asset_id, double units,
                             const string &exchange_id,
-                            const string &account_id,
+                            const string &portfolio_id,
                             const string &strategy_id,
                             OrderExecutionType order_execution_type = LAZY);
 
     void place_limit_order(const string &asset_id, double units, double limit,
                            const string &exchange_id,
-                           const string &account_id,
+                           const string &portfolio_id,
                            const string &strategy_id,
                            OrderExecutionType order_execution_type = LAZY);
 
     // void place_limit_order();
     // void place_stop_loss_order();
     // void place_take_profit_order();
-
-    /// log order fill
-    /// \param filled_order filled order to log
-    void log_order_fill(shared_ptr<Order> &filled_order);
-
-    /// log position open
-    /// \param new_position new position to log
-    void log_position_open(shared_ptr<Position> &new_position);
 
 private:
     /// logging level
@@ -117,19 +90,19 @@ private:
     double cash;
 
     /// open orders held at the broker
-    vector<shared_ptr<Order>> open_orders;
+    vector<order_sp_t> open_orders;
 
     /// open orders held at the broker that have not been sent
-    vector<shared_ptr<Order>> open_orders_buffer;
+    vector<order_sp_t> open_orders_buffer;
 
     /// pointer to exchange map for routing incoming orders
     Exchanges *exchanges;
 
-    /// brokers portfolio
-    portfolio_sp_t portfolio;
+    /// broker's account
+    Account broker_account;
 
-    /// pointer to master account map
-    Accounts *accounts;
+    /// master portfolio
+    portfolio_sp_t master_portfolio;
 
     /// smart pointer to historical values container
     shared_ptr<History> history;

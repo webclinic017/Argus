@@ -65,8 +65,7 @@ void Hydra::build()
     for (auto it = this->brokers.begin(); it != this->brokers.end(); ++it)
     {
         it.value()->build(
-            &this->exchanges,
-            &this->accounts);
+            &this->exchanges);
     }
 
     // build the combined datetime index from all the exchanges

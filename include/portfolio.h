@@ -10,6 +10,8 @@
 #include <tsl/robin_map.h>
 #include <fmt/core.h>
 
+class Broker;
+
 #include "order.h"
 #include "trade.h"
 #include "position.h"
@@ -22,6 +24,7 @@ class Portfolio
 public:
     using position_sp_t = Position::position_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
+    using order_sp_t = Order::order_sp_t;
 
     typedef shared_ptr<Portfolio> portfolio_sp_t;
     typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
@@ -33,20 +36,7 @@ public:
     /// \param id      unique id of the portfolio
     Portfolio(int logging, double cash, string id);
 
-    /// open a new position based on a filled order
-    /// \param filled_order ref to a sp to order that has been filled
-    void open_position(shared_ptr<Order> &filled_order);
-
-    /// close an existing position based on a filled order
-    /// \param filled_order ref to a sp to order that has been filled
-    void close_position(shared_ptr<Order> &filled_order);
-
-    /// modify an existing postion based on a filled order
-    /// \tparam Func template function that cancels all child orders of a trade
-    /// \param filled_order ref to a sp to a filled order
-    /// \param func function used to cancel all orders linked to a trade if needed
-    template <typename Func>
-    void modify_position(shared_ptr<Order> &filled_order, Func trade_cancel_orders);
+    void on_order_fill(order_sp_t &filled_order);
 
     /// generate a iterator begin and end for the position map
     /// \return pair of iteratores, begin and end, for postion map
@@ -64,15 +54,6 @@ public:
     /// \param asset_id unique ass id of the position
     /// \return smart pointer to the existing position
     position_sp_t get_position(const string &asset_id);
-
-    /// add new position to the portfolio
-    /// \param asset_id asset id of the position to add
-    /// \param position new position smart pointer
-    void add_position(const string &asset_id, position_sp_t position);
-
-    /// remove a position from the map by asset id
-    /// \param asset_id asset id of the position to delete
-    void delete_position(const string &asset_id);
 
     /// add new sub portfolio to the portfolio
     /// \param portfolio_id portfolio id of the new sub portfolio
@@ -104,60 +85,54 @@ private:
     /// smart pointer to exchanges map
     exchanges_sp_t exchanges_sp;
 
+    /// smart pointer to broker map
+    shared_ptr<tsl::robin_map<string, Broker>> broker_map;
+
     /// position counter for position ids
-    unsigned int position_counter{};
+    unsigned int position_counter;
 
     /// cash held by the portfolio
     double cash;
 
-    /// pointer to the account map
-    Accounts *accounts{};
-
     // shared pointer to history objects
     shared_ptr<History> history;
 
-    /// helped function to log new position
-    /// \param new_position ref to sp of new position
-    void log_position_open(position_sp_t &new_position);
+    /// log order fill
+    /// \param filled_order filled order to log
+    void log_order_fill(order_sp_t &filled_order);
+
+    /// log position open
+    /// \param new_position new position to log
+    void log_position_open(shared_ptr<Position> &new_position);
+
+    /// add new position to the map by asset id
+    /// \param asset_id asset id of the position to add
+    /// \param position new position smart pointer
+    inline void add_position(const string &asset_id, position_sp_t position);
+
+    /// remove a position from the map by asset id
+    /// \param asset_id asset id of the position to delete
+    inline void delete_position(const string &asset_id);
+
+    /// modify an existing postion based on a filled order
+    /// \param filled_order ref to a sp to a filled order
+    void modify_position(order_sp_t &filled_order);
+
+    /// open a new position based on a filled order
+    /// \param filled_order ref to a sp to order that has been filled
+    void open_position(order_sp_t &filled_order);
+
+    /// close an existing position based on a filled order
+    /// \param filled_order ref to a sp to order that has been filled
+    void close_position(order_sp_t &filled_order);
+
+    /// @brief cancel all order for child trades in a position
+    /// @param position_sp ref to sp of a position
+    void position_cancel_order(position_sp_t &position_sp);
+
+    /// @brief cancel all open orders for a trade
+    /// @param trade_sp ref to sp of a trade
+    void trade_cancel_order(trade_sp_t &trade_sp);
 };
-
-template <typename Func>
-void Portfolio::modify_position(shared_ptr<Order> &filled_order, Func trade_cancel_orders)
-{
-    // get the position and account to modify
-    auto asset_id = filled_order->get_asset_id();
-    auto position = this->get_position(asset_id);
-    auto account = &accounts->at(filled_order->get_account_id());
-
-    // adjust position and close out trade if needed
-    auto trade = position->adjust(filled_order);
-    if (!trade->get_is_open())
-    {
-
-        // remove trade from account's portfolio
-        account->close_trade(asset_id);
-
-        // cancel any orders linked to the closed traded
-        trade_cancel_orders(trade);
-
-        // remember the trade
-        this->history->remember_trade(std::move(trade));
-    }
-
-    // adjust cash for increasing position
-    auto order_units = filled_order->get_units();
-    auto order_fill_price = filled_order->get_fill_price();
-    if (order_units * position->get_units() > 0)
-    {
-        account->add_cash(-1 * order_units * order_fill_price);
-        this->cash -= order_units * order_fill_price;
-    }
-    // adjust cash for reducing position
-    else
-    {
-        account->add_cash(abs(order_units) * order_fill_price);
-        this->cash += abs(order_units) * order_fill_price;
-    }
-}
 
 #endif // ARGUS_PORTFOLIO_H

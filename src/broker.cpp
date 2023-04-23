@@ -7,20 +7,23 @@
 
 #include "broker.h"
 #include "position.h"
+#include "account.h"
 #include "settings.h"
 #include "utils_array.h"
 #include "utils_time.h"
 
 using namespace std;
 
+using order_sp_t = Order::order_sp_t;
+
 Broker::Broker(string broker_id_,
                double cash_,
                int logging_,
                shared_ptr<History> history_,
-               shared_ptr<Portfolio> portfolio)
+               shared_ptr<Portfolio> master_portfolio) : broker_account(broker_id_, cash_)
 {
     this->history = std::move(history_);
-    this->portfolio = std::move(portfolio);
+    this->master_portfolio = std::move(master_portfolio);
 
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
@@ -30,33 +33,9 @@ Broker::Broker(string broker_id_,
 }
 
 void Broker::build(
-    Exchanges *exchanges_,
-    Accounts *accounts_)
+    Exchanges *exchanges_)
 {
     this->exchanges = exchanges_;
-    this->accounts = accounts_;
-}
-
-void Broker::position_cancel_order(Broker::position_sp_t position_sp)
-{
-    auto trades = position_sp->get_trades();
-    for (auto it = trades.begin(); it != trades.end();)
-    {
-        auto trade = it->second;
-        // cancel orders whose parent is the closed trade
-        for (auto &order : trade->get_open_orders())
-        {
-            this->cancel_order(order->get_order_id());
-        }
-    }
-}
-
-void Broker::trade_cancel_order(Broker::trade_sp_t trade_sp)
-{
-    for (auto &order : trade_sp->get_open_orders())
-    {
-        this->cancel_order(order->get_order_id());
-    }
 }
 
 void Broker::cancel_order(unsigned int order_id)
@@ -128,7 +107,7 @@ void Broker::place_order(shared_ptr<Order> &order)
 
 void Broker::place_market_order(const string &asset_id_, double units_,
                                 const string &exchange_id_,
-                                const string &account_id_,
+                                const string &portfolio_id_,
                                 const string &strategy_id_,
                                 OrderExecutionType order_execution_type)
 {
@@ -138,7 +117,7 @@ void Broker::place_market_order(const string &asset_id_, double units_,
                                            units_,
                                            exchange_id_,
                                            this->broker_id,
-                                           account_id_,
+                                           portfolio_id_,
                                            strategy_id_);
 
     if (order_execution_type == EAGER)
@@ -155,7 +134,7 @@ void Broker::place_market_order(const string &asset_id_, double units_,
 
 void Broker::place_limit_order(const string &asset_id_, double units_, double limit_,
                                const string &exchange_id_,
-                               const string &account_id_,
+                               const string &portfolio_id_,
                                const string &strategy_id_,
                                OrderExecutionType order_execution_type)
 {
@@ -165,7 +144,7 @@ void Broker::place_limit_order(const string &asset_id_, double units_, double li
                                           units_,
                                           exchange_id_,
                                           this->broker_id,
-                                          account_id_,
+                                          portfolio_id_,
                                           strategy_id_);
 
     // set the limit of the order
@@ -209,45 +188,17 @@ void Broker::send_orders()
     this->open_orders_buffer.clear();
 }
 
-void Broker::process_filled_order(shared_ptr<Order> &open_order)
+void Broker::process_filled_order(order_sp_t &open_order)
 {
-    // log the order if needed
-    if (this->logging == 1)
-    {
-        this->log_order_fill(open_order);
-    }
+    // adjust the account held at the broker
+    this->broker_account.on_order_fill(open_order);
 
-    // no position exists in the portfolio with the filled order's asset_id
-    if (!portfolio->position_exists(open_order->get_asset_id()))
-    {
-        portfolio->open_position(open_order);
-    }
-    else
-    {
-        auto position = portfolio->get_position(open_order->get_asset_id());
-        // filled order is not closing existing position
-        if (position->get_units() + open_order->get_units() > 1e-7)
-        {
-            portfolio->modify_position(
-                open_order,
-                [this](trade_sp_t trade_sp)
-                { this->trade_cancel_order(trade_sp); });
-        }
+    // get the portfolio the order was placed for
+    auto portfolio_id = open_order->get_portfolio_id();
+    auto sub_portfolio = this->master_portfolio->get_sub_portfolio(portfolio_id);
 
-        // filled order is closing an existing position
-        else
-        {
-            // cancel an open orders linked to position's child trades
-            this->position_cancel_order(position);
-            portfolio->close_position(open_order);
-        }
-    }
-
-    // place child orders from the filled order
-    for (auto &child_order : open_order->get_child_orders())
-    {
-        this->place_order(child_order);
-    }
+    // adjust the sub portfolio accorindly
+    sub_portfolio->on_order_fill(open_order);
 }
 
 void Broker::process_orders()
@@ -274,15 +225,4 @@ void Broker::process_orders()
             it = this->open_orders.erase(it);
         }
     }
-};
-
-void Broker::log_order_fill(shared_ptr<Order> &filled_order)
-{
-    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
-    fmt::print("{}:  BROKER {}: ORDER {} FILLED AT {}, ASSET_ID: {}",
-               datetime_str,
-               this->broker_id,
-               filled_order->get_order_id(),
-               filled_order->get_fill_price(),
-               filled_order->get_asset_id());
 };
