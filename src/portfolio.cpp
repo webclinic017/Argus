@@ -62,13 +62,13 @@ void Portfolio::on_order_fill(order_sp_t &filled_order)
     }
 
     // no position exists in the portfolio with the filled order's asset_id
-    if (!this->position_exists(*filled_order->get_asset_id()))
+    if (!this->position_exists(filled_order->get_asset_id()))
     {
         this->open_position(filled_order);
     }
     else
     {
-        auto position = this->get_position(*filled_order->get_asset_id()).value();
+        auto position = this->get_position(filled_order->get_asset_id()).value();
         // filled order is not closing existing position
         if (position->get_units() + filled_order->get_units() > 1e-7)
         {
@@ -89,7 +89,7 @@ void Portfolio::on_order_fill(order_sp_t &filled_order)
     // place child orders from the filled order
     for (auto &child_order : filled_order->get_child_orders())
     {
-        auto broker = this->broker_map->at(*child_order->get_broker_id());
+        auto broker = this->broker_map->at(child_order->get_broker_id());
         broker.place_order(child_order);
     }
 };
@@ -104,7 +104,7 @@ void Portfolio::open_position(shared_ptr<Order> &filled_order)
     this->cash -= filled_order->get_units() * filled_order->get_fill_price();
 
     // insert the new position into the portfolio object
-    this->add_position(*filled_order->get_asset_id(), position);
+    this->add_position(filled_order->get_asset_id(), position);
 
     // log the position if needed
     if (this->logging == 1)
@@ -116,7 +116,7 @@ void Portfolio::open_position(shared_ptr<Order> &filled_order)
 void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 {
     // get the position and account to modify
-    auto asset_id = *filled_order->get_asset_id();
+    auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
 
     // adjust position and close out trade if needed
@@ -141,7 +141,7 @@ void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 void Portfolio::close_position(shared_ptr<Order> &filled_order)
 {
     // get the position to close
-    auto asset_id = *filled_order->get_asset_id();
+    auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
 
     // adjust cash held at the broker
@@ -180,17 +180,17 @@ void Portfolio::add_sub_portfolio(const string &portfolio_id, portfolio_sp_t por
     this->portfolio_map.insert({portfolio_id, portfolio});
 }
 
-portfolio_sp_t Portfolio::get_sub_portfolio(const string &portfolio_id)
+std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfolio_id)
 {
     auto iter = this->portfolio_map.find(portfolio_id);
     if (this->portfolio_map.end() == iter)
     {
-        throw std::runtime_error("Portfolio::add_sub_portfolio does not exists");
+        return std::nullopt;
     }
     return this->portfolio_map.at(portfolio_id);
 }
 
-void Portfolio::evaluate(bool on_close)
+void Portfolio::evaluate(bool on_close, bool recursive)
 {
     // evaluate all positions in the current portfolio
     for (auto &position_pair : this->positions_map)
@@ -208,10 +208,17 @@ void Portfolio::evaluate(bool on_close)
             position->evaluate(market_price, on_close);
         }
     }
-    // recursively evaluate sub portfolios
-    for (auto &portfolio_pair : this->portfolio_map)
-    {
-        portfolio_pair.second->evaluate(on_close);
+
+    //only evaluate the portfolio's own positions
+    if(!recursive){
+        return;
+    }
+    else{
+        // recursively evaluate sub portfolios
+        for (auto &portfolio_pair : this->portfolio_map)
+        {
+            portfolio_pair.second->evaluate(on_close, true);
+        }
     }
 }
 
@@ -224,7 +231,7 @@ void Portfolio::position_cancel_order(Broker::position_sp_t &position_sp)
         // cancel orders whose parent is the closed trade
         for (auto &order : trade->get_open_orders())
         {
-            auto broker = this->broker_map->at(*order->get_broker_id());
+            auto broker = this->broker_map->at(order->get_broker_id());
             broker.cancel_order(order->get_order_id());
         }
     }
@@ -233,11 +240,33 @@ void Portfolio::position_cancel_order(Broker::position_sp_t &position_sp)
 void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
 {
     for (auto &order : trade_sp->get_open_orders())
-    {
-        auto broker = this->broker_map->at(*order->get_broker_id());
+    {   
+        // get corresponding broker for the order then cancel it
+        auto broker = this->broker_map->at(order->get_broker_id());
         broker.cancel_order(order->get_order_id());
     }
 }
+
+std::optional<portfolio_sp_t> Portfolio::find_portfolio(const string &portfolio_id_){
+    //attempting to find the portfolio function was called on
+    if(this->portfolio_id == portfolio_id_){
+        throw std::runtime_error("attempting portfolios search on itself");
+    }
+
+    //look for the portfolio in the sub portfolios
+    if(auto child_portfolio = this->get_sub_portfolio(portfolio_id_)){
+        return *child_portfolio;
+    }
+
+    //portfolio does not exist in sub portfolios, recurisvely search child portfolios
+    for(auto& portfolio_pair : this->portfolio_map){
+        //search through child
+        if(auto target_portfolio = portfolio_pair.second->find_portfolio(portfolio_id_)){
+            return *target_portfolio;
+        };
+    }
+    return std::nullopt;
+};
 
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)
 {
@@ -258,5 +287,5 @@ void Portfolio::log_order_fill(order_sp_t &filled_order)
                this->portfolio_id,
                filled_order->get_order_id(),
                filled_order->get_fill_price(),
-               *filled_order->get_asset_id());
+               filled_order->get_asset_id());
 };

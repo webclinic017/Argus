@@ -195,10 +195,13 @@ void Broker::process_filled_order(order_sp_t &open_order)
 
     // get the portfolio the order was placed for
     auto portfolio_id = open_order->get_portfolio_id();
-    auto sub_portfolio = this->master_portfolio->get_sub_portfolio(portfolio_id);
+    auto sub_portfolio = this->master_portfolio->find_portfolio(portfolio_id).value();
 
     // adjust the sub portfolio accorindly
     sub_portfolio->on_order_fill(open_order);
+
+    // adjust the master portfolio's personal position map which contains all open trades
+    this->master_portfolio->on_order_fill(open_order);
 }
 
 void Broker::process_orders()

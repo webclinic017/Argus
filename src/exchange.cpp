@@ -129,7 +129,7 @@ void Exchange::place_order(shared_ptr<Order> &order_)
 
 void Exchange::process_market_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(*open_order->get_asset_id());
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -139,7 +139,7 @@ void Exchange::process_market_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(*open_order->get_asset_id());
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -156,7 +156,7 @@ void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(*open_order->get_asset_id());
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -173,7 +173,7 @@ void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_take_profit_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(*open_order->get_asset_id());
+    auto market_price = this->get_market_price(open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -191,7 +191,7 @@ void Exchange::process_take_profit_order(shared_ptr<Order> &open_order)
 void Exchange::process_order(shared_ptr<Order> &order)
 {
     auto asset_id = order->get_asset_id();
-    auto asset = this->market_view.at(*asset_id);
+    auto asset = this->market_view.at(asset_id);
 
     // check to see if asset is currently streaming
     if (!asset)

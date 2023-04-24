@@ -21,6 +21,7 @@ using namespace std;
 class Hydra
 {
 private:
+    using portfolio_sp_t = Portfolio::portfolio_sp_t;
     /// logging level
     int logging;
 
@@ -37,7 +38,7 @@ private:
     tsl::robin_map<string, Account> accounts;
 
     /// mapping between broker id and portfolio held at broker
-    Portfolio master_portfolio;
+    portfolio_sp_t master_portfolio;
 
     /// container for remembering historical events and structs
     shared_ptr<History> history;

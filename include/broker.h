@@ -26,16 +26,18 @@ public:
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
-    /// constructor for the broker class
-    /// \param broker_id unique id of the broker
-    /// \param cash      amount of cash held by the broker
-    /// \param logging   logging level of the broker
+    /// @brief 
+    /// @param broker_id        unique id of the broker
+    /// @param cash             cash held at broker
+    /// @param logging          logging level
+    /// @param history          sp to history obj 
+    /// @param master_portfolio sp to master potfolio
     Broker(
         string broker_id,
         double cash,
         int logging,
         shared_ptr<History> history,
-        shared_ptr<Portfolio> portfolio);
+        shared_ptr<Portfolio> master_portfolio);
 
     /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map

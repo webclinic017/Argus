@@ -64,11 +64,17 @@ public:
     /// @brief get smartpointer to a sub portfolio
     /// @param portfolio_id id of the sub portfolio
     /// @return smart pointer to the sub portfolio
-    portfolio_sp_t get_sub_portfolio(const string &portfolio_id);
+    std::optional<portfolio_sp_t> get_sub_portfolio(const string &portfolio_id);
+
+    /// @brief recursively search through sub portfolios to find by portfolio id
+    /// @param portfolio_id unique id of the portfolio
+    /// @return sp to portfolio if exists
+    std::optional<portfolio_sp_t> find_portfolio(const string &portfolio_id);
 
     /// @brief evaluate the portfolio on open or close
     /// @param on_close are we at close of the candle
-    void evaluate(bool on_close);
+    /// @param recursive wether to recursievly evalute all portfolios
+    void evaluate(bool on_close, bool recursive);
 
     /// @brief generate and send nessecary orders to completely exist position by asset id
     /// @param asset_id       unique id of the asset of the position to exit
@@ -79,6 +85,7 @@ public:
         OrderExecutionType execution_type,
         bool recursively);
     //TODO implement 
+
 
 private:
     /// unique id of the portfolio

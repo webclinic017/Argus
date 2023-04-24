@@ -14,7 +14,7 @@ Position::Position(shared_ptr<Order> &filled_order, unsigned int position_id_)
 
     // set ids used by the position
     this->position_id = position_id_;
-    this->asset_id = *filled_order->get_asset_id();
+    this->asset_id = filled_order->get_asset_id();
     this->exchange_id = filled_order->get_exchange_id();
 
     // populate member variables

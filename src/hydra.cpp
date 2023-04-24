@@ -14,10 +14,11 @@
 namespace py = pybind11;
 using namespace std;
 
-Hydra::Hydra(int logging_) : logging(logging_),
-                             master_portfolio(logging_, 0, "master")
-{
+Hydra::Hydra(int logging_)
+{   
+    this->logging = logging_;
     this->history = std::make_shared<History>();
+    this->master_portfolio = std::make_shared<Portfolio>(logging_, 0, "master");
 }
 
 Hydra::~Hydra()
@@ -113,18 +114,13 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
         throw std::runtime_error("exchange already exists");
     }
 
-    // add a new portfolio for the broker
-    this->master_portfolio.add_sub_portfolio(
-        broker_id,
-        make_shared<Portfolio>(logging, cash, broker_id));
-
     // build new broker wrapped in shared pointer
     auto broker = make_shared<Broker>(
         broker_id,
         cash,
         this->logging,
         this->history,
-        this->master_portfolio.get_sub_portfolio(broker_id));
+        this->master_portfolio);
 
     // insert a clone of the smart pointer into the exchange
     this->brokers.emplace(broker_id, broker);
@@ -213,7 +209,7 @@ void Hydra::evaluate_orders_on_open(){
     }
 
     // evaluate the master portfolio at the open
-    this->master_portfolio.evaluate(false);
+    this->master_portfolio->evaluate(false, false);
 
     // move the test to the closing period
     for (auto &exchange_pair : this->exchanges)
@@ -238,6 +234,6 @@ void Hydra::backward_pass(){
     }
 
     // evaluate the master portfolio at the close
-    this->master_portfolio.evaluate(false);
+    this->master_portfolio->evaluate(false, false);
     
 }

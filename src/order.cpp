@@ -14,8 +14,8 @@ OrderConsildated::OrderConsildated(vector<shared_ptr<Order>> orders){
 
     //get the first asset id (all must match)
     auto order = orders[0];
-    auto asset_id_ = *order->get_asset_id();
-    auto broker_id_ = *order->get_broker_id();
+    auto asset_id_ = order->get_asset_id();
+    auto broker_id_ = order->get_broker_id();
 
     for(auto const &order : orders){
         units_ += order->get_units();

@@ -92,7 +92,7 @@ public:
 
     /// get the id of the exchange the position's underlying asset is on
     /// \return id of the exchange the position's underlying asset is on
-    string get_exchange_id() { return this->exchange_id; }
+    string const & get_exchange_id() { return this->exchange_id; }
 
     /// get total number of units in the position
     /// \return number of units in the position
