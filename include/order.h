@@ -140,8 +140,11 @@ public:
     [[nodiscard]] string const * get_broker_id() { return &this->broker_id; }
 
     /// get the unique trade id of the account the order was placed to
-    [[nodiscard]] string get_portfolio_id() const { return this->portfolio_id; }
+    [[nodiscard]] string const * get_strategy_id() const { return &this->strategy_id; }
 
+    /// get the unique trade id of the account the order was placed to
+    [[nodiscard]] string get_portfolio_id() const { return this->portfolio_id; }
+    
     /// get the unique trade id of the order
     [[nodiscard]] int get_trade_id() const { return this->trade_id; }
 

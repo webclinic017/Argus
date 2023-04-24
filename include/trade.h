@@ -70,6 +70,8 @@ public:
     /// @return ref to vec of order smart pointers
     vector<shared_ptr<Order>> &get_open_orders() { return this->open_orders; }
 
+    shared_ptr<Order> generate_order_inverse();
+
     /// evaluate the trade at the current market price either at open of close of candle
     /// \param market_price current market price of the underlying asset
     /// \param on_close is it the open or close of current candle
@@ -93,6 +95,9 @@ private:
 
     /// unique id of the account the trade belongs to
     string portfolio_id;
+
+    /// @brief unique id of the strategy that placed the order
+    string strategy_id;
 
     /// how many units in the trade
     double units;

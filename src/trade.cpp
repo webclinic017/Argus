@@ -28,6 +28,7 @@ Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_)
     this->exchange_id = filled_order->get_exchange_id();
     this->broker_id = *filled_order->get_broker_id();
     this->portfolio_id = filled_order->get_portfolio_id();
+    this->strategy_id = *filled_order->get_strategy_id();
 
     // set the trade member variables
     this->units = filled_order->get_units();
@@ -106,4 +107,17 @@ void Trade::reduce(double market_price_, double units_, long long int trade_chan
     this->realized_pl += abs(units_) * (market_price_ - this->average_price);
     this->trade_change_time = trade_change_time_;
     this->units += units_;
+}
+
+shared_ptr<Order> Trade::generate_order_inverse(){
+    return std::make_shared<Order>(
+        MARKET_ORDER,
+        this->asset_id,
+        this->units * -1,
+        this->exchange_id,
+        this->broker_id,
+        this->portfolio_id,
+        this->strategy_id,
+        this->trade_id
+    );
 }

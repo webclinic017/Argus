@@ -70,6 +70,16 @@ public:
     /// @param on_close are we at close of the candle
     void evaluate(bool on_close);
 
+    /// @brief generate and send nessecary orders to completely exist position by asset id
+    /// @param asset_id       unique id of the asset of the position to exit
+    /// @param execution_type eager or lazy execution 
+    /// @param recursively    recursively search through sub portfolios for positions
+    void exit_position(
+        const string& asset_id, 
+        OrderExecutionType execution_type,
+        bool recursively);
+    //TODO implement 
+
 private:
     /// unique id of the portfolio
     std::string portfolio_id;
