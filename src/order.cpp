@@ -48,7 +48,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
 
     this->order_type = order_type_;
     this->units = units_;
-    this->fill_price = 0.0;
+    this->averae_price = 0.0;
     this->order_fill_time = 0;
 
     // populate the ids of the order
@@ -76,7 +76,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
 
 void Order::fill(double market_price, long long fill_time)
 {
-    this->fill_price = market_price;
+    this->averae_price = market_price;
     this->order_fill_time = fill_time;
     this->order_state = FILLED;
 }

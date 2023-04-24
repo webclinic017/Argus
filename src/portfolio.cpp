@@ -13,6 +13,8 @@ using portfolio_sp_t = Portfolio::portfolio_sp_t;
 using position_sp_t = Position::position_sp_t;
 using order_sp_t = Order::order_sp_t;
 
+unsigned int Portfolio::trade_counter = 0;
+
 Portfolio::Portfolio(
     int logging_, 
     double cash_, 
@@ -96,30 +98,17 @@ void Portfolio::on_order_fill(order_sp_t &filled_order)
     }
 };
 
-void Portfolio::open_position(shared_ptr<Order> &filled_order)
-{
-    // build the new position and increment position counter used to set ids
-    auto position = make_shared<Position>(filled_order, this->position_counter);
-    this->position_counter++;
-
-    // adjust cash held by broker accordingly
-    this->cash -= filled_order->get_units() * filled_order->get_fill_price();
-
-    // insert the new position into the portfolio object
-    this->add_position(filled_order->get_asset_id(), position);
-
-    // log the position if needed
-    if (this->logging == 1)
-    {
-        this->log_position_open(position);
-    }
-}
-
 void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 {
     // get the position and account to modify
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
+
+    // check to see if a trade id was passed, if not assign new trade id
+    if(filled_order->get_trade_id() == 1){
+        filled_order->set_trade_id(this->trade_counter);
+        this->trade_counter++;
+    }
 
     // adjust position and close out trade if needed
     auto trade = position->adjust(filled_order);
@@ -136,7 +125,7 @@ void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 
     // get fill info
     auto order_units = filled_order->get_units();
-    auto order_fill_price = filled_order->get_fill_price();
+    auto order_fill_price = filled_order->get_average_price();
 
     // adjust cash for modifying position
     this->cash -= order_units * order_fill_price;
@@ -144,12 +133,19 @@ void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 
 void Portfolio::close_position(shared_ptr<Order> &filled_order)
 {
-    // get the position to close
+#ifdef ARGUS_RUNTIME_ASSERT
+    assert(this->units + filled_order->get_units() < 1e-7);
+#endif 
+
+    // get the position to close and close it 
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
+    position->close(
+        filled_order->get_average_price(), 
+        filled_order->get_fill_time());
 
     // adjust cash held at the broker
-    this->cash += filled_order->get_units() * filled_order->get_fill_price();
+    this->cash += filled_order->get_units() * filled_order->get_average_price();
 
     // close all child trade of the position whose broker is equal to current broker id
     auto trades = position->get_trades();
@@ -157,22 +153,45 @@ void Portfolio::close_position(shared_ptr<Order> &filled_order)
     {
         auto trade = it->second;
 
-        // close the child trade
-        trade->close(filled_order->get_fill_price(), filled_order->get_fill_time());
-
         // remove the trade from the position container
         it = trades.erase(it);
+
+        //TODO remove trades from parent portfolios
 
         // push the trade to history
         this->history->remember_trade(std::move(trade));
     }
 
-    // remove the position from master portfolio
+    // remove the position from portfolio
     this->delete_position(asset_id);
 
     // push position to history
     this->history->remember_position(std::move(position));
 }
+
+void Portfolio::propogate_trade_open(trade_sp_t trade_sp){
+    //TODO chance position_exists to std::optional
+
+    //position does not exist in portfolio
+    if(!this->position_exists(trade_sp->get_asset_id())){
+            this->open_position(trade_sp);
+    }
+    //position already exists, add the new trade
+    else{
+        auto position = this->get_position(trade_sp->get_asset_id());
+
+    }
+
+   //reached master portfolio
+    if(!this->parent_portfolio){
+        return;
+    }
+    //have not reached master portfolio, propgate trade up portfolio tree
+    else{
+       this->parent_portfolio->propogate_trade_open(trade_sp);
+    }
+};
+
 
 void Portfolio::add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio)
 {
@@ -290,6 +309,6 @@ void Portfolio::log_order_fill(order_sp_t &filled_order)
                datetime_str,
                this->portfolio_id,
                filled_order->get_order_id(),
-               filled_order->get_fill_price(),
+               filled_order->get_average_price(),
                filled_order->get_asset_id());
 };

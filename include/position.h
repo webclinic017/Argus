@@ -73,8 +73,8 @@ public:
     using trade_sp_t = std::shared_ptr<Trade>;
 
     /// position constructors
-    Position(order_sp_t &filled_order, unsigned int position_id);
-    Position(trade_sp_t trade);
+    Position(order_sp_t filled_order, unsigned int trade_id);
+    Position(trade_sp_t trade, unsigned int trade_id);
 
     /// close the position out at given time and price
     /// \param market_price price the trade was closed out at
@@ -84,6 +84,8 @@ public:
     /// adjust a open position using a filled order
     /// \param filled_order ref to sp of a filled order
     shared_ptr<Trade> adjust(shared_ptr<Order> &filled_order);
+
+    void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
 
     /// get the id of the position
     /// \return position id

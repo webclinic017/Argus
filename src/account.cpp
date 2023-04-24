@@ -18,7 +18,7 @@ void Account::on_order_fill(order_sp_t &filled_order)
     // get order information
     auto asset_id = filled_order->get_asset_id();
     auto order_units = filled_order->get_units();
-    auto order_fill_price = filled_order->get_fill_price();
+    auto order_fill_price = filled_order->get_average_price();
 
     // adjust the account's cash
     this->cash -= order_units * order_fill_price;

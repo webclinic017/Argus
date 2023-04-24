@@ -1,7 +1,3 @@
-//
-// Created by Nathan Tormaschy on 4/23/23.
-//
-
 #ifndef ARGUS_PORTFOLIO_H
 #define ARGUS_PORTFOLIO_H
 
@@ -32,9 +28,9 @@ public:
     typedef tsl::robin_map<std::string, portfolio_sp_t> portfolios_map_t;
 
     /// portfolio constructor
-    /// \param logging logging level
-    /// \param cash    starting cash of the portfolio
-    /// \param id      unique id of the portfolio
+    /// @param logging logging level
+    /// @param cash    starting cash of the portfolio
+    /// @param id      unique id of the portfolio
     Portfolio(int logging, double cash, string id, portfolio_sp_t parent_portfolio);
 
     void on_order_fill(order_sp_t &filled_order);
@@ -47,18 +43,18 @@ public:
     }
 
     /// does the portfolio contain a position with the given asset id
-    /// \param asset_id unique id of the asset
+    /// @param asset_id unique id of the asset
     /// \return does the position exist
     [[nodiscard]] bool position_exists(const string &asset_id) const { return this->positions_map.contains(asset_id); };
 
     /// get smart pointer to existing position
-    /// \param asset_id unique ass id of the position
+    /// @param asset_id unique ass id of the position
     /// \return smart pointer to the existing position
     std::optional<position_sp_t> get_position(const string &asset_id);
 
     /// add new sub portfolio to the portfolio
-    /// \param portfolio_id portfolio id of the new sub portfolio
-    /// \param portfolio smart pointer to sub portfolio
+    /// @param portfolio_id portfolio id of the new sub portfolio
+    /// @param portfolio smart pointer to sub portfolio
     void add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio);
 
     /// @brief get smartpointer to a sub portfolio
@@ -112,6 +108,8 @@ private:
     /// position counter for position ids
     unsigned int position_counter;
 
+    static unsigned int trade_counter;
+
     /// cash held by the portfolio
     double cash;
 
@@ -119,32 +117,33 @@ private:
     shared_ptr<History> history;
 
     /// log order fill
-    /// \param filled_order filled order to log
+    /// @param filled_order filled order to log
     void log_order_fill(order_sp_t &filled_order);
 
     /// log position open
-    /// \param new_position new position to log
+    /// @param new_position new position to log
     void log_position_open(shared_ptr<Position> &new_position);
 
-    /// add new position to the map by asset id
-    /// \param asset_id asset id of the position to add
-    /// \param position new position smart pointer
+    /// @brief add new position to the map by asset id
+    /// @param asset_id asset id of the position to add
+    /// @param position new position smart pointer
     inline void add_position(const string &asset_id, position_sp_t position);
 
-    /// remove a position from the map by asset id
-    /// \param asset_id asset id of the position to delete
+    /// @brief remove a position from the map by asset id
+    /// @param asset_id asset id of the position to delete
     inline void delete_position(const string &asset_id);
 
-    /// modify an existing postion based on a filled order
-    /// \param filled_order ref to a sp to a filled order
+    /// @brief modify an existing postion based on a filled order
+    /// @param filled_order ref to a sp to a filled order
     void modify_position(order_sp_t &filled_order);
 
-    /// open a new position based on a filled order
-    /// \param filled_order ref to a sp to order that has been filled
-    void open_position(order_sp_t &filled_order);
+    /// @brief open a new position based on either filled order or new trade
+    /// @param open_obj sp to either a new trade or a new order
+    template<typename T>
+    void open_position(T open_obj);
 
-    /// close an existing position based on a filled order
-    /// \param filled_order ref to a sp to order that has been filled
+    /// @brief close an existing position based on a filled order
+    /// @param filled_order ref to a sp to order that has been filled
     void close_position(order_sp_t &filled_order);
 
     /// @brief cancel all order for child trades in a position
@@ -154,6 +153,33 @@ private:
     /// @brief cancel all open orders for a trade
     /// @param trade_sp ref to sp of a trade
     void trade_cancel_order(trade_sp_t &trade_sp);
+
+    void propogate_trade_open(trade_sp_t trade_sp);
+
 };
+
+template<typename T>
+void Portfolio::open_position(T open_obj)
+{   
+    // build the new position and increment position counter used to set ids
+    auto position = make_shared<Position>(open_obj, this->trade_counter);
+    position->set_position_id(this->position_counter);
+    this->position_counter++;
+    this->trade_counter++;
+
+    //TODO propogate new trade up portfolio tree
+
+    // adjust cash held by broker accordingly
+    this->cash -= open_obj->get_units() * open_obj->get_average_price();
+
+    // insert the new position into the portfolio object
+    this->add_position(open_obj->get_asset_id(), position);
+
+    // log the position if needed
+    if (this->logging == 1)
+    {
+        this->log_position_open(position);
+    }
+}
 
 #endif // ARGUS_PORTFOLIO_H

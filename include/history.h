@@ -35,7 +35,11 @@ public:
 
     void remember_trade(shared_ptr<Trade> trade){
 #ifdef ARGUS_RUNTIME_ASSERT
-        assert(trade.use_count() == 1);
+        //assert no one hold sp to trade
+        assert(trade->use_count() == 1);   
+        
+         //assert trade id was given
+        assert(trade->get_trade_id() >= 0);
 #endif
         this->trades.push_back(std::move(trade));
     };

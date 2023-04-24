@@ -8,7 +8,7 @@
 #include "settings.h"
 
 
-Position::Position(trade_sp_t trade){
+Position::Position(trade_sp_t trade, unsigned int trade_id){
     //populate common position values
     this->populate_position(trade);
 
@@ -18,48 +18,37 @@ Position::Position(trade_sp_t trade){
     this->position_open_time = trade->get_trade_open_time();
 
     // insert the new trade
-    this->trades.insert({trade->get_trade_id(),trade});
+    this->trades.insert({trade_id,trade});
     this->trade_counter = 1;
 };
 
-Position::Position(shared_ptr<Order> &filled_order, unsigned int position_id_)
+Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id)
 {   
     //populate common position values
-    this->populate_position(filled_order);
-
-    // set ids used by the position
-    this->position_id = position_id_;
+    this->populate_position(filled_order_);
 
     // populate order values
-    this->average_price = filled_order->get_fill_price();
-    this->last_price = filled_order->get_fill_price();
-    this->position_open_time = filled_order->get_fill_time();
-
-    // if the trade id is -1 set it equal to 0 (the default trade container for a position)
-    // else case the trade id to an unsigned int
-    auto trade_id_int = filled_order->get_trade_id();
-    if (trade_id_int == -1)
-    {
-        trade_id_int++;
-    }
-    auto trade_id_uint = static_cast<unsigned int>(trade_id_int);
+    this->average_price = filled_order_->get_average_price();
+    this->last_price = filled_order_->get_average_price();
+    this->position_open_time = filled_order_->get_fill_time();
 
     // insert the new trade
-    this->trades.insert({trade_id_uint,
-                         std::make_shared<Trade>(filled_order, filled_order->get_unsigned_trade_id())});
+    this->trades.insert({trade_id,
+                         std::make_shared<Trade>(filled_order_, filled_order_->get_unsigned_trade_id())});
     this->trade_counter = 1;
 }
 
-shared_ptr<Trade> Position::adjust(shared_ptr<Order> &filled_order)
+shared_ptr<Trade> Position::adjust(shared_ptr<Order> &filled_order_)
 {
 #ifdef ARGUS_RUNTIME_ASSERT
     assert(this->is_open);
+    assert(this->asset_id = filled_order_->get_asset_id());
     assert(units + this->units > 1e-8); // assert not closing trade
 #endif
 
     // adjust the parent position's members
-    auto units_ = filled_order->get_units();
-    auto fill_price = filled_order->get_fill_price();
+    auto units_ = filled_order_->get_units();
+    auto fill_price = filled_order_->get_average_price();
 
     // increasing position
     if (units_ * this->units > 0)
@@ -77,32 +66,30 @@ shared_ptr<Trade> Position::adjust(shared_ptr<Order> &filled_order)
     this->units += units_;
 
     // get the trade id unsigned, and signed raw (-1 means open new trade)
-    auto trade_id_uint = filled_order->get_unsigned_trade_id();
-    auto trade_id_int = filled_order->get_trade_id();
+    auto trade_id_uint = filled_order_->get_unsigned_trade_id();
+    auto trade_id_int = filled_order_->get_trade_id();
 
-    // no trade id was passed, open new trade
     if (trade_id_int == -1)
     {
+        // no trade id was passed, open new trade
         this->trades.insert({trade_id_uint,
-                             std::make_shared<Trade>(filled_order, this->trade_counter)});
+                             std::make_shared<Trade>(filled_order_, this->trade_counter)});
         this->trade_counter++;
         return this->trades.at(this->trade_counter - 1);
     }
-
-    // trade id was passed but is not in position's child trade map so create new trade
     else if (!this->trades.contains(trade_id_uint))
     {
+        // trade id was passed but is not in position's child trade map so create new trade
         this->trades.insert({trade_id_uint,
-                             std::make_shared<Trade>(filled_order, filled_order->get_trade_id())});
+                             std::make_shared<Trade>(filled_order_, filled_order_->get_trade_id())});
         this->trade_counter++;
         return this->trades.at(this->trade_counter - 1);
     }
-
-    // found the trade currently open
     else
-    {
+    {   
+        // found the trade currently open
         auto trade = this->trades[trade_id_uint];
-        trade->adjust(filled_order);
+        trade->adjust(filled_order_);
 
         // if the adjustment causes the trade to close remove from position child trades
         if (!trade->get_is_open())

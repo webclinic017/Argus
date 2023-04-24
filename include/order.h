@@ -95,7 +95,7 @@ private:
     double units;
 
     /// price the order was filled at
-    double fill_price;
+    double averae_price;
 
     /// time the order was filled
     long long order_fill_time;
@@ -155,7 +155,7 @@ public:
     [[nodiscard]] double get_units() const { return this->units; }
 
     /// get the fill price in the order
-    [[nodiscard]] double get_fill_price() const { return this->fill_price; }
+    [[nodiscard]] double get_average_price() const { return this->averae_price; }
 
     /// get the limit of the order
     [[nodiscard]] double get_limit() const { return this->limit; }
@@ -177,6 +177,9 @@ public:
 
     /// set the limit of the order
     inline void set_limit(double limit_) { this->limit = limit_; }
+
+    /// set the trade id of the order
+    inline void set_trade_id(unsigned int trade_id_) { this->trade_id = trade_id_; }
 
     /// set the order state of the order
     inline void set_order_state(OrderState order_state_) { this->order_state = order_state_; };

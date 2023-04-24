@@ -32,11 +32,11 @@ Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_)
 
     // set the trade member variables
     this->units = filled_order->get_units();
-    this->average_price = filled_order->get_fill_price();
+    this->average_price = filled_order->get_average_price();
     this->unrealized_pl = 0;
     this->realized_pl = 0;
     this->close_price = 0;
-    this->last_price = filled_order->get_fill_price();
+    this->last_price = filled_order->get_average_price();
 
     // set the times
     this->trade_close_time = 0;
@@ -58,7 +58,7 @@ void Trade::adjust(shared_ptr<Order> &filled_order)
 {
     // extract order information
     auto units_ = filled_order->get_units();
-    auto fill_price_ = filled_order->get_fill_price();
+    auto fill_price_ = filled_order->get_average_price();
     auto fill_time_ = filled_order->get_fill_time();
 
     // decided to close, increase, or reduce the trade

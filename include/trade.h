@@ -46,39 +46,39 @@ public:
     void cancel_child_order(unsigned int order_id);
 
     /// is the trade currently open
-    /// \return is the trade open
+    /// @return is the trade open
     [[nodiscard]] bool get_is_open() const { return this->is_open; }
 
     /// get number of units in the trade
-    /// \return number of units in the trade
+    /// @return number of units in the trade
     [[nodiscard]] double get_units() const { return this->units; }
 
     /// get the time the trade was opened
-    /// \return the time the trade opened
+    /// @return the time the trade opened
     [[nodiscard]] long long get_trade_open_time() const {return this->trade_open_time;}
 
     /// get closing price of the trade
-    /// \return closing price of the trade
+    /// @return closing price of the trade
     [[nodiscard]] double get_close_price() const { return this->close_price; }
 
     /// get the id of the underlying asset of the trade
-    /// \return underlying asset of the trade
+    /// @return underlying asset of the trade
     [[nodiscard]] string get_asset_id() const { return this->asset_id; }
 
     /// get the id of the trade 
-    /// \return id of the trade
+    /// @return id of the trade
     unsigned int get_trade_id() const {return this->trade_id;}
 
     /// get the id of the underlying exchange of the trade
-    /// \return underlying asset of the trade
+    /// @return underlying asset of the trade
     [[nodiscard]] string const & get_exchange_id() const { return this->exchange_id; }
 
     /// get the average price of the trade
-    /// \return average price of the trade
+    /// @return average price of the trade
     [[nodiscard]] double get_average_price() const { return this->average_price; }
 
     /// get the realized pl of the trade
-    /// \return realized pl of the trade
+    /// @return realized pl of the trade
     [[nodiscard]] double get_realized_pl() const { return this->realized_pl; }
 
     /// @brief get all open orders placed at the broker
