@@ -39,7 +39,7 @@ inline T unsorted_vector_remove(vector<T> &vec, Func func, unsigned int id){
 }
 
 template<typename T>
-inline py::array_t<T> to_py_array(T* data, long length, bool read_only)
+inline py::array_t<T> to_py_array(T const * data, long length, bool read_only)
 {
     auto capsule = py::capsule(data, [](void *data) {});
     auto array =  py::array_t<T> {
@@ -54,7 +54,7 @@ inline py::array_t<T> to_py_array(T* data, long length, bool read_only)
 }
 
 template<class T>
-bool array_eq(T* a, T* b, size_t length){
+bool array_eq(T const * a, T const * b, size_t length){
     for(size_t i = 0; i< length; i++){
         if(a[i] != b[i]){
             return false;
@@ -64,7 +64,7 @@ bool array_eq(T* a, T* b, size_t length){
 }
 
 template<class T>
-tuple<T* , int> sorted_union(T* a, T* b, size_t n, size_t m) {
+tuple<T* , int> sorted_union(T const * a, T const* b, size_t n, size_t m) {
     int i = 0, j = 0, k = 0;
     auto* result = new T[n + m];
     priority_queue<T, vector<T>, greater<>> pq;

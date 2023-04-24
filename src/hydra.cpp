@@ -18,7 +18,7 @@ Hydra::Hydra(int logging_)
 {   
     this->logging = logging_;
     this->history = std::make_shared<History>();
-    this->master_portfolio = std::make_shared<Portfolio>(logging_, 0, "master");
+    this->master_portfolio = std::make_shared<Portfolio>(logging_, 0, "master", nullptr);
 }
 
 Hydra::~Hydra()

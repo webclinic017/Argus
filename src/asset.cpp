@@ -133,6 +133,21 @@ double Asset::get(const std::string &column, size_t row_index) const
     return this->data[row_index * this->cols + column_index];
 }
 
+double Asset::get_market_price(bool on_close) const
+{
+
+    #ifdef ARGUS_ASSET_H
+    //make sure row pointer is not out of bounds
+    ptrdiff_t index = this->row - this->data; 
+    assert(index < this->rows * this*cols);
+    #endif
+
+    if (on_close)
+        return *(this->row + this->close_column);
+    else
+        return *(this->row + this->close_column);
+}
+
 long long *Asset::get_datetime_index() const
 {
     return &this->datetime_index[0];

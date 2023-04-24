@@ -17,10 +17,13 @@ class Trade
 
 public:
     typedef shared_ptr<Trade> trade_sp_t;
-    /// trade constructor
-    Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_);
 
-    void adjust(shared_ptr<Order> &filled_order);
+    using order_sp_t = Order::order_sp_t;
+
+    /// trade constructor
+    Trade(order_sp_t &filled_order, unsigned int trade_id_);
+
+    void adjust(order_sp_t &filled_order);
 
     /// close the trade out at given time and price
     /// \param market_price price the trade was closed out at
@@ -50,6 +53,10 @@ public:
     /// \return number of units in the trade
     [[nodiscard]] double get_units() const { return this->units; }
 
+    /// get the time the trade was opened
+    /// \return the time the trade opened
+    [[nodiscard]] long long get_trade_open_time() const {return this->trade_open_time;}
+
     /// get closing price of the trade
     /// \return closing price of the trade
     [[nodiscard]] double get_close_price() const { return this->close_price; }
@@ -57,6 +64,14 @@ public:
     /// get the id of the underlying asset of the trade
     /// \return underlying asset of the trade
     [[nodiscard]] string get_asset_id() const { return this->asset_id; }
+
+    /// get the id of the trade 
+    /// \return id of the trade
+    unsigned int get_trade_id() const {return this->trade_id;}
+
+    /// get the id of the underlying exchange of the trade
+    /// \return underlying asset of the trade
+    [[nodiscard]] string const & get_exchange_id() const { return this->exchange_id; }
 
     /// get the average price of the trade
     /// \return average price of the trade
@@ -68,9 +83,11 @@ public:
 
     /// @brief get all open orders placed at the broker
     /// @return ref to vec of order smart pointers
-    vector<shared_ptr<Order>> &get_open_orders() { return this->open_orders; }
+    vector<order_sp_t> &get_open_orders() { return this->open_orders; }
 
-    shared_ptr<Order> generate_order_inverse();
+    /// @brief generate the inverse order needed to close out a trade, (MARKET_ORDER)
+    /// @return a smart pointer to a order that when placed will close out the trade
+    order_sp_t generate_order_inverse();
 
     /// evaluate the trade at the current market price either at open of close of candle
     /// \param market_price current market price of the underlying asset

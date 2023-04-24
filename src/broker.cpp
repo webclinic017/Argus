@@ -14,7 +14,6 @@
 
 using namespace std;
 
-using order_sp_t = Order::order_sp_t;
 
 Broker::Broker(string broker_id_,
                double cash_,
@@ -193,11 +192,9 @@ void Broker::process_filled_order(order_sp_t &open_order)
     // adjust the account held at the broker
     this->broker_account.on_order_fill(open_order);
 
-    // get the portfolio the order was placed for
+    // get the portfolio the order was placed for, adjust the sub portfolio accorindly
     auto portfolio_id = open_order->get_portfolio_id();
     auto sub_portfolio = this->master_portfolio->find_portfolio(portfolio_id).value();
-
-    // adjust the sub portfolio accorindly
     sub_portfolio->on_order_fill(open_order);
 
     // adjust the master portfolio's personal position map which contains all open trades

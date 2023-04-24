@@ -7,28 +7,33 @@
 #include "position.h"
 #include "settings.h"
 
+
+Position::Position(trade_sp_t trade){
+    //populate common position values
+    this->populate_position(trade);
+
+    // populate order values
+    this->average_price = trade->get_average_price();
+    this->last_price = trade->get_average_price();
+    this->position_open_time = trade->get_trade_open_time();
+
+    // insert the new trade
+    this->trades.insert({trade->get_trade_id(),trade});
+    this->trade_counter = 1;
+};
+
 Position::Position(shared_ptr<Order> &filled_order, unsigned int position_id_)
-{
-    // position constructs to open state
-    this->is_open = true;
+{   
+    //populate common position values
+    this->populate_position(filled_order);
 
     // set ids used by the position
     this->position_id = position_id_;
-    this->asset_id = filled_order->get_asset_id();
-    this->exchange_id = filled_order->get_exchange_id();
 
-    // populate member variables
-    this->units = filled_order->get_units();
+    // populate order values
     this->average_price = filled_order->get_fill_price();
-    this->close_price = 0;
     this->last_price = filled_order->get_fill_price();
-    this->unrealized_pl = 0;
-    this->realized_pl = 0;
-
-    // set time values
     this->position_open_time = filled_order->get_fill_time();
-    this->position_close_time = 0;
-    this->bars_held = 0;
 
     // if the trade id is -1 set it equal to 0 (the default trade container for a position)
     // else case the trade id to an unsigned int

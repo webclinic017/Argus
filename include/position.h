@@ -7,6 +7,11 @@
 #include <string>
 #include <tsl/robin_map.h>
 
+class Trade;
+class Order;
+class Position;
+
+
 #include "trade.h"
 
 using namespace std;
@@ -58,24 +63,26 @@ private:
 
     tsl::robin_map<unsigned int, shared_ptr<Trade>> trades;
 
+    template<typename T>
+    void populate_position(T populator);
+
 public:
     /// smart pointer position typedef
     using position_sp_t = std::shared_ptr<Position>;
+    using order_sp_t = std::shared_ptr<Order>;
+    using trade_sp_t = std::shared_ptr<Trade>;
 
-    /// position constructor
-    Position(shared_ptr<Order> &filled_order, unsigned int position_id);
+    /// position constructors
+    Position(order_sp_t &filled_order, unsigned int position_id);
+    Position(trade_sp_t trade);
 
     /// close the position out at given time and price
     /// \param market_price price the trade was closed out at
     /// \param position_close_time time the trade was closed out at
     void close(double market_price, long long position_close_time);
 
-    /// adjust a position's size and adjust the child trade the order was placed to
-    /// \param market_price price the adjustment order was filled at
-    /// \param units number of units to increase
-    /// \param position_change_time time the order was filled at
-    /// \param trade_id id of the child trade to adjust
-    /// \return smart pointer to the trade that was adjusted
+    /// adjust a open position using a filled order
+    /// \param filled_order ref to sp of a filled order
     shared_ptr<Trade> adjust(shared_ptr<Order> &filled_order);
 
     /// get the id of the position
@@ -124,6 +131,27 @@ public:
             trade.second->evaluate(market_price, on_close);
         }
     };
+};
+
+
+template<typename T>
+void Position::populate_position(T populator){
+    // position constructs to open state
+    this->is_open = true;
+
+    // set ids used by the position
+    this->asset_id = populator->get_asset_id();
+    this->exchange_id = populator->get_exchange_id();
+
+    // populate member variables
+    this->units = populator->get_units();
+    this->close_price = 0;
+    this->unrealized_pl = 0;
+    this->realized_pl = 0;
+
+    // set time values
+    this->position_close_time = 0;
+    this->bars_held = 0;
 };
 
 #endif // ARGUS_POSITION_H

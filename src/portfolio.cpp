@@ -1,6 +1,3 @@
-//
-// Created by Nathan Tormaschy on 4/23/23.
-//
 #include <memory>
 #include <string>
 #include <optional>
@@ -16,8 +13,13 @@ using portfolio_sp_t = Portfolio::portfolio_sp_t;
 using position_sp_t = Position::position_sp_t;
 using order_sp_t = Order::order_sp_t;
 
-Portfolio::Portfolio(int logging_, double cash_, string id_) : positions_map()
+Portfolio::Portfolio(
+    int logging_, 
+    double cash_, 
+    string id_, 
+    portfolio_sp_t parent_portfolio_) : positions_map()
 {
+    this->parent_portfolio = parent_portfolio_;
     this->logging = logging_;
     this->cash = cash_;
     this->portfolio_id = std::move(id_);
@@ -121,6 +123,8 @@ void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 
     // adjust position and close out trade if needed
     auto trade = position->adjust(filled_order);
+
+    //test to see if trade was closed
     if (!trade->get_is_open())
     {
         // cancel any orders linked to the closed traded

@@ -20,41 +20,9 @@ using namespace std;
 
 class Asset
 {
-private:
-    /// has the asset been built
-    bool is_built;
-
-    /// unique id of the asset
-    string asset_id;
-
-    /// map between column name and column index
-    tsl::robin_map<string, size_t> headers;
-
-    /// datetime index of the asset (ns epoch time stamp)
-    long long *datetime_index;
-
-    /// underlying data of the asset
-    double *data;
-
-    /// @brief pointer to the current row
-    double *row;
-
-    /// number of rows in the asset data
-    size_t rows;
-
-    /// number of columns in the asset data
-    size_t cols;
-
-    /// index of the current row the asset is at
-    size_t current_index;
-
-    /// index of the open column;
-    size_t open_column;
-
-    /// index of the close column
-    size_t close_column;
-
 public:
+    typedef shared_ptr<Asset> asset_sp_t;
+
     /// asset constructor
     explicit Asset(string asset_id);
 
@@ -94,13 +62,7 @@ public:
     [[nodiscard]] double get(const string &column, size_t row_index) const;
 
     /// get the current index of the asset
-    [[nodiscard]] inline double get_market_price(bool on_close) const
-    {
-        if (on_close)
-            return *(this->row + this->close_column);
-        else
-            return *(this->row + this->close_column);
-    };
+    [[nodiscard]] double get_market_price(bool on_close) const;
 
     /// get the current datetime of the asset
     [[nodiscard]] long long *get_asset_time() const;
@@ -110,6 +72,40 @@ public:
 
     /// step the asset forward in time
     void step();
+private:
+    /// has the asset been built
+    bool is_built;
+
+    /// unique id of the asset
+    string asset_id;
+
+    /// map between column name and column index
+    tsl::robin_map<string, size_t> headers;
+
+    /// datetime index of the asset (ns epoch time stamp)
+    long long *datetime_index;
+
+    /// underlying data of the asset
+    double *data;
+
+    /// @brief pointer to the current row
+    double *row;
+
+    /// number of rows in the asset data
+    size_t rows;
+
+    /// number of columns in the asset data
+    size_t cols;
+
+    /// index of the current row the asset is at
+    size_t current_index;
+
+    /// index of the open column;
+    size_t open_column;
+
+    /// index of the close column
+    size_t close_column;
+
 };
 
 /// function for creating a shared pointer to a asset

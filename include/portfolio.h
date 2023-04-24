@@ -35,7 +35,7 @@ public:
     /// \param logging logging level
     /// \param cash    starting cash of the portfolio
     /// \param id      unique id of the portfolio
-    Portfolio(int logging, double cash, string id);
+    Portfolio(int logging, double cash, string id, portfolio_sp_t parent_portfolio);
 
     void on_order_fill(order_sp_t &filled_order);
 
@@ -94,11 +94,14 @@ private:
     /// logging level
     int logging;
 
-    /// mapping between asset id and position smart pointer
-    positions_map_t positions_map;
+    /// smart pointer to parent_portfolio
+    portfolio_sp_t parent_portfolio;
 
     /// mapping between sub portfolio id and potfolio smart poitner
     portfolios_map_t portfolio_map;
+
+    /// mapping between asset id and position smart pointer
+    positions_map_t positions_map;
 
     /// smart pointer to exchanges map
     exchanges_sp_t exchanges_sp;
