@@ -196,20 +196,48 @@ bool Hydra::forward_pass()
     // increment the hydra's current index
     this->current_index++;
 
-    // evaluate the master portfolio at the current datetime
-    this->master_portfolio.evaluate(false);
-
     // allow exchanges to process open orders
     for (auto &exchange_pair : this->exchanges)
     {
         exchange_pair.second->process_orders();
     }
+    return true;
+}
 
-    // allow broker to process orders that have been filled
+
+void Hydra::evaluate_orders_on_open(){
+     // allow broker to process orders that have been filled
     for (auto &broker_pair : this->brokers)
     {
         broker_pair.second->process_orders();
     }
 
-    return true;
+    // evaluate the master portfolio at the open
+    this->master_portfolio.evaluate(false);
+
+    // move the test to the closing period
+    for (auto &exchange_pair : this->exchanges)
+    {
+        auto exchange = exchange_pair.second;
+        // set the exchange is_close
+        exchange->set_on_close(false);
+    }
+}
+
+void Hydra::backward_pass(){
+    // allow exchanges to process orders placed at close
+    for (auto &exchange_pair : this->exchanges)
+    {
+        exchange_pair.second->process_orders();
+    }
+
+    // process any filled orders
+    for (auto &broker_pair : this->brokers)
+    {
+        broker_pair.second->process_orders();
+    }
+
+    // evaluate the master portfolio at the close
+    this->master_portfolio.evaluate(false);
+    
 }

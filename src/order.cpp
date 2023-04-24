@@ -6,14 +6,41 @@
 #include "settings.h"
 #include "utils_array.h"
 
-void Order::cancel_child_order(unsigned int order_id_)
-{
-    auto _order = unsorted_vector_remove(
-        this->child_orders,
-        [](const shared_ptr<Order> &obj)
-        { return obj->get_order_id(); },
-        order_id_);
+OrderConsildated::OrderConsildated(vector<shared_ptr<Order>> orders){
+    double units_ = 0;
+
+    //validate at least 2 orders
+    assert(orders.size() > 1);
+
+    //get the first asset id (all must match)
+    auto order = orders[0];
+    auto asset_id_ = *order->get_asset_id();
+    auto broker_id_ = *order->get_broker_id();
+
+    for(auto const &order : orders){
+        units_ += order->get_units();
+
+        #ifdef ARGUS_RUNTIME_ASSERT
+        //orders must have same asset id
+        assert(*order->get_asset_id() == asset_id_);
+
+        //orders must have same broker id
+        assert(*order->get_broker_id() == broker_id_);
+        
+        //orders must be market orders
+        assert(order->get_order_type() != MARKET_ORDER);
+        #endif
+    }
+
+    this->parent_order = make_shared<Order>(LIMIT_ORDER,
+            asset_id_,
+            units_,
+            order->get_exchange_id(),
+            broker_id_,
+            "master",
+            "master");
 }
+
 
 Order::Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
              string broker_id_, string portfolio_id_, string strategy_id_, int trade_id_)
@@ -52,6 +79,15 @@ void Order::fill(double market_price, long long fill_time)
     this->fill_price = market_price;
     this->order_fill_time = fill_time;
     this->order_state = FILLED;
+}
+
+void Order::cancel_child_order(unsigned int order_id_)
+{
+    auto _order = unsorted_vector_remove(
+        this->child_orders,
+        [](const shared_ptr<Order> &obj)
+        { return obj->get_order_id(); },
+        order_id_);
 }
 
 unsigned int Order::get_unsigned_trade_id() const

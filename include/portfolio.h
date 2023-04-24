@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <optional>
 #include <tsl/robin_map.h>
 #include <fmt/core.h>
 
@@ -53,7 +54,7 @@ public:
     /// get smart pointer to existing position
     /// \param asset_id unique ass id of the position
     /// \return smart pointer to the existing position
-    position_sp_t get_position(const string &asset_id);
+    std::optional<position_sp_t> get_position(const string &asset_id);
 
     /// add new sub portfolio to the portfolio
     /// \param portfolio_id portfolio id of the new sub portfolio

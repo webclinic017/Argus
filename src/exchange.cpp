@@ -129,7 +129,7 @@ void Exchange::place_order(shared_ptr<Order> &order_)
 
 void Exchange::process_market_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price = this->get_market_price(*open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -139,7 +139,7 @@ void Exchange::process_market_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price = this->get_market_price(*open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -156,7 +156,7 @@ void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price = this->get_market_price(*open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -173,7 +173,7 @@ void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_take_profit_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price = this->get_market_price(*open_order->get_asset_id());
     if (market_price == 0)
     {
         throw std::invalid_argument("received order for which asset is not currently streaming");
@@ -191,7 +191,7 @@ void Exchange::process_take_profit_order(shared_ptr<Order> &open_order)
 void Exchange::process_order(shared_ptr<Order> &order)
 {
     auto asset_id = order->get_asset_id();
-    auto asset = this->market_view.at(asset_id);
+    auto asset = this->market_view.at(*asset_id);
 
     // check to see if asset is currently streaming
     if (!asset)
@@ -272,26 +272,21 @@ bool Exchange::get_market_view()
         // get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
         auto asset_id = asset_raw_pointer->get_asset_id();
-
-        // asset has not reached the end of its data
-        if (asset_datetime)
+      
+        if (*asset_datetime == this->exchange_time)
         {
-            if (*asset_datetime == this->exchange_time)
-            {
-                // add asset to market view, step the asset forward in time
-                this->market_view[asset_id] = asset_raw_pointer;
-                asset_raw_pointer->step();
-            }
-            else
-            {
-                this->market_view[asset_id] = nullptr;
+            // add asset to market view, step the asset forward in time
+            this->market_view[asset_id] = asset_raw_pointer;
+            asset_raw_pointer->step();
+
+            // test to see if this is the last row of data for the asset
+            if(asset_raw_pointer->is_last_view()){
+                expired_asset_ids.push_back(asset_id);
             }
         }
-        // asset has reached the end of its data
         else
         {
-            // TODO handle expired assets
-            expired_asset_ids.push_back(asset_id);
+            this->market_view[asset_id] = nullptr;
         }
     }
 

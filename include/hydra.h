@@ -61,8 +61,14 @@ public:
     /// build all members
     void build();
 
+    // process orders that were placed at the open
+    void evaluate_orders_on_open();
+
     // forward pass of hydra
     bool forward_pass();
+
+    // backward pass of hydra
+    void backward_pass();
 
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);

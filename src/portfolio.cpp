@@ -3,7 +3,7 @@
 //
 #include <memory>
 #include <string>
-#include <utility>
+#include <optional>
 #include <fmt/core.h>
 
 #include "portfolio.h"
@@ -24,12 +24,12 @@ Portfolio::Portfolio(int logging_, double cash_, string id_) : positions_map()
     this->position_counter = 0;
 }
 
-position_sp_t Portfolio::get_position(const string &asset_id)
+std::optional<position_sp_t> Portfolio::get_position(const string &asset_id)
 {
     auto iter = this->positions_map.find(asset_id);
     if (this->positions_map.end() == iter)
     {
-        throw std::runtime_error("Portfolio::get_position position does not exist");
+        return std::nullopt;
     }
     return iter->second;
 }
@@ -62,13 +62,13 @@ void Portfolio::on_order_fill(order_sp_t &filled_order)
     }
 
     // no position exists in the portfolio with the filled order's asset_id
-    if (!this->position_exists(filled_order->get_asset_id()))
+    if (!this->position_exists(*filled_order->get_asset_id()))
     {
         this->open_position(filled_order);
     }
     else
     {
-        auto position = this->get_position(filled_order->get_asset_id());
+        auto position = this->get_position(*filled_order->get_asset_id()).value();
         // filled order is not closing existing position
         if (position->get_units() + filled_order->get_units() > 1e-7)
         {
@@ -89,7 +89,7 @@ void Portfolio::on_order_fill(order_sp_t &filled_order)
     // place child orders from the filled order
     for (auto &child_order : filled_order->get_child_orders())
     {
-        auto broker = this->broker_map->at(child_order->get_broker_id());
+        auto broker = this->broker_map->at(*child_order->get_broker_id());
         broker.place_order(child_order);
     }
 };
@@ -104,7 +104,7 @@ void Portfolio::open_position(shared_ptr<Order> &filled_order)
     this->cash -= filled_order->get_units() * filled_order->get_fill_price();
 
     // insert the new position into the portfolio object
-    this->add_position(filled_order->get_asset_id(), position);
+    this->add_position(*filled_order->get_asset_id(), position);
 
     // log the position if needed
     if (this->logging == 1)
@@ -116,8 +116,8 @@ void Portfolio::open_position(shared_ptr<Order> &filled_order)
 void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 {
     // get the position and account to modify
-    auto asset_id = filled_order->get_asset_id();
-    auto position = this->get_position(asset_id);
+    auto asset_id = *filled_order->get_asset_id();
+    auto position = this->get_position(asset_id).value();
 
     // adjust position and close out trade if needed
     auto trade = position->adjust(filled_order);
@@ -141,8 +141,8 @@ void Portfolio::modify_position(shared_ptr<Order> &filled_order)
 void Portfolio::close_position(shared_ptr<Order> &filled_order)
 {
     // get the position to close
-    auto asset_id = filled_order->get_asset_id();
-    auto position = this->get_position(asset_id);
+    auto asset_id = *filled_order->get_asset_id();
+    auto position = this->get_position(asset_id).value();
 
     // adjust cash held at the broker
     this->cash += filled_order->get_units() * filled_order->get_fill_price();
@@ -224,7 +224,7 @@ void Portfolio::position_cancel_order(Broker::position_sp_t &position_sp)
         // cancel orders whose parent is the closed trade
         for (auto &order : trade->get_open_orders())
         {
-            auto broker = this->broker_map->at(order->get_broker_id());
+            auto broker = this->broker_map->at(*order->get_broker_id());
             broker.cancel_order(order->get_order_id());
         }
     }
@@ -234,7 +234,7 @@ void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
 {
     for (auto &order : trade_sp->get_open_orders())
     {
-        auto broker = this->broker_map->at(order->get_broker_id());
+        auto broker = this->broker_map->at(*order->get_broker_id());
         broker.cancel_order(order->get_order_id());
     }
 }
@@ -258,5 +258,5 @@ void Portfolio::log_order_fill(order_sp_t &filled_order)
                this->portfolio_id,
                filled_order->get_order_id(),
                filled_order->get_fill_price(),
-               filled_order->get_asset_id());
+               *filled_order->get_asset_id());
 };

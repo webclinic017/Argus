@@ -56,6 +56,19 @@ struct OrderParent
     } member;
 };
 
+class OrderConsildated{
+public:
+    OrderConsildated(vector<shared_ptr<Order>> orders);
+
+private: 
+    /// @brief smart pointer to consildated parent order
+    shared_ptr<Order> parent_order;
+
+    /// @brief vector of smart pointer to child orders (never sent out)
+    vector<shared_ptr<Order>> child_orders;
+
+};
+
 class Order
 {
 private:
@@ -121,10 +134,10 @@ public:
     [[nodiscard]] string get_exchange_id() { return this->exchange_id; }
 
     /// get the unique asset id of the order
-    [[nodiscard]] string get_asset_id() { return this->asset_id; }
+    [[nodiscard]] string const * get_asset_id() { return &this->asset_id; }
 
     /// get the unique trade id of the broker the order was placed to
-    [[nodiscard]] string get_broker_id() const { return this->broker_id; }
+    [[nodiscard]] string const * get_broker_id() { return &this->broker_id; }
 
     /// get the unique trade id of the account the order was placed to
     [[nodiscard]] string get_portfolio_id() const { return this->portfolio_id; }

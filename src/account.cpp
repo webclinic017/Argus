@@ -16,7 +16,7 @@ Account::Account(std::string account_id_, double cash_) : trades()
 void Account::on_order_fill(order_sp_t &filled_order)
 {
     // get order information
-    auto asset_id = filled_order->get_asset_id();
+    auto asset_id = *filled_order->get_asset_id();
     auto order_units = filled_order->get_units();
     auto order_fill_price = filled_order->get_fill_price();
 
