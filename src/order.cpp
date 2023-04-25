@@ -6,11 +6,11 @@
 #include "settings.h"
 #include "utils_array.h"
 
-OrderConsildated::OrderConsildated(vector<shared_ptr<Order>> orders){
+OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
     double units_ = 0;
 
-    //validate at least 2 orders
-    assert(orders.size() > 1);
+    //validate at least 1 order
+    assert(orders.size() > 0);
 
     //get the first asset id (all must match)
     auto order = orders[0];
@@ -39,6 +39,20 @@ OrderConsildated::OrderConsildated(vector<shared_ptr<Order>> orders){
             broker_id_,
             "master",
             "master");
+}
+
+void OrderConsolidated::fill_child_orders(){
+    #ifdef ARGUS_RUNTIME_ASSERT
+    //validate parent order was filled
+    assert(this->parent_order->get_order_state() == FILLED);
+    #endif
+
+    auto market_price = parent_order->get_average_price();
+    auto fill_time = parent_order->get_fill_time();
+
+    for(auto& child_order : this->child_orders){
+        child_order->fill(market_price, fill_time);
+    }
 }
 
 

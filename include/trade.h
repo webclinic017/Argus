@@ -23,7 +23,7 @@ public:
     /// trade constructor
     Trade(order_sp_t &filled_order, unsigned int trade_id_);
 
-    void adjust(order_sp_t &filled_order);
+    void adjust(order_sp_t filled_order);
 
     /// close the trade out at given time and price
     /// \param market_price price the trade was closed out at
@@ -68,6 +68,7 @@ public:
     /// get the id of the trade 
     /// @return id of the trade
     unsigned int get_trade_id() const {return this->trade_id;}
+    unsigned int get_unsigned_trade_id() const {return this->trade_id;}
 
     /// get the id of the underlying exchange of the trade
     /// @return underlying asset of the trade

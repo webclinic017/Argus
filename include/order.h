@@ -56,9 +56,18 @@ struct OrderParent
     } member;
 };
 
-class OrderConsildated{
+class OrderConsolidated{
 public:
-    OrderConsildated(vector<shared_ptr<Order>> orders);
+    //generate consolidated order
+    OrderConsolidated(vector<shared_ptr<Order>> orders);
+
+    //get sp to parent order
+    shared_ptr<Order> get_parent_order() const{ return this->parent_order;}
+
+    vector<shared_ptr<Order>> const & get_child_orders() const { return this->child_orders;}
+
+    //fill child orders using parent order fill;
+    void fill_child_orders();
 
 private: 
     /// @brief smart pointer to consildated parent order

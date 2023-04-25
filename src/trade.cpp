@@ -54,7 +54,7 @@ void Trade::evaluate(double market_price, bool on_close)
     }
 }
 
-void Trade::adjust(shared_ptr<Order> &filled_order)
+void Trade::adjust(shared_ptr<Order> filled_order)
 {
     // extract order information
     auto units_ = filled_order->get_units();

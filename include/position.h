@@ -81,11 +81,16 @@ public:
     /// \param position_close_time time the trade was closed out at
     void close(double market_price, long long position_close_time);
 
-    /// adjust a open position using a filled order
-    /// \param filled_order ref to sp of a filled order
-    shared_ptr<Trade> adjust(shared_ptr<Order> &filled_order);
 
+    shared_ptr<Trade> adjust_order(order_sp_t filled_order);
+    shared_ptr<Trade> adjust_trade(trade_sp_t new_trade);
+
+    /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
+
+    ///@brief get the number of trades in the position
+    ///@return return the number of trades in the position
+    unsigned int get_trade_count() const {return this->trades.size();}
 
     /// get the id of the position
     /// \return position id
@@ -118,8 +123,11 @@ public:
     /// \return reference to the hash map containing the underlying trades of the position
     tsl::robin_map<unsigned int, shared_ptr<Trade>> &get_trades() { return this->trades; }
 
-    void new_trade(const shared_ptr<Trade> &trade);
+    /// @brief generate the inverse orders needed to close out a position, (MARKET_ORDERS)
+    /// @param ref to vector to hold inverse orders
+    void generate_order_inverse(std::vector<order_sp_t>& orders);
 
+    /// evaluate a position and it's child trades at the given market price
     inline void evaluate(double market_price, bool on_close)
     {
         this->last_price = market_price;
@@ -134,7 +142,6 @@ public:
         }
     };
 };
-
 
 template<typename T>
 void Position::populate_position(T populator){

@@ -33,7 +33,7 @@ public:
     /// @param id      unique id of the portfolio
     Portfolio(int logging, double cash, string id, portfolio_sp_t parent_portfolio);
 
-    void on_order_fill(order_sp_t &filled_order);
+    void on_order_fill(order_sp_t filled_order);
 
     /// generate a iterator begin and end for the position map
     /// \return pair of iteratores, begin and end, for postion map
@@ -72,16 +72,12 @@ public:
     /// @param recursive wether to recursievly evalute all portfolios
     void evaluate(bool on_close, bool recursive);
 
-    /// @brief generate and send nessecary orders to completely exist position by asset id
-    /// @param asset_id       unique id of the asset of the position to exit
-    /// @param execution_type eager or lazy execution 
-    /// @param recursively    recursively search through sub portfolios for positions
-    void exit_position(
-        const string& asset_id, 
-        OrderExecutionType execution_type,
-        bool recursively);
-    //TODO implement 
-
+    /// @brief generate and send nessecary orders to completely exist position by asset id (including all child portfolios)
+    /// @param orders to vector to hold inverse orders
+    std::optional<std::vector<order_sp_t>> generate_order_inverse( 
+        const string & asset_id,
+        bool send_orders,
+        bool send_collapse);
 
 private:
     /// unique id of the portfolio
@@ -116,14 +112,6 @@ private:
     // shared pointer to history objects
     shared_ptr<History> history;
 
-    /// log order fill
-    /// @param filled_order filled order to log
-    void log_order_fill(order_sp_t &filled_order);
-
-    /// log position open
-    /// @param new_position new position to log
-    void log_position_open(shared_ptr<Position> &new_position);
-
     /// @brief add new position to the map by asset id
     /// @param asset_id asset id of the position to add
     /// @param position new position smart pointer
@@ -135,7 +123,7 @@ private:
 
     /// @brief modify an existing postion based on a filled order
     /// @param filled_order ref to a sp to a filled order
-    void modify_position(order_sp_t &filled_order);
+    void modify_position(order_sp_t filled_order);
 
     /// @brief open a new position based on either filled order or new trade
     /// @param open_obj sp to either a new trade or a new order
@@ -144,17 +132,30 @@ private:
 
     /// @brief close an existing position based on a filled order
     /// @param filled_order ref to a sp to order that has been filled
-    void close_position(order_sp_t &filled_order);
+    void close_position(order_sp_t filled_order);
 
     /// @brief cancel all order for child trades in a position
     /// @param position_sp ref to sp of a position
-    void position_cancel_order(position_sp_t &position_sp);
+    void position_cancel_order(position_sp_t position_sp);
 
     /// @brief cancel all open orders for a trade
     /// @param trade_sp ref to sp of a trade
     void trade_cancel_order(trade_sp_t &trade_sp);
 
     void propogate_trade_open(trade_sp_t trade_sp);
+    void propogate_trade_close(trade_sp_t trade_sp);
+
+    /// log order fill
+    /// @param filled_order filled order to log
+    void log_order_fill(order_sp_t &filled_order);
+
+    /// log position open
+    /// @param new_position new position to log
+    void log_position_open(shared_ptr<Position> &new_position);
+
+    /// log trade open
+    /// @param new_trade new trade to log
+    void log_trade_open(trade_sp_t &new_trade);
 
 };
 
@@ -167,7 +168,9 @@ void Portfolio::open_position(T open_obj)
     this->position_counter++;
     this->trade_counter++;
 
-    //TODO propogate new trade up portfolio tree
+    //propgate the new trade up portfolio tree
+    auto trade_sp = position->get_trade(this->trade_counter - 1);
+    this->propogate_trade_open(trade_sp);
 
     // adjust cash held by broker accordingly
     this->cash -= open_obj->get_units() * open_obj->get_average_price();
@@ -179,6 +182,7 @@ void Portfolio::open_position(T open_obj)
     if (this->logging == 1)
     {
         this->log_position_open(position);
+        this->log_trade_open(trade_sp);
     }
 }
 
