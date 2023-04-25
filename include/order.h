@@ -6,6 +6,7 @@
 #define ARGUS_ORDER_H
 
 class Trade;
+class Portfolio;
 
 #include <string>
 #include <vector>
@@ -91,6 +92,9 @@ private:
     /// or to link stop losses and take profits to existing trades
     OrderParent *order_parent;
 
+    /// unique id of the portfolio that the order was placed to
+    Portfolio* source_portfolio;
+
     /// child orders of the order to be placed on fill
     vector<shared_ptr<Order>> child_orders;
 
@@ -121,8 +125,6 @@ private:
     /// unique id of the broker to place the order to
     string broker_id;
 
-    /// unique id of the portfolio that the order was placed to
-    string portfolio_id;
 
     /// unique id of the strategy the order was placed by
     string strategy_id;
@@ -132,7 +134,7 @@ public:
 
     /// order constructor
     Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
-          string broker_id_, string portfolio_id_, string strategy_id_, int trade_id_ = -1);
+          string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_ = -1);
 
     void cancel_child_order(unsigned int order_id);
 
@@ -152,7 +154,7 @@ public:
     [[nodiscard]] string const & get_strategy_id() const { return this->strategy_id; }
 
     /// get the unique portfolio id of the portfolio the order was placed to
-    [[nodiscard]] string const & get_portfolio_id() const { return this->portfolio_id; }
+    [[nodiscard]] Portfolio* get_source_portfolio() const { return this->source_portfolio; }
     
     /// get the unique trade id of the order
     [[nodiscard]] int get_trade_id() const { return this->trade_id; }

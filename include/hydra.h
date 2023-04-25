@@ -66,10 +66,10 @@ public:
     void evaluate_orders_on_open();
 
     // forward pass of hydra
-    bool forward_pass();
+    void forward_pass();
 
     // backward pass of hydra
-    void backward_pass();
+    bool backward_pass();
 
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
@@ -85,6 +85,8 @@ public:
 
     /// get shared pointer to a broker
     shared_ptr<Broker> get_broker(const string &broker_id);
+
+    void cleanup_asset(const string& asset_id);
 };
 
 /// function for creating a shared pointer to a hydra

@@ -12,9 +12,12 @@ using order_sp_t = Order::order_sp_t;
 
 Position::Position(trade_sp_t trade, unsigned int trade_id, Portfolio* source_portfolio){
     //populate common position values
-    this->populate_position(trade);
+    this->asset_id = trade->get_asset_id();
+    this->exchange_id = trade->get_exchange_id();
+    this->units = trade->get_units();
 
     // populate order values
+    this->is_open = true;
     this->average_price = trade->get_average_price();
     this->last_price = trade->get_average_price();
     this->position_open_time = trade->get_trade_open_time();
@@ -27,10 +30,13 @@ Position::Position(trade_sp_t trade, unsigned int trade_id, Portfolio* source_po
     this->trade_counter = 1;
 };
 
-Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id,  Portfolio* source_portfolio )
+Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id_,  Portfolio* source_portfolio )
 {   
     //populate common position values
-    this->populate_position(filled_order_);
+    this->asset_id = filled_order_->get_asset_id();
+    this->exchange_id = filled_order_->get_exchange_id();
+    this->units = filled_order_->get_units();
+    this->is_open = true;
 
     // populate order values
     this->average_price = filled_order_->get_average_price();
@@ -38,11 +44,11 @@ Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id,  Port
     this->position_open_time = filled_order_->get_fill_time();
 
     // insert the new trade
-    this->trades.insert({trade_id,
+    this->trades.insert({trade_id_,
                          std::make_shared<Trade>(
                             filled_order_, 
-                            filled_order_->get_unsigned_trade_id(),
-                            source_portfolio)});
+                            trade_id_
+                            )});
     this->trade_counter = 1;
 }
 
@@ -120,8 +126,8 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
         this->trades.insert({trade_id_uint,
                             std::make_shared<Trade>(
                                 filled_order,
-                                filled_order->get_trade_id(),
-                                portfolio)});
+                                filled_order->get_trade_id()
+                                )});
         this->trade_counter++;
         return this->trades.at(this->trade_counter - 1);
     }

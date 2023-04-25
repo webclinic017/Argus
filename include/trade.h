@@ -25,7 +25,7 @@ public:
     using order_sp_t = Order::order_sp_t;
 
     /// trade constructor
-    Trade(order_sp_t &filled_order, unsigned int trade_id_, Portfolio* source_portfolio);
+    Trade(order_sp_t &filled_order, unsigned int trade_id_);
 
     void adjust(order_sp_t filled_order);
 
@@ -80,7 +80,7 @@ public:
 
     /// get the id of the source portfolio of a trade
     /// @return ref to string of underlying source portfolio id 
-    [[nodiscard]] string const & get_portfolio_id() const { return this->portfolio_id; }
+    [[nodiscard]] Portfolio* get_source_portfolio() const { return this->source_portfolio; }
 
     /// get the average price of the trade
     /// @return average price of the trade
@@ -124,9 +124,6 @@ private:
 
     /// unique id of the broker the trade was placed on
     string broker_id;
-
-    /// unique id of the account the trade belongs to
-    string portfolio_id;
 
     /// unique id of the strategy that placed the order
     string strategy_id;

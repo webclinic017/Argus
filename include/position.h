@@ -35,36 +35,33 @@ private:
     double units;
 
     /// average price of the position
-    double average_price;
+    double average_price = 0;
 
     /// closing price of the position
-    double close_price;
+    double close_price = 0;
 
     /// last price the position was evaluated at
-    double last_price;
+    double last_price = 0;
 
     /// unrealized pl of the position
-    double unrealized_pl;
+    double unrealized_pl = 0;
 
     /// realized pl of the position
-    double realized_pl;
+    double realized_pl = 0;
 
     /// time the position was opened
     long long position_open_time;
 
     /// time the position was closed
-    long long position_close_time;
+    long long position_close_time = 0;
 
     /// number of bars the positions has been held for
-    unsigned int bars_held;
+    unsigned int bars_held = 0;
 
     /// counter for setting trade id's
     unsigned int trade_counter;
 
     tsl::robin_map<unsigned int, shared_ptr<Trade>> trades;
-
-    template<typename T>
-    void populate_position(T populator);
 
 public:
     /// smart pointer position typedef
@@ -119,7 +116,6 @@ public:
     /// get a smart pointer to child trade
     shared_ptr<Trade> get_trade(unsigned int trade_id) { return this->trades.at(trade_id); }
 
-
     /// get a reference to the hash map containing the underlying trades of the position
     /// \return reference to the hash map containing the underlying trades of the position
     tsl::robin_map<unsigned int, shared_ptr<Trade>> &get_trades() { return this->trades; }
@@ -143,25 +139,4 @@ public:
         }
     };
 };
-
-template<typename T>
-void Position::populate_position(T populator){
-    // position constructs to open state
-    this->is_open = true;
-
-    // set ids used by the position
-    this->asset_id = populator->get_asset_id();
-    this->exchange_id = populator->get_exchange_id();
-
-    // populate member variables
-    this->units = populator->get_units();
-    this->close_price = 0;
-    this->unrealized_pl = 0;
-    this->realized_pl = 0;
-
-    // set time values
-    this->position_close_time = 0;
-    this->bars_held = 0;
-};
-
 #endif // ARGUS_POSITION_H

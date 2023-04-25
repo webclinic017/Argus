@@ -79,6 +79,8 @@ public:
         bool send_orders,
         bool send_collapse);
 
+    const string & get_portfolio_id(){return this->portfolio_id;}
+
 private:
     /// unique id of the portfolio
     std::string portfolio_id;

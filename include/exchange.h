@@ -51,12 +51,18 @@ public:
     /// register an asset on the exchange
     void register_asset(const asset_sp_t &asset);
 
+    /// move all assets that have expired out of the market
+    void move_expired_assets();
+
+    optional<vector<asset_sp_t>*> get_expired_assets();
+
     /// process open orders on the exchange
     void process_orders();
 
     /// place order to the exchange
     void place_order(shared_ptr<Order> &order);
 
+    /// set wether or not currently at close or open of time step
     void set_on_close(bool on_close_) { this->on_close = on_close_; }
 
     /// build a new asset on the exchange
@@ -113,7 +119,7 @@ private:
     tsl::robin_map<string, Asset *> market_view;
 
     /// container for storing asset_id's that have finished streaming
-    vector<string> expired_asset_ids;
+    vector<asset_sp_t> expired_assets;
 
     /// open orders on the exchange
     vector<shared_ptr<Order>> open_orders;

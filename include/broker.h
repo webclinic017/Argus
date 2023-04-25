@@ -51,7 +51,7 @@ public:
 
     /// process a filled order
     /// \param open_order order that has been filled
-    void process_filled_order(shared_ptr<Order> &open_order);
+    void process_filled_order(shared_ptr<Order> filled_order);
 
     /// process all open orders
     void process_orders();

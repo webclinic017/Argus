@@ -20,14 +20,15 @@ void Trade::cancel_child_order(unsigned int order_id)
         order_id);
 }
 
-Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_, Portfolio* source_portfolio_) : source_portfolio(source_portfolio_)
+Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_) 
 {
     // populate the ids
     this->trade_id = trade_id_;
     this->asset_id = filled_order->get_asset_id();
     this->exchange_id = filled_order->get_exchange_id();
     this->broker_id = filled_order->get_broker_id();
-    this->portfolio_id = filled_order->get_portfolio_id();
+
+    this->source_portfolio = filled_order->get_source_portfolio();
     this->strategy_id = filled_order->get_strategy_id();
 
     // set the trade member variables
@@ -116,7 +117,7 @@ shared_ptr<Order> Trade::generate_order_inverse(){
         this->units * -1,
         this->exchange_id,
         this->broker_id,
-        this->portfolio_id,
+        this->source_portfolio,
         this->strategy_id,
         this->trade_id
     );

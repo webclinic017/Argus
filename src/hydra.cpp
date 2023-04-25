@@ -164,14 +164,22 @@ shared_ptr<Broker> Hydra::get_broker(const std::string &broker_id)
     }
 }
 
-bool Hydra::forward_pass()
-{
-    // check to see if we have reached the end
-    if (this->current_index == datetime_index_length)
-    {
-        return false;
+void Hydra::cleanup_asset(const string& asset_id){
+    //test to see if position exists with that asset id
+    auto position = this->master_portfolio->get_position(asset_id);
+    
+    if(position.has_value()){
+        //generate and send orders needed to close the position
+        auto orders_nullopt = this->master_portfolio->generate_order_inverse(asset_id, false, true);
     }
 
+    #ifdef ARGUS_RUNTIME_ASSERT
+    assert(!this->master_portfolio->position_exists(asset_id));
+    #endif
+};
+
+void Hydra::forward_pass()
+{
     auto hydra_time = this->datetime_index[this->current_index];
 
     // build market views for exchanges
@@ -189,17 +197,15 @@ bool Hydra::forward_pass()
         }
     }
 
-    // increment the hydra's current index
-    this->current_index++;
-
     // allow exchanges to process open orders
     for (auto &exchange_pair : this->exchanges)
     {
         exchange_pair.second->process_orders();
     }
-    return true;
+   
 }
 
+//ALLOW STRATEGIES TO PLACE ORDERS AT OPEN
 
 void Hydra::evaluate_orders_on_open(){
      // allow broker to process orders that have been filled
@@ -216,11 +222,13 @@ void Hydra::evaluate_orders_on_open(){
     {
         auto exchange = exchange_pair.second;
         // set the exchange is_close
-        exchange->set_on_close(false);
+        exchange->set_on_close(true);
     }
 }
 
-void Hydra::backward_pass(){
+//ALLOW STRATEGIES TO PLACE ORDERS AT CLOSE
+
+bool Hydra::backward_pass(){
     // allow exchanges to process orders placed at close
     for (auto &exchange_pair : this->exchanges)
     {
@@ -235,5 +243,34 @@ void Hydra::backward_pass(){
 
     // evaluate the master portfolio at the close
     this->master_portfolio->evaluate(false, false);
+
+    // handel any assets done streaming
+    for (auto &exchange_pair : this->exchanges)
+    {
+        auto expired_assets =  exchange_pair.second->get_expired_assets();
     
+        if(!expired_assets.has_value()){
+            continue;
+        }
+        else{
+            // close any open positions in the asset
+            for(auto const & asset : *expired_assets.value()){
+                this->cleanup_asset(asset->get_asset_id());
+            }
+
+            //remove the asset from the market and market view
+            exchange_pair.second->move_expired_assets();
+        }
+    }
+
+    // check to see if we have reached the end
+    if (this->current_index == datetime_index_length)
+    {
+        return false;
+    }
+    else{
+        // increment the hydra's current index
+        this->current_index++;
+    }
+    return true;
 }

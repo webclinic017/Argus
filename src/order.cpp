@@ -5,6 +5,7 @@
 
 #include "settings.h"
 #include "utils_array.h"
+#include <cstddef>
 
 OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
     double units_ = 0;
@@ -37,7 +38,7 @@ OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
             units_,
             order->get_exchange_id(),
             broker_id_,
-            "master",
+            nullptr,
             "master");
 }
 
@@ -57,7 +58,7 @@ void OrderConsolidated::fill_child_orders(){
 
 
 Order::Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
-             string broker_id_, string portfolio_id_, string strategy_id_, int trade_id_)
+             string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_)
 {
 
     this->order_type = order_type_;
@@ -68,7 +69,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
     // populate the ids of the order
     this->asset_id = std::move(asset_id_);
     this->exchange_id = std::move(exchange_id_);
-    this->portfolio_id = std::move(portfolio_id_);
+    this->source_portfolio = std::move(source_portfolio);
     this->broker_id = std::move(broker_id_);
     this->strategy_id = std::move(strategy_id_);
 

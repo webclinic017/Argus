@@ -96,9 +96,6 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
         // filled order is closing an existing position
         else
         {
-            // cancel all open orders linked to position's child trades
-            this->position_cancel_order(position);
-
             /// close the position
             this->close_position(filled_order);
         }
@@ -134,7 +131,9 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
         this->trade_cancel_order(trade);
 
         //propgate trade close up portfolio tree
-        if(trade->get_portfolio_id() != this->portfolio_id){
+        auto portfolio_source = trade->get_source_portfolio();
+        //find the source portfolio of the trade then propgate up trade closing
+        if(portfolio_source->get_portfolio_id() != this->portfolio_id){
             //get the portfolio source
             auto source_portfolio = trade->get_source_portfolio();            
             
@@ -186,11 +185,14 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     {
         auto trade = it->second;
 
+        this->trade_cancel_order(trade);
+
         // remove the trade from the position container
         it = trades.erase(it);
 
+        auto portfolio_source = trade->get_source_portfolio();
         //find the source portfolio of the trade then propgate up trade closing
-        if(trade->get_portfolio_id() != this->portfolio_id){
+        if(portfolio_source->get_portfolio_id() != this->portfolio_id){
             //search for source portfolio
             auto source_portfolio = trade->get_source_portfolio();
 
@@ -386,7 +388,6 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
             //remember the order
             this->history->remember_order(std::move(order));
-
 
             return std::nullopt;
         }

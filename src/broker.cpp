@@ -110,13 +110,16 @@ void Broker::place_market_order(const string &asset_id_, double units_,
                                 const string &strategy_id_,
                                 OrderExecutionType order_execution_type)
 {
+    auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
+    assert(source_portfolio.has_value());
+
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
                                            asset_id_,
                                            units_,
                                            exchange_id_,
                                            this->broker_id,
-                                           portfolio_id_,
+                                           source_portfolio.value().get(),
                                            strategy_id_);
 
     if (order_execution_type == EAGER)
@@ -136,14 +139,17 @@ void Broker::place_limit_order(const string &asset_id_, double units_, double li
                                const string &portfolio_id_,
                                const string &strategy_id_,
                                OrderExecutionType order_execution_type)
-{
+{   
+    auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
+    assert(source_portfolio.has_value());
+
     // build new smart pointer to shared order
     auto limit_order = make_shared<Order>(LIMIT_ORDER,
                                           asset_id_,
                                           units_,
                                           exchange_id_,
                                           this->broker_id,
-                                          portfolio_id_,
+                                          source_portfolio.value().get(),
                                           strategy_id_);
 
     // set the limit of the order
@@ -187,18 +193,20 @@ void Broker::send_orders()
     this->open_orders_buffer.clear();
 }
 
-void Broker::process_filled_order(order_sp_t &open_order)
+void Broker::process_filled_order(order_sp_t filled_order)
 {
     // adjust the account held at the broker
-    this->broker_account.on_order_fill(open_order);
+    this->broker_account.on_order_fill(filled_order);
 
     // get the portfolio the order was placed for, adjust the sub portfolio accorindly
-    auto portfolio_id = open_order->get_portfolio_id();
-    auto sub_portfolio = this->master_portfolio->find_portfolio(portfolio_id).value();
-    sub_portfolio->on_order_fill(open_order);
+    filled_order->get_source_portfolio()->on_order_fill(filled_order);
 
     // adjust the master portfolio's personal position map which contains all open trades
-    this->master_portfolio->on_order_fill(open_order);
+    this->master_portfolio->on_order_fill(filled_order);
+
+    //remember the order
+    this->history->remember_order(std::move(filled_order));
+
 }
 
 void Broker::process_orders()
@@ -216,10 +224,7 @@ void Broker::process_orders()
         else
         {
             // process the individual order
-            this->process_filled_order(order);
-
-            // push the filled order to the history
-            this->history->remember_order(std::move(order));
+            this->process_filled_order(std::move(order));
 
             // remove filled order and move to next open order
             it = this->open_orders.erase(it);

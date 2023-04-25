@@ -3,12 +3,15 @@
 //
 
 #include <iostream>
+#include <optional>
 #include "exchange.h"
 #include "asset.h"
 #include "utils_array.h"
 #include "settings.h"
 
 using namespace std;
+
+using asset_sp_t = Asset::asset_sp_t;
 
 Exchange::Exchange(std::string exchange_id_, int logging_) : exchange_id(std::move(exchange_id_)),
                                                              is_built(false),
@@ -254,6 +257,30 @@ void Exchange::process_orders()
     }
 }
 
+optional<vector<asset_sp_t>*> Exchange::get_expired_assets(){
+    if(this->expired_assets.size() == 0){
+        return std::nullopt;
+    }
+    else{
+        return & this->expired_assets;
+    }
+};
+
+void Exchange::move_expired_assets(){
+    if(this->expired_assets.size() == 0){
+        return;
+    }
+    else{
+        for(const auto & asset : this->expired_assets){
+            auto asset_id = asset->get_asset_id();
+            
+            //remove asset from market and market view
+            this->market_view.erase(asset_id);
+            this->market.erase(asset_id);
+        }
+    }
+}
+
 bool Exchange::get_market_view()
 {
     // if the current index is the last then return false, all assets listed on this exchange
@@ -281,7 +308,7 @@ bool Exchange::get_market_view()
 
             // test to see if this is the last row of data for the asset
             if(asset_raw_pointer->is_last_view()){
-                expired_asset_ids.push_back(asset_id);
+                expired_assets.push_back(_asset_pair.second);
             }
         }
         else
