@@ -142,8 +142,9 @@ private:
     /// @param trade_sp ref to sp of a trade
     void trade_cancel_order(trade_sp_t &trade_sp);
 
-    void propogate_trade_open(trade_sp_t trade_sp);
-    void propogate_trade_close(trade_sp_t trade_sp);
+    portfolio_sp_t find_trade_source(trade_sp_t);
+    void propogate_trade_open_up(trade_sp_t trade_sp);
+    void propogate_trade_close_up(trade_sp_t trade_sp);
 
     /// log order fill
     /// @param filled_order filled order to log
@@ -170,7 +171,7 @@ void Portfolio::open_position(T open_obj)
 
     //propgate the new trade up portfolio tree
     auto trade_sp = position->get_trade(this->trade_counter - 1);
-    this->propogate_trade_open(trade_sp);
+    this->propogate_trade_open_up(trade_sp);
 
     // adjust cash held by broker accordingly
     this->cash -= open_obj->get_units() * open_obj->get_average_price();

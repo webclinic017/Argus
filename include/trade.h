@@ -71,8 +71,12 @@ public:
     unsigned int get_unsigned_trade_id() const {return this->trade_id;}
 
     /// get the id of the underlying exchange of the trade
-    /// @return underlying asset of the trade
+    /// @return ref to string of underlying exchange id 
     [[nodiscard]] string const & get_exchange_id() const { return this->exchange_id; }
+
+    /// get the id of the source portfolio of a trade
+    /// @return ref to string of underlying source portfolio id 
+    [[nodiscard]] string const & get_portfolio_id() const { return this->portfolio_id; }
 
     /// get the average price of the trade
     /// @return average price of the trade

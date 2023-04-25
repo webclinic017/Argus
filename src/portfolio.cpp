@@ -134,14 +134,20 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
         this->trade_cancel_order(trade);
 
         //propgate trade close up portfolio tree
-        this->propogate_trade_close(trade);
+        if(trade->get_portfolio_id() != this->portfolio_id){
+            auto source_portfolio = find_trade_source(trade);
+            source_portfolio->propogate_trade_close_up(trade);
+        }
+        else{
+            this->propogate_trade_close_up(trade);
+        }
 
         // remember the trade
         this->history->remember_trade(std::move(trade));
     }
     //new trade
     else if (trade->get_trade_open_time() == filled_order->get_fill_time()){
-        this->propogate_trade_open(trade);
+        this->propogate_trade_open_up(trade);
     }
 
     // get fill info
@@ -177,8 +183,15 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
         // remove the trade from the position container
         it = trades.erase(it);
 
-        // remove the trade from parent portfolios
-        this->propogate_trade_close(trade);
+        //find the source portfolio of the trade then propgate up trade closing
+        if(trade->get_portfolio_id() != this->portfolio_id){
+            auto source_portfolio = find_trade_source(trade);
+            source_portfolio->propogate_trade_close_up(trade);
+        }
+        //this is the source portfolio of the trade
+        else{
+            this->propogate_trade_close_up(trade);
+        }
 
         // push the trade to history
         this->history->remember_trade(std::move(trade));
@@ -191,7 +204,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     this->history->remember_position(std::move(position));
 }
 
-void Portfolio::propogate_trade_close(trade_sp_t trade_sp){
+void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp){
     //reached master portfolio
     if(!this->parent_portfolio){
         return;
@@ -213,11 +226,11 @@ void Portfolio::propogate_trade_close(trade_sp_t trade_sp){
     }
 
     //propgate trade close up portfolio tree
-    this->parent_portfolio->propogate_trade_close(trade_sp);
+    this->parent_portfolio->propogate_trade_close_up(trade_sp);
 
 }
 
-void Portfolio::propogate_trade_open(trade_sp_t trade_sp){
+void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp){
     //reached master portfolio
     if(!this->parent_portfolio){
         return;
@@ -234,9 +247,30 @@ void Portfolio::propogate_trade_open(trade_sp_t trade_sp){
     }
     
     //recursively proprate trade up up portfolio tree
-    this->parent_portfolio->parent_portfolio->propogate_trade_open(trade_sp);
+    this->parent_portfolio->parent_portfolio->propogate_trade_open_up(trade_sp);
 };
 
+portfolio_sp_t Portfolio::find_trade_source(trade_sp_t trade){
+    //get source portfolio_id
+    auto source_portfolio_id = trade->get_portfolio_id();
+    
+    //attempt to find it in sub portfolios
+    auto portfolio = this->get_sub_portfolio(source_portfolio_id);
+
+    //found source portfolio in sub portfolio
+    if(portfolio.has_value()){
+        return portfolio.value();
+    }
+    // recursively search through child portfolios to find source
+    else{
+        for(auto & portfolio_pair : this->portfolio_map){
+            portfolio_pair.second->find_trade_source(trade);
+        }
+    }
+
+    //could not find trade source
+    return nullptr;
+};
 
 void Portfolio::add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio)
 {
