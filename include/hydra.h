@@ -22,6 +22,7 @@ class Hydra
 {
 private:
     using portfolio_sp_t = Portfolio::portfolio_sp_t;
+
     /// logging level
     int logging;
 
@@ -29,13 +30,10 @@ private:
     bool is_built{};
 
     /// mapping between exchange id and smart pointer to an exchange
-    tsl::robin_map<string, shared_ptr<Exchange>> exchanges;
+    Exchanges exchanges;
 
     /// mapping between broker id and smart pointer to a broker
-    tsl::robin_map<string, shared_ptr<Broker>> brokers;
-
-    /// mapping between account id and an account
-    tsl::robin_map<string, Account> accounts;
+    Brokers brokers;
 
     /// mapping between broker id and portfolio held at broker
     portfolio_sp_t master_portfolio;
@@ -74,17 +72,22 @@ public:
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
 
+    portfolio_sp_t get_master_portflio() {return this->master_portfolio;}
+
+    // add a new child portfolio to the master portfolio and return sp to it
+    portfolio_sp_t new_portfolio(const string & portfolio_id, double cash);
+
     /// add a  new exchange
     shared_ptr<Exchange> new_exchange(const string &exchange_id);
 
     /// add a new broker
-    shared_ptr<Broker> new_broker(const string &broker_id, double cash);
+    broker_sp_t new_broker(const string &broker_id, double cash);
 
     /// get shared pointer to an exchange
     shared_ptr<Exchange> get_exchange(const string &exchange_id);
 
     /// get shared pointer to a broker
-    shared_ptr<Broker> get_broker(const string &broker_id);
+    broker_sp_t get_broker(const string &broker_id);
 
     void cleanup_asset(const string& asset_id);
 };

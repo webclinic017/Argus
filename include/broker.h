@@ -17,6 +17,11 @@
 
 using namespace std;
 
+class Broker;
+
+typedef tsl::robin_map<string, shared_ptr<Broker>> Brokers;
+typedef shared_ptr<Broker> broker_sp_t;
+
 class Broker
 {
 

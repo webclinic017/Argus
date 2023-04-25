@@ -90,6 +90,13 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
 
     //insert new trade into trades map
     if(trade->get_is_open()){
+
+        //make sure trade does not already exists
+        #ifdef ARGUS_RUNTIME_ASSERT        
+        assert(!this->trades.contains(trade->get_trade_id()));
+        #endif
+
+        //add the trade to the position's trades map
         this->trades.insert({trade->get_trade_id(), trade});
     }
     //remove existing trade from the trades map

@@ -28,6 +28,8 @@ typedef shared_ptr<Exchanges> exchanges_sp_t;
 class Exchange
 {
 public:
+    typedef shared_ptr<Exchange> exchange_sp_t;
+
     using asset_sp_t = Asset::asset_sp_t;
 
     /// exchange constructor

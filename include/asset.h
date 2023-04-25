@@ -31,6 +31,8 @@ public:
 
     bool is_last_view() const {return this->current_index - 1 == this->rows;};
 
+    auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
+    
     /// return the number of rows in the asset
     [[nodiscard]] size_t get_rows() const { return this->rows; }
 

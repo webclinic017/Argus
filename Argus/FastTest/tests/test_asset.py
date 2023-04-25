@@ -3,20 +3,16 @@ import Asset
 import sys
 import os
 import unittest
-import ctypes
-import time
 import numpy as np
 
 import FastTest
 
 sys.path.append(os.path.abspath('..'))
 
-
 def test_gc_helper():
     df = helpers.load_df(helpers.test1_file_path, helpers.test1_asset_id)
     asset = Asset.asset_from_df(df, helpers.test1_asset_id)
     return asset
-
 
 class AssetTestMethods(unittest.TestCase):
     def test_asset_load(self):
@@ -64,8 +60,8 @@ class AssetTestMethods(unittest.TestCase):
         exchange.register_asset(asset1)
         asset2 = exchange.get_asset("asset1")
 
-        address_1 = FastTest.mem_address(asset1)
-        address_2 = FastTest.mem_address(asset1)
+        address_1 = asset1.get_mem_address()
+        address_2 = asset2.get_mem_address()
 
         assert (address_1 == address_2)
 

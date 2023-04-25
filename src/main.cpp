@@ -10,6 +10,7 @@
 #include "broker.h"
 #include "exchange.h"
 #include "hydra.h"
+#include "order.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -21,6 +22,9 @@ void init_asset_ext(py::module &m)
         .def("load_headers", &Asset::load_headers, "load asset headers")
         .def("load_data", &Asset::py_load_data, "load asset data")
         .def("get", &Asset::get, "get asset data")
+        .def("get_mem_address", &Asset::get_mem_address, "get memory address")
+
+        //.def("mem_address", []()
         .def("get_datetime_index_view",
              &Asset::get_datetime_index_view,
              "get view of asset datetime index",
@@ -48,9 +52,12 @@ void init_hydra_ext(py::module &m)
     py::class_<Hydra, std::shared_ptr<Hydra>>(m, "Hydra")
         .def(py::init<int>())
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
-        .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange")
         .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
-        .def("get_broker", &Hydra::get_broker, "gets existing broker object");
+        .def("new_portfolio", &Hydra::new_portfolio, "adds new portfolio to master portfolio", py::return_value_policy::reference)
+        
+        .def("get_broker", &Hydra::get_broker, "gets existing broker object")
+        .def("get_master_portfolio", &Hydra::get_master_portflio, "get smart pointer to master portfolio")
+        .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange");
 
     m.def("new_hydra", &new_hydra, py::return_value_policy::reference);
 }
@@ -59,6 +66,16 @@ void init_account_ext(py::module &m)
 {
     py::class_<Account, std::shared_ptr<Account>>(m, "Account")
         .def(py::init<string, double>());
+}
+
+void init_portfolio_ext(py::module &m)
+{
+    py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
+        .def("get_mem_address", &Portfolio::get_mem_address, "get memory address")
+        .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
+        .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
+        .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
+
 }
 
 void init_broker_ext(py::module &m)
@@ -86,4 +103,7 @@ PYBIND11_MODULE(FastTest, m)
 
     // build python broker class bindings
     init_broker_ext(m);
+
+    // build python portfolio class bindings
+    init_portfolio_ext(m);
 }

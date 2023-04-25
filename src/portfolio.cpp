@@ -25,7 +25,7 @@ Portfolio::Portfolio(
     int logging_, 
     double cash_, 
     string id_, 
-    portfolio_sp_t parent_portfolio_) : positions_map()
+    Portfolio* parent_portfolio_) : positions_map()
 {
     this->parent_portfolio = parent_portfolio_;
     this->logging = logging_;
@@ -144,7 +144,7 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
     // no position exists in the portfolio with the filled order's asset_id
     if (!this->position_exists(filled_order->get_asset_id()))
     {
-        this->open_position(filled_order);
+        this->open_position(filled_order, true);
     }
     else
     {
@@ -203,10 +203,10 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
             assert(source_portfolio);   
 
             //propgate trade close up the portfolio tree
-            source_portfolio->propogate_trade_close_up(trade);
+            source_portfolio->propogate_trade_close_up(trade, true);
         }
         else{
-            this->propogate_trade_close_up(trade);
+            this->propogate_trade_close_up(trade, true);
         }
 
         // remember the trade
@@ -214,7 +214,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
     }
     //new trade
     else if (trade->get_trade_open_time() == filled_order->get_fill_time()){
-        this->propogate_trade_open_up(trade);
+        this->propogate_trade_open_up(trade, true);
     }
 
     // get fill info
@@ -227,13 +227,14 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
 void Portfolio::close_position(shared_ptr<Order> filled_order)
 {
-#ifdef ARGUS_RUNTIME_ASSERT
-    assert(this->units + filled_order->get_units() < 1e-7);
-#endif 
-
     // get the position to close and close it 
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
+
+    #ifdef ARGUS_RUNTIME_ASSERT
+    assert(position->get_units() + filled_order->get_units() < 1e-7);
+    #endif 
+
     position->close(
         filled_order->get_average_price(), 
         filled_order->get_fill_time());
@@ -262,11 +263,11 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
             assert(source_portfolio);   
 
             //propgate  trade close up the portfolio tree
-            source_portfolio->propogate_trade_close_up(trade);
+            source_portfolio->propogate_trade_close_up(trade, true);
         }
         //this is the source portfolio of the trade
         else{
-            this->propogate_trade_close_up(trade);
+            this->propogate_trade_close_up(trade, true);
         }
 
         // push the trade to history, at this point local trade variable should have use count 1
@@ -281,7 +282,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     this->history->remember_position(std::move(position));
 }
 
-void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp){
+void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
     //reached master portfolio
     if(!this->parent_portfolio){
         return;
@@ -303,11 +304,10 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp){
     }
 
     //propgate trade close up portfolio tree
-    this->parent_portfolio->propogate_trade_close_up(trade_sp);
-
+    this->parent_portfolio->propogate_trade_close_up(trade_sp, adjust_cash);
 }
 
-void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp){
+void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
     //reached master portfolio
     if(!this->parent_portfolio){
         return;
@@ -315,36 +315,76 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp){
     
     //position does not exist in portfolio
     if(!this->parent_portfolio->position_exists(trade_sp->get_asset_id())){
-            this->open_position(trade_sp);
+            this->open_position(trade_sp, adjust_cash);
     }
     //position already exists, add the new trade
     else{
         auto position = *this->parent_portfolio->get_position(trade_sp->get_asset_id());
+        //insert the trade into the position
         position->adjust_trade(trade_sp);
     }
     
     //recursively proprate trade up up portfolio tree
-    this->parent_portfolio->parent_portfolio->propogate_trade_open_up(trade_sp);
+    this->parent_portfolio->parent_portfolio->propogate_trade_open_up(trade_sp, adjust_cash);
 };
 
-void Portfolio::add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio)
+portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
+    //create new portfolio
+    auto portfolio_ = std::make_shared<Portfolio>(
+        this->logging, 
+        cash, 
+        portfolio_id_,
+        this
+    );
+    
+    //insert into child portfolio map
+    this->portfolio_map.insert({portfolio_id, portfolio_});
+
+    //update parent portfolio's values
+    this->cash += cash_;
+
+    //return smart pointer to the new portfolio
+    return portfolio_;
+}
+
+void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_t portfolio_)
 {
-    auto iter = this->portfolio_map.find(portfolio_id);
+    auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() != iter)
     {
         throw std::runtime_error("Portfolio::add_sub_portfolio portfolio already exists");
     }
-    this->portfolio_map.insert({portfolio_id, portfolio});
+    this->portfolio_map.insert({portfolio_id, portfolio_});
+
+    //make sure the parent portfolio of the passed portfolio is equal to this
+    assert(this == portfolio_->get_parent_portfolio());
+
+    //update parent portfolio's values
+    this->cash += portfolio_->get_cash();
+
+    //propgate all open positions and trade up the portfolio tree
+    //done adjust cash, all parent portfolios simply take on child trades, i.e. NLV increases
+    for(const auto& postion_pair : portfolio_->positions_map){
+        auto position = postion_pair.second;
+        
+        //loop over all trades in the position
+        for(const auto &trade_pair : position->get_trades()){
+            auto trade = trade_pair.second;
+            
+            //propogate trade up portfolio tree
+            portfolio_->propogate_trade_open_up(trade, false);
+        }
+    }
 }
 
-std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfolio_id)
+std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfolio_id_)
 {
-    auto iter = this->portfolio_map.find(portfolio_id);
+    auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() == iter)
     {
         return std::nullopt;
     }
-    return this->portfolio_map.at(portfolio_id);
+    return this->portfolio_map.at(portfolio_id_);
 }
 
 void Portfolio::evaluate(bool on_close, bool recursive)
@@ -444,7 +484,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
             broker->place_order(order);
 
             //make sure the order was filled
-            assert(parent_order->get_order_state() == FILLED);
+            assert(order->get_order_state() == FILLED);
 
             //process filled order
             this->on_order_fill(order);
@@ -468,25 +508,20 @@ void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
     }
 }
 
-std::optional<portfolio_sp_t> Portfolio::find_portfolio(const string &portfolio_id_){
-    //attempting to find the portfolio function was called on
+portfolio_sp_t Portfolio::find_portfolio(const string &portfolio_id_){
     if(this->portfolio_id == portfolio_id_){
-        throw std::runtime_error("attempting portfolios search on itself");
+        return shared_from_this();
     }
-
-    //look for the portfolio in the sub portfolios
-    if(auto child_portfolio = this->get_sub_portfolio(portfolio_id_)){
-        return *child_portfolio;
-    }
-
+    
     //portfolio does not exist in sub portfolios, recurisvely search child portfolios
     for(auto& portfolio_pair : this->portfolio_map){
-        //search through child
-        if(auto target_portfolio = portfolio_pair.second->find_portfolio(portfolio_id_)){
-            return *target_portfolio;
-        };
+        auto portfolio = portfolio_pair.second;
+        if (auto found = portfolio->find_portfolio(portfolio_id_)) 
+        {
+            return found;
+        }
     }
-    return std::nullopt;
+    throw std::runtime_error("failed to find portfolio");
 };
 
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)

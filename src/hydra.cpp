@@ -5,14 +5,18 @@
 #include <string>
 #include <memory>
 #include <fmt/core.h>
+#include <utility>
 
 #include "asset.h"
 #include "exchange.h"
 #include "hydra.h"
+#include "order.h"
 #include "settings.h"
 
 namespace py = pybind11;
 using namespace std;
+
+using portfolio_sp_t = Portfolio::portfolio_sp_t;
 
 Hydra::Hydra(int logging_)
 {   
@@ -80,6 +84,22 @@ void Hydra::build()
     this->datetime_index_length = get<1>(datetime_index_);
     this->is_built = true;
 };
+
+portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash){
+    //build new smart pointer to portfolio 
+    auto portfolio = std::make_shared<Portfolio>(
+        this->logging, 
+        cash, 
+        portfolio_id_,
+        this->master_portfolio.get()
+    );
+
+    //add it to the master portfolio
+    this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio);
+
+    //return sp to new child portfolio
+    return std::move(portfolio);
+}
 
 shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 {

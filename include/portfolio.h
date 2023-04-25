@@ -16,9 +16,10 @@ class Broker;
 #include "history.h"
 #include "exchange.h"
 
-class Portfolio
+class Portfolio : public std::enable_shared_from_this<Portfolio>
 {
 public:
+
     using position_sp_t = Position::position_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
@@ -31,8 +32,10 @@ public:
     /// @param logging logging level
     /// @param cash    starting cash of the portfolio
     /// @param id      unique id of the portfolio
-    Portfolio(int logging, double cash, string id, portfolio_sp_t parent_portfolio);
+    Portfolio(int logging, double cash, string id, Portfolio* parent_portfolio);
 
+    auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
+    
     void on_order_fill(order_sp_t filled_order);
 
     /// generate a iterator begin and end for the position map
@@ -52,20 +55,29 @@ public:
     /// \return smart pointer to the existing position
     std::optional<position_sp_t> get_position(const string &asset_id);
 
+    /// set the parent portfolio pointer
+    Portfolio* get_parent_portfolio(){return this->parent_portfolio;}
+
     /// add new sub portfolio to the portfolio
     /// @param portfolio_id portfolio id of the new sub portfolio
     /// @param portfolio smart pointer to sub portfolio
     void add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio);
+    
+    /// create a new sub portfolio to the parent
+    /// @param portfolio_id portfolio id of the new sub portfolio
+    /// @param amount of cash held in the new portfolio
+    portfolio_sp_t create_sub_portfolio(const string &portfolio_id, double cash);
 
     /// @brief get smartpointer to a sub portfolio
     /// @param portfolio_id id of the sub portfolio
+    /// @param recursive  search through the portfolio recursively
     /// @return smart pointer to the sub portfolio
     std::optional<portfolio_sp_t> get_sub_portfolio(const string &portfolio_id);
 
     /// @brief recursively search through sub portfolios to find by portfolio id
     /// @param portfolio_id unique id of the portfolio
     /// @return sp to portfolio if exists
-    std::optional<portfolio_sp_t> find_portfolio(const string &portfolio_id);
+    portfolio_sp_t find_portfolio(const string &portfolio_id);
 
     /// @brief evaluate the portfolio on open or close
     /// @param on_close are we at close of the candle
@@ -92,7 +104,9 @@ public:
                            const string &strategy_id,
                            OrderExecutionType order_execution_type = LAZY);
 
-    const string & get_portfolio_id(){return this->portfolio_id;}
+    const string & get_portfolio_id() const {return this->portfolio_id;}
+    double get_cash() const {return this->cash;}
+    bool is_empty() const {return this->positions_map.size() > 0;}
 
 private:
     /// unique id of the portfolio
@@ -102,7 +116,7 @@ private:
     int logging;
 
     /// smart pointer to parent_portfolio
-    portfolio_sp_t parent_portfolio;
+    Portfolio* parent_portfolio;
 
     /// mapping between sub portfolio id and potfolio smart poitner
     portfolios_map_t portfolio_map;
@@ -144,7 +158,7 @@ private:
     /// @brief open a new position based on either filled order or new trade
     /// @param open_obj sp to either a new trade or a new order
     template<typename T>
-    void open_position(T open_obj);
+    void open_position(T open_obj, bool adjust_cash);
 
     /// @brief close an existing position based on a filled order
     /// @param filled_order ref to a sp to order that has been filled
@@ -159,10 +173,10 @@ private:
     void trade_cancel_order(trade_sp_t &trade_sp);
 
     /// @brief propogate a new trade up the portfolio tree
-    void propogate_trade_open_up(trade_sp_t trade_sp);
+    void propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash);
 
     /// @brief propogate a trade close up the portfolio tree
-    void propogate_trade_close_up(trade_sp_t trade_sp);
+    void propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash);
 
     /// log order fill
     /// @param filled_order filled order to log
@@ -179,7 +193,7 @@ private:
 };
 
 template<typename T>
-void Portfolio::open_position(T open_obj)
+void Portfolio::open_position(T open_obj, bool adjust_cash)
 {   
     // build the new position and increment position counter used to set ids
     auto position = make_shared<Position>(open_obj, this->trade_counter, this);
@@ -189,11 +203,13 @@ void Portfolio::open_position(T open_obj)
 
     //propgate the new trade up portfolio tree
     auto trade_sp = position->get_trade(this->trade_counter - 1);
-    this->propogate_trade_open_up(trade_sp);
+    this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly
-    this->cash -= open_obj->get_units() * open_obj->get_average_price();
-
+    if(adjust_cash)
+    {
+        this->cash -= open_obj->get_units() * open_obj->get_average_price();
+    }
     // insert the new position into the portfolio object
     this->add_position(open_obj->get_asset_id(), position);
 

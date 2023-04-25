@@ -23,10 +23,10 @@ OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
 
         #ifdef ARGUS_RUNTIME_ASSERT
         //orders must have same asset id
-        assert(*order->get_asset_id() == asset_id_);
+        assert(order->get_asset_id() == asset_id_);
 
         //orders must have same broker id
-        assert(*order->get_broker_id() == broker_id_);
+        assert(order->get_broker_id() == broker_id_);
         
         //orders must be market orders
         assert(order->get_order_type() != MARKET_ORDER);

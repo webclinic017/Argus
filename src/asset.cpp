@@ -178,7 +178,8 @@ double Asset::get_market_price(bool on_close) const
     #ifdef ARGUS_ASSET_H
     //make sure row pointer is not out of bounds
     ptrdiff_t index = this->row - this->data; 
-    assert(index < this->rows * this*cols);
+    auto size = this->rows * this->cols;
+    assert(index < size);
     #endif
 
     if (on_close)

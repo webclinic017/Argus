@@ -116,7 +116,7 @@ void Broker::place_market_order(const string &asset_id_, double units_,
                                 OrderExecutionType order_execution_type)
 {
     auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
-    assert(source_portfolio.has_value());
+    assert(source_portfolio);
 
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
@@ -124,7 +124,7 @@ void Broker::place_market_order(const string &asset_id_, double units_,
                                            units_,
                                            exchange_id_,
                                            this->broker_id,
-                                           source_portfolio.value().get(),
+                                           source_portfolio.get(),
                                            strategy_id_);
 
     if (order_execution_type == EAGER)
@@ -146,7 +146,7 @@ void Broker::place_limit_order(const string &asset_id_, double units_, double li
                                OrderExecutionType order_execution_type)
 {   
     auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
-    assert(source_portfolio.has_value());
+    assert(source_portfolio);
 
     // build new smart pointer to shared order
     auto limit_order = make_shared<Order>(LIMIT_ORDER,
@@ -154,7 +154,7 @@ void Broker::place_limit_order(const string &asset_id_, double units_, double li
                                           units_,
                                           exchange_id_,
                                           this->broker_id,
-                                          source_portfolio.value().get(),
+                                          source_portfolio.get(),
                                           strategy_id_);
 
     // set the limit of the order
