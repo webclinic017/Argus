@@ -35,6 +35,32 @@ void Asset::load_headers(const vector<std::string> &columns)
     }
 }
 
+void Asset::load_view(double *data_, long long *datetime_index_, size_t rows_, size_t cols_){
+#ifdef DEBUGGING
+    printf("MEMORY: CALLING ASSET %s load_data() ON: %p \n", this->asset_id.c_str(), this);
+#endif  
+
+    // allocate data array
+    this->data = data_;
+
+    // allocate datetime index
+    this->datetime_index = new long long[rows_];
+
+    // set the asset matrix size
+    this->rows = rows_;
+    this->cols = cols_;
+
+    //is built and is a view
+    this->is_view = true;
+    this->is_built = true;
+
+    this->row = &this->data[0];
+#ifdef DEBUGGING
+    printf("MEMORY:   asset %s datetime index at: %p \n", this->asset_id.c_str(), this->datetime_index);
+    printf("MEMORY:   asset %s load_data() allocated at: %p  \n", this->asset_id.c_str(), this);
+#endif
+}
+
 void Asset::load_data(const double *data_, const long long *datetime_index_, size_t rows_, size_t cols_)
 {
 #ifdef DEBUGGING
@@ -81,7 +107,12 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
 #endif
 }
 
-void Asset::py_load_data(const py::buffer &py_data, const py::buffer &py_datetime_index, size_t rows_, size_t cols_)
+void Asset::py_load_data(
+    const py::buffer &py_data,
+    const py::buffer &py_datetime_index,
+    size_t rows_,
+    size_t cols_,
+    bool is_view)
 {
     py::buffer_info data_info = py_data.request();
     py::buffer_info datetime_index_info = py_datetime_index.request();
@@ -90,8 +121,16 @@ void Asset::py_load_data(const py::buffer &py_data, const py::buffer &py_datetim
     auto data_ = static_cast<double *>(data_info.ptr);
     auto datetime_index_ = static_cast<long long *>(datetime_index_info.ptr);
 
-    // pass raw pointer to c loading function
-    this->load_data(data_, datetime_index_, rows_, cols_);
+    // pass raw pointer to c loading function and copy data
+    if(!is_view)
+    {
+        this->load_data(data_, datetime_index_, rows_, cols_);
+    }
+    // pass raw pointer and mirror the asset pointer to the data passed in the py buffers
+    else
+    {
+        this->load_view(data_, datetime_index_, rows_, cols_);
+    }
 }
 
 double Asset::c_get(const std::string &column) const
@@ -193,6 +232,10 @@ Asset::~Asset()
 #endif
 
     if (!this->is_built)
+    {
+        return;
+    }
+    if(this->is_view)
     {
         return;
     }

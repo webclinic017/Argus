@@ -255,7 +255,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
         auto portfolio_source = trade->get_source_portfolio();
         //find the source portfolio of the trade then propgate up trade closing
         if(portfolio_source->get_portfolio_id() != this->portfolio_id){
-            //search for source portfolio
+            //get source portfolio for trade
             auto source_portfolio = trade->get_source_portfolio();
 
             //make sure we found source
@@ -269,7 +269,8 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
             this->propogate_trade_close_up(trade);
         }
 
-        // push the trade to history
+        // push the trade to history, at this point local trade variable should have use count 1
+        // history will validate it when it attempts to push to trade history
         this->history->remember_trade(std::move(trade));
     }
 

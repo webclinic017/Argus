@@ -51,9 +51,15 @@ public:
 
     /// load the asset data in from a pointer, copy to dynamically allocated double**
     void load_data(const double *data, const long long *datetime_index, size_t rows, size_t cols);
+    void load_view(double *data, long long *datetime_index, size_t rows, size_t cols);
 
     /// load the asset data using a python buffer
-    void py_load_data(const py::buffer &data, const py::buffer &datetime_index, size_t rows, size_t cols);
+    void py_load_data(
+        const py::buffer &data, 
+        const py::buffer &datetime_index, 
+        size_t rows, 
+        size_t cols,
+        bool is_view);
 
     /// get data point from current asset row
     [[nodiscard]] double c_get(const string &column) const;
@@ -72,9 +78,13 @@ public:
 
     /// step the asset forward in time
     void step();
+
 private:
     /// has the asset been built
-    bool is_built;
+    bool is_built = false;
+
+    /// does the asset own the underlying data pointer
+    bool is_view = false;
 
     /// unique id of the asset
     string asset_id;
@@ -86,10 +96,10 @@ private:
     long long *datetime_index;
 
     /// underlying data of the asset
-    double *data;
+    double * data;
 
     /// @brief pointer to the current row
-    double *row;
+    double * row;
 
     /// number of rows in the asset data
     size_t rows;
