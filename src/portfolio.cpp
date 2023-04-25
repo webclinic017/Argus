@@ -125,7 +125,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
     }
 
     // adjust position and close out trade if needed
-    auto trade = position->adjust_order(filled_order);
+    auto trade = position->adjust_order(filled_order, this);
 
     //test to see if trade was closed
     if (!trade->get_is_open())
@@ -135,7 +135,13 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
         //propgate trade close up portfolio tree
         if(trade->get_portfolio_id() != this->portfolio_id){
-            auto source_portfolio = find_trade_source(trade);
+            //get the portfolio source
+            auto source_portfolio = trade->get_source_portfolio();            
+            
+            //make sure we found source
+            assert(source_portfolio);   
+
+            //propgate trade close up the portfolio tree
             source_portfolio->propogate_trade_close_up(trade);
         }
         else{
@@ -185,7 +191,13 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
 
         //find the source portfolio of the trade then propgate up trade closing
         if(trade->get_portfolio_id() != this->portfolio_id){
-            auto source_portfolio = find_trade_source(trade);
+            //search for source portfolio
+            auto source_portfolio = trade->get_source_portfolio();
+
+            //make sure we found source
+            assert(source_portfolio);   
+
+            //propgate  trade close up the portfolio tree
             source_portfolio->propogate_trade_close_up(trade);
         }
         //this is the source portfolio of the trade
@@ -248,28 +260,6 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp){
     
     //recursively proprate trade up up portfolio tree
     this->parent_portfolio->parent_portfolio->propogate_trade_open_up(trade_sp);
-};
-
-portfolio_sp_t Portfolio::find_trade_source(trade_sp_t trade){
-    //get source portfolio_id
-    auto source_portfolio_id = trade->get_portfolio_id();
-    
-    //attempt to find it in sub portfolios
-    auto portfolio = this->get_sub_portfolio(source_portfolio_id);
-
-    //found source portfolio in sub portfolio
-    if(portfolio.has_value()){
-        return portfolio.value();
-    }
-    // recursively search through child portfolios to find source
-    else{
-        for(auto & portfolio_pair : this->portfolio_map){
-            portfolio_pair.second->find_trade_source(trade);
-        }
-    }
-
-    //could not find trade source
-    return nullptr;
 };
 
 void Portfolio::add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio)

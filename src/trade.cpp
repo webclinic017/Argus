@@ -20,7 +20,7 @@ void Trade::cancel_child_order(unsigned int order_id)
         order_id);
 }
 
-Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_)
+Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_, Portfolio* source_portfolio_) : source_portfolio(source_portfolio_)
 {
     // populate the ids
     this->trade_id = trade_id_;

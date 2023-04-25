@@ -6,10 +6,11 @@
 #include "order.h"
 #include "position.h"
 #include "settings.h"
+#include "trade.h"
 
 using order_sp_t = Order::order_sp_t;
 
-Position::Position(trade_sp_t trade, unsigned int trade_id){
+Position::Position(trade_sp_t trade, unsigned int trade_id, Portfolio* source_portfolio){
     //populate common position values
     this->populate_position(trade);
 
@@ -18,12 +19,15 @@ Position::Position(trade_sp_t trade, unsigned int trade_id){
     this->last_price = trade->get_average_price();
     this->position_open_time = trade->get_trade_open_time();
 
+    //set the source portfolio
+    trade->set_source_portfolio(source_portfolio);
+
     // insert the new trade
     this->trades.insert({trade_id,trade});
     this->trade_counter = 1;
 };
 
-Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id)
+Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id,  Portfolio* source_portfolio )
 {   
     //populate common position values
     this->populate_position(filled_order_);
@@ -35,7 +39,10 @@ Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id)
 
     // insert the new trade
     this->trades.insert({trade_id,
-                         std::make_shared<Trade>(filled_order_, filled_order_->get_unsigned_trade_id())});
+                         std::make_shared<Trade>(
+                            filled_order_, 
+                            filled_order_->get_unsigned_trade_id(),
+                            source_portfolio)});
     this->trade_counter = 1;
 }
 
@@ -86,7 +93,7 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
     return trade;
 }
 
-shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order){
+shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* portfolio){
     auto units_ = filled_order->get_units();
     auto fill_price = filled_order->get_average_price();
 
@@ -111,7 +118,10 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order){
     {   
         // trade id was passed but is not in position's child trade map so create new trade
         this->trades.insert({trade_id_uint,
-                            std::make_shared<Trade>(filled_order, filled_order->get_trade_id())});
+                            std::make_shared<Trade>(
+                                filled_order,
+                                filled_order->get_trade_id(),
+                                portfolio)});
         this->trade_counter++;
         return this->trades.at(this->trade_counter - 1);
     }

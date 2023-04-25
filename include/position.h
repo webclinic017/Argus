@@ -10,7 +10,7 @@
 class Trade;
 class Order;
 class Position;
-
+class Portfolio;
 
 #include "trade.h"
 
@@ -73,8 +73,8 @@ public:
     using trade_sp_t = std::shared_ptr<Trade>;
 
     /// position constructors
-    Position(order_sp_t filled_order, unsigned int trade_id);
-    Position(trade_sp_t trade, unsigned int trade_id);
+    Position(order_sp_t filled_order, unsigned int trade_id,  Portfolio* source_portfolio );
+    Position(trade_sp_t trade, unsigned int trade_id,  Portfolio* source_portfolio );
 
     /// close the position out at given time and price
     /// \param market_price price the trade was closed out at
@@ -82,7 +82,7 @@ public:
     void close(double market_price, long long position_close_time);
 
 
-    shared_ptr<Trade> adjust_order(order_sp_t filled_order);
+    shared_ptr<Trade> adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
     shared_ptr<Trade> adjust_trade(trade_sp_t new_trade);
 
     /// @brief set the id of a position
@@ -118,6 +118,7 @@ public:
 
     /// get a smart pointer to child trade
     shared_ptr<Trade> get_trade(unsigned int trade_id) { return this->trades.at(trade_id); }
+
 
     /// get a reference to the hash map containing the underlying trades of the position
     /// \return reference to the hash map containing the underlying trades of the position

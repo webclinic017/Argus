@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <tsl/robin_map.h>
@@ -27,7 +28,10 @@ void Account::on_order_fill(order_sp_t &filled_order)
     if (!this->trades.contains(asset_id))
     {
         this->trades.insert({asset_id,
-                             Trade(filled_order, filled_order->get_unsigned_trade_id())});
+                             Trade(
+                                filled_order, 
+                                filled_order->get_unsigned_trade_id(),
+                                nullptr)});
     }
     // trade exists, modify it accorind to the order
     else

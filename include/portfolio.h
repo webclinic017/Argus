@@ -142,8 +142,10 @@ private:
     /// @param trade_sp ref to sp of a trade
     void trade_cancel_order(trade_sp_t &trade_sp);
 
-    portfolio_sp_t find_trade_source(trade_sp_t);
+    /// @brief propogate a new trade up the portfolio tree
     void propogate_trade_open_up(trade_sp_t trade_sp);
+
+    /// @brief propogate a trade close up the portfolio tree
     void propogate_trade_close_up(trade_sp_t trade_sp);
 
     /// log order fill
@@ -164,7 +166,7 @@ template<typename T>
 void Portfolio::open_position(T open_obj)
 {   
     // build the new position and increment position counter used to set ids
-    auto position = make_shared<Position>(open_obj, this->trade_counter);
+    auto position = make_shared<Position>(open_obj, this->trade_counter, this);
     position->set_position_id(this->position_counter);
     this->position_counter++;
     this->trade_counter++;

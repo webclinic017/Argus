@@ -2,8 +2,10 @@
 // Created by Nathan Tormaschy on 4/21/23.
 //
 #pragma once
+#include <cstddef>
 #ifndef ARGUS_TRADE_H
 #define ARGUS_TRADE_H
+
 #include <string>
 #include <vector>
 #include <memory>
@@ -11,6 +13,8 @@
 #include "order.h"
 
 using namespace std;
+
+class Portfolio;
 
 class Trade
 {
@@ -21,7 +25,7 @@ public:
     using order_sp_t = Order::order_sp_t;
 
     /// trade constructor
-    Trade(order_sp_t &filled_order, unsigned int trade_id_);
+    Trade(order_sp_t &filled_order, unsigned int trade_id_, Portfolio* source_portfolio);
 
     void adjust(order_sp_t filled_order);
 
@@ -90,6 +94,8 @@ public:
     /// @return ref to vec of order smart pointers
     vector<order_sp_t> &get_open_orders() { return this->open_orders; }
 
+    Portfolio* get_source_portfolio() {return this->get_source_portfolio();}
+
     /// @brief generate the inverse order needed to close out a trade, (MARKET_ORDER)
     /// @return a smart pointer to a order that when placed will close out the trade
     order_sp_t generate_order_inverse();
@@ -99,9 +105,13 @@ public:
     /// \param on_close is it the open or close of current candle
     void evaluate(double market_price, bool on_close);
 
+    void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
+
 private:
     /// is the trade currently open
     bool is_open;
+
+    Portfolio* source_portfolio = nullptr;
 
     /// unique id of the trade
     unsigned int trade_id;
@@ -118,7 +128,7 @@ private:
     /// unique id of the account the trade belongs to
     string portfolio_id;
 
-    /// @brief unique id of the strategy that placed the order
+    /// unique id of the strategy that placed the order
     string strategy_id;
 
     /// how many units in the trade
