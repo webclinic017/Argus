@@ -339,8 +339,12 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
         orders_consolidated.fill_child_orders();
         auto child_orders = orders_consolidated.get_child_orders();
 
-        for(auto & child_order : child_orders){
+        for(auto child_order : child_orders){
+            //process child order as if it had been filled directly
             this->on_order_fill(child_order);
+
+            //remember the child order
+            this->history->remember_order(std::move(child_order));
         }
         return std::nullopt;
     }
@@ -355,6 +359,11 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
             //process filled order
             this->on_order_fill(order);
+
+            //remember the order
+            this->history->remember_order(std::move(order));
+
+
             return std::nullopt;
         }
     }
