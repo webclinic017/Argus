@@ -79,6 +79,19 @@ public:
         bool send_orders,
         bool send_collapse);
 
+    /// order placement wrappers exposed to python
+    void place_market_order(const string &asset_id, double units,
+                            const string &exchange_id,
+                            const string &broker_id,
+                            const string &strategy_id,
+                            OrderExecutionType order_execution_type = LAZY);
+
+    void place_limit_order(const string &asset_id, double units, double limit,
+                           const string &exchange_id,
+                           const string &broker_id,
+                           const string &strategy_id,
+                           OrderExecutionType order_execution_type = LAZY);
+
     const string & get_portfolio_id(){return this->portfolio_id;}
 
 private:
@@ -106,6 +119,7 @@ private:
     /// position counter for position ids
     unsigned int position_counter;
 
+    /// trade counter shared by all portfolios
     static unsigned int trade_counter;
 
     /// cash held by the portfolio

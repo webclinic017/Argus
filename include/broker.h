@@ -57,6 +57,7 @@ public:
     void process_orders();
 
     void place_order(shared_ptr<Order> &order);
+    void place_order_buffer(shared_ptr<Order> &order);
 
     /// order placement wrappers exposed to python
     void place_market_order(const string &asset_id, double units,

@@ -84,6 +84,11 @@ void Broker::cancel_order(unsigned int order_id)
     this->history->remember_order(std::move(order));
 }
 
+void Broker::place_order_buffer(shared_ptr<Order> &order)
+{
+    this->open_orders_buffer.push_back(order);
+}
+
 void Broker::place_order(shared_ptr<Order> &order)
 {
     // get smart pointer to the right exchange

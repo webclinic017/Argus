@@ -71,6 +71,68 @@ void Portfolio::add_position(const string &asset_id, Portfolio::position_sp_t po
     this->positions_map.insert({asset_id, position});
 }
 
+void Portfolio::place_market_order(const string &asset_id_, double units_,
+                                const string &exchange_id_,
+                                const string &broker_id_,
+                                const string &strategy_id_,
+                                OrderExecutionType order_execution_type)
+{
+    // build new smart pointer to shared order
+    auto market_order = make_shared<Order>(MARKET_ORDER,
+                                           asset_id_,
+                                           units_,
+                                           exchange_id_,
+                                           broker_id_,
+                                           this,
+                                           strategy_id_);
+
+    auto broker = this->broker_map->at(broker_id_);
+    
+    if (order_execution_type == EAGER)
+    {
+        // place order directly and process
+        broker.place_order(market_order);
+    }
+    else
+    {
+        // push the order to the buffer that will be processed when the buffer is flushed
+        broker.place_order_buffer(market_order);
+    }
+}
+
+void Portfolio::place_limit_order(const string &asset_id_, double units_, double limit_,
+                               const string &exchange_id_,
+                               const string &broker_id_,
+                               const string &strategy_id_,
+                               OrderExecutionType order_execution_type)
+{   
+    // build new smart pointer to shared order
+    auto limit_order = make_shared<Order>(LIMIT_ORDER,
+                                          asset_id_,
+                                          units_,
+                                          exchange_id_,
+                                          broker_id_,
+                                          this,
+                                          strategy_id_);
+
+    // set the limit of the order
+    limit_order->set_limit(limit_);
+
+    auto broker = this->broker_map->at(broker_id_);
+
+
+    if (order_execution_type == EAGER)
+    {
+        // place order directly and process
+        broker.place_order(limit_order);
+    }
+    else
+    {
+        // push the order to the buffer that will be processed when the buffer is flushed
+        broker.place_order_buffer(limit_order);
+    }
+}
+
 void Portfolio::on_order_fill(order_sp_t filled_order)
 {
     // log the order if needed

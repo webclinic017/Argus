@@ -210,7 +210,8 @@ void Hydra::forward_pass()
 void Hydra::evaluate_orders_on_open(){
      // allow broker to process orders that have been filled
     for (auto &broker_pair : this->brokers)
-    {
+    {   
+        broker_pair.second->send_orders();
         broker_pair.second->process_orders();
     }
 
