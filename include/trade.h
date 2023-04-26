@@ -27,6 +27,10 @@ public:
     /// trade constructor
     Trade(order_sp_t filled_order, unsigned int trade_id_);
 
+    /// get the location in memory of the trade
+    auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
+
+    /// adjust a existing trade given a filled_order
     void adjust(order_sp_t filled_order);
 
     /// close the trade out at given time and price

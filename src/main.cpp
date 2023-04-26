@@ -11,6 +11,7 @@
 #include "exchange.h"
 #include "hydra.h"
 #include "order.h"
+#include "position.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -77,11 +78,23 @@ void init_portfolio_ext(py::module &m)
     py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
         .def("get_mem_address", &Portfolio::get_mem_address, "get memory address")
         .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
+        .def("get_position", &Portfolio::get_position, "get position from portfolio")
 
         .def("place_market_order", &Portfolio::place_market_order, "place market order")
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
         .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
+
+}
+
+
+void init_position_ext(py::module &m)
+{
+    py::class_<Position, std::shared_ptr<Position>>(m, "Position")
+        .def("get_trade", &Position::get_trade, "get child trade from position");
+
+    py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")
+        .def("get_mem_address", &Trade::get_mem_address, "get memory address of trade object");
 
 }
 
@@ -119,6 +132,9 @@ PYBIND11_MODULE(FastTest, m)
 
     // build python portfolio class bindings
     init_portfolio_ext(m);
+
+    // build python position class bindings
+    init_position_ext(m);
 
     // build python enum bindings
     init_enum(m);

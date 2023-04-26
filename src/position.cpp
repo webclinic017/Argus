@@ -10,6 +10,7 @@
 #include "trade.h"
 
 using order_sp_t = Order::order_sp_t;
+using trade_sp_t = Trade::trade_sp_t;
 
 Position::Position(trade_sp_t trade){
     //populate common position values
@@ -149,6 +150,16 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
         }
         return trade;
     }
+}
+
+std::optional<trade_sp_t> Position::get_trade(unsigned int trade_id)
+{
+    auto iter = this->trades.find(trade_id);
+    if (this->trades.end() == iter)
+    {
+        return std::nullopt;
+    }
+    return iter->second;
 }
 
 void Position::generate_order_inverse(std::vector<order_sp_t>& orders){

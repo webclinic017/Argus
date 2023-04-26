@@ -37,6 +37,7 @@ class AssetTestMethods(unittest.TestCase):
             
     def test_portfolio_order_prop(self):
         hydra = helpers.build_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
         
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
@@ -55,7 +56,14 @@ class AssetTestMethods(unittest.TestCase):
             -1
         )
         
-        assert(True)    
+        p1 = portfolio2.get_position(helpers.test2_asset_id)
+        p2 = mp.get_position(helpers.test2_asset_id)
+
+        assert(p1 is not None)
+        assert(p2 is not None)    
+        assert(portfolio3.get_position(helpers.test2_asset_id) is None)
+        assert(portfolio1.get_position(helpers.test2_asset_id) is None)
+
         
 if __name__ == '__main__':
     unittest.main()

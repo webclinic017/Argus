@@ -4,6 +4,7 @@
 
 #ifndef ARGUS_POSITION_H
 #define ARGUS_POSITION_H
+#include <optional>
 #include <string>
 #include <tsl/robin_map.h>
 
@@ -76,8 +77,8 @@ public:
     void close(double market_price, long long position_close_time);
 
 
-    shared_ptr<Trade> adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
-    shared_ptr<Trade> adjust_trade(trade_sp_t new_trade);
+    trade_sp_t adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
+    trade_sp_t adjust_trade(trade_sp_t new_trade);
 
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
@@ -111,11 +112,11 @@ public:
     [[nodiscard]] long long get_position_open_time() const { return this->position_open_time; };
 
     /// get a smart pointer to child trade
-    shared_ptr<Trade> get_trade(unsigned int trade_id) { return this->trades.at(trade_id); }
+    std::optional<trade_sp_t> get_trade(unsigned int trade_id);
 
     /// get a reference to the hash map containing the underlying trades of the position
     /// \return reference to the hash map containing the underlying trades of the position
-    tsl::robin_map<unsigned int, shared_ptr<Trade>> &get_trades() { return this->trades; }
+    tsl::robin_map<unsigned int, trade_sp_t> &get_trades() { return this->trades; }
 
     /// @brief generate the inverse orders needed to close out a position, (MARKET_ORDERS)
     /// @param ref to vector to hold inverse orders

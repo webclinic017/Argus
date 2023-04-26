@@ -210,7 +210,7 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     this->add_position(open_obj->get_asset_id(), position);
 
     //propgate the new trade up portfolio tree
-    auto trade_sp = position->get_trade(open_obj->get_trade_id());
+    auto trade_sp = position->get_trade(open_obj->get_trade_id()).value();
     this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly

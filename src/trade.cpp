@@ -2,6 +2,7 @@
 // Created by Nathan Tormaschy on 4/21/23.
 //
 
+#include <cassert>
 #include <memory>
 #include <fmt/core.h>
 
@@ -58,6 +59,10 @@ void Trade::evaluate(double market_price, bool on_close)
 
 void Trade::adjust(shared_ptr<Order> filled_order)
 {
+    #ifdef ARGUS_RUNTIME_ASSERT
+    assert(filled_order->get_trade_id() == this->trade_id);
+    #endif
+
     // extract order information
     auto units_ = filled_order->get_units();
     auto fill_price_ = filled_order->get_average_price();
