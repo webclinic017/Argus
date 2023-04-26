@@ -71,6 +71,8 @@ public:
     Position(order_sp_t filled_order);
     Position(trade_sp_t trade);
 
+    auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
+
     /// close the position out at given time and price
     /// \param market_price price the trade was closed out at
     /// \param position_close_time time the trade was closed out at

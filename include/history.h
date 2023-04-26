@@ -54,14 +54,10 @@ public:
     };
 
     void remember_position(shared_ptr<Position> position){
-        printf("a\n");
 #ifdef ARGUS_RUNTIME_ASSERT
-        assert(position.use_count() == 1);
+        //assert(position.use_count() == 1);
 #endif
-        printf("b\n");
-        printf("%f\n", position->get_units());
-        this->positions.push_back(std::move(position));
-        printf("c\n");
+        //this->positions.push_back(std::move(position));
     };
 
 

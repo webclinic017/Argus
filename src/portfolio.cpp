@@ -240,7 +240,6 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     // get the position to close and close it 
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
-    fmt::print("position count: {}\n",position.use_count());
 
     #ifdef ARGUS_RUNTIME_ASSERT
     assert(position->get_units() + filled_order->get_units() < 1e-7);
@@ -293,9 +292,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     }
 
     // remove the position from portfolio
-    fmt::print("position count: {}\n",position.use_count());
     this->delete_position(asset_id);
-    fmt::print("position count: {}\n",position.use_count());
 
     // push position to history
     this->history->remember_position(std::move(position));
