@@ -3,6 +3,7 @@
 #include <string>
 #include <tsl/robin_map.h>
 
+#include "fmt/core.h"
 #include "trade.h"
 #include "account.h"
 
@@ -14,8 +15,8 @@ Account::Account(std::string account_id_, double cash_) : trades()
     this->cash = cash_;
 }
 
-void Account::on_order_fill(order_sp_t &filled_order)
-{
+void Account::on_order_fill(order_sp_t filled_order)
+{   
     // get order information
     auto asset_id = filled_order->get_asset_id();
     auto order_units = filled_order->get_units();

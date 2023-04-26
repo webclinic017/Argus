@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cstdio>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -25,8 +26,10 @@ Portfolio::Portfolio(
     int logging_, 
     double cash_, 
     string id_, 
-    Portfolio* parent_portfolio_) : positions_map()
+    Portfolio* parent_portfolio_,
+    brokers_sp_t brokers_) : positions_map()
 {
+    this->brokers = brokers_;
     this->parent_portfolio = parent_portfolio_;
     this->logging = logging_;
     this->cash = cash_;
@@ -49,7 +52,7 @@ void Portfolio::delete_position(const string &asset_id)
     auto iter = this->positions_map.find(asset_id);
     if (this->positions_map.end() == iter)
     {
-        throw std::runtime_error("Portfolio::delete_position position does not exist");
+        ARGUS_RUNTIME_ERROR("Portfolio::delete_position position does not exist");
     };
 
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -66,7 +69,7 @@ void Portfolio::add_position(const string &asset_id, Portfolio::position_sp_t po
     auto iter = this->positions_map.find(asset_id);
     if (this->positions_map.end() != iter)
     {
-        throw std::runtime_error("Portfolio::add_position position already exists");
+        ARGUS_RUNTIME_ERROR("Portfolio::add_position position already exists");
     }
     this->positions_map.insert({asset_id, position});
 }
@@ -75,8 +78,18 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
                                 const string &exchange_id_,
                                 const string &broker_id_,
                                 const string &strategy_id_,
-                                OrderExecutionType order_execution_type)
+                                OrderExecutionType order_execution_type,
+                                int trade_id)
 {
+    unsigned int trade_id_uint;
+    if(trade_id == -1){
+        trade_id_uint = this->trade_counter;
+        this->trade_counter++;
+    }
+    else{
+        trade_id_uint = static_cast<unsigned int>(trade_id);
+    }
+
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
                                            asset_id_,
@@ -84,19 +97,25 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
                                            exchange_id_,
                                            broker_id_,
                                            this,
-                                           strategy_id_);
+                                           strategy_id_,
+                                           trade_id_uint);
 
-    auto broker = this->broker_map->at(broker_id_);
     
+    auto broker = this->brokers->at(broker_id_);
+
+    if(this->logging){
+        this->log_order_create(market_order);
+    }
+
     if (order_execution_type == EAGER)
     {
         // place order directly and process
-        broker.place_order(market_order);
+        broker->place_order(std::move(market_order));
     }
     else
     {
         // push the order to the buffer that will be processed when the buffer is flushed
-        broker.place_order_buffer(market_order);
+        broker->place_order_buffer(market_order);
     }
 }
 
@@ -104,8 +123,18 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
                                const string &exchange_id_,
                                const string &broker_id_,
                                const string &strategy_id_,
-                               OrderExecutionType order_execution_type)
+                               OrderExecutionType order_execution_type,
+                               int trade_id)
 {   
+    unsigned int trade_id_uint;
+    if(trade_id == -1){
+        trade_id_uint = this->trade_counter;
+        this->trade_counter++;
+    }
+    else{
+        trade_id_uint = static_cast<unsigned int>(trade_id);
+    }
+    
     // build new smart pointer to shared order
     auto limit_order = make_shared<Order>(LIMIT_ORDER,
                                           asset_id_,
@@ -113,23 +142,24 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
                                           exchange_id_,
                                           broker_id_,
                                           this,
-                                          strategy_id_);
+                                          strategy_id_,
+                                          trade_id_uint);
 
     // set the limit of the order
     limit_order->set_limit(limit_);
 
-    auto broker = this->broker_map->at(broker_id_);
+    auto broker = this->brokers->at(broker_id_);
 
 
     if (order_execution_type == EAGER)
     {
         // place order directly and process
-        broker.place_order(limit_order);
+        broker->place_order(std::move(limit_order));
     }
     else
     {
         // push the order to the buffer that will be processed when the buffer is flushed
-        broker.place_order_buffer(limit_order);
+        broker->place_order_buffer(limit_order);
     }
 }
 
@@ -143,7 +173,7 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
 
     // no position exists in the portfolio with the filled order's asset_id
     if (!this->position_exists(filled_order->get_asset_id()))
-    {
+    {   
         this->open_position(filled_order, true);
     }
     else
@@ -166,8 +196,8 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
     // place child orders from the filled order
     for (auto &child_order : filled_order->get_child_orders())
     {
-        auto broker = this->broker_map->at(child_order->get_broker_id());
-        broker.place_order(child_order);
+        auto broker = this->brokers->at(child_order->get_broker_id());
+        broker->place_order(child_order);
     }
 };
 
@@ -312,20 +342,27 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
     if(!this->parent_portfolio){
         return;
     }
+
+    auto parent = this->parent_portfolio;
     
     //position does not exist in portfolio
-    if(!this->parent_portfolio->position_exists(trade_sp->get_asset_id())){
-            this->open_position(trade_sp, adjust_cash);
+    if(!parent->position_exists(trade_sp->get_asset_id()))
+    {
+            parent->open_position(trade_sp, adjust_cash);
     }
     //position already exists, add the new trade
-    else{
-        auto position = *this->parent_portfolio->get_position(trade_sp->get_asset_id());
+    else
+    {
+        auto position = *parent->get_position(trade_sp->get_asset_id());
         //insert the trade into the position
         position->adjust_trade(trade_sp);
     }
     
     //recursively proprate trade up up portfolio tree
-    this->parent_portfolio->parent_portfolio->propogate_trade_open_up(trade_sp, adjust_cash);
+    if(parent->parent_portfolio)
+    {
+        parent->parent_portfolio->propogate_trade_open_up(trade_sp, adjust_cash);
+    }
 };
 
 portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
@@ -334,7 +371,8 @@ portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, doub
         this->logging, 
         cash, 
         portfolio_id_,
-        this
+        this,
+        this->brokers
     );
     
     //insert into child portfolio map
@@ -352,7 +390,7 @@ void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_t po
     auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() != iter)
     {
-        throw std::runtime_error("Portfolio::add_sub_portfolio portfolio already exists");
+        ARGUS_RUNTIME_ERROR("Portfolio::add_sub_portfolio portfolio already exists");
     }
     this->portfolio_map.insert({portfolio_id, portfolio_});
 
@@ -428,8 +466,8 @@ void Portfolio::position_cancel_order(Broker::position_sp_t position_sp)
         // cancel orders whose parent is the closed trade
         for (auto &order : trade->get_open_orders())
         {
-            auto broker = this->broker_map->at(order->get_broker_id());
-            broker.cancel_order(order->get_order_id());
+            auto broker = this->brokers->at(order->get_broker_id());
+            broker->cancel_order(order->get_order_id());
         }
     }
 }
@@ -444,7 +482,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
     //make sure we found a position
     if(!position.has_value()){
-        throw std::runtime_error("failed to find position");
+        ARGUS_RUNTIME_ERROR("failed to find position");
     }
 
     //populate inverse orders container
@@ -457,7 +495,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
         //send order to broker
         auto broker_id = orders[0]->get_broker_id();
-        auto broker = &this->broker_map->at(broker_id);
+        auto broker = this->brokers->at(broker_id);
         auto parent_order = orders_consolidated.get_parent_order();
         broker->place_order(parent_order);
 
@@ -480,7 +518,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
     if (send_orders){
         for(auto& order : orders){
             auto broker_id = order->get_broker_id();
-            auto broker = &this->broker_map->at(broker_id);
+            auto broker = this->brokers->at(broker_id);
             broker->place_order(order);
 
             //make sure the order was filled
@@ -503,8 +541,8 @@ void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
     for (auto &order : trade_sp->get_open_orders())
     {   
         // get corresponding broker for the order then cancel it
-        auto broker = this->broker_map->at(order->get_broker_id());
-        broker.cancel_order(order->get_order_id());
+        auto broker = this->brokers->at(order->get_broker_id());
+        broker->cancel_order(order->get_order_id());
     }
 }
 
@@ -521,13 +559,13 @@ portfolio_sp_t Portfolio::find_portfolio(const string &portfolio_id_){
             return found;
         }
     }
-    throw std::runtime_error("failed to find portfolio");
+    ARGUS_RUNTIME_ERROR("failed to find portfolio");
 };
 
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_open_time());
-    fmt::print("{}:  PORTFOLIO {}: POSITION {} AVERAGE PRICE AT {}, ASSET_ID: {}",
+    fmt::print("{}:  PORTFOLIO {} NEW POSITION: POSITION {} AVERAGE PRICE AT {}, ASSET_ID: {}\n",
                datetime_str,
                this->portfolio_id,
                new_position->get_position_id(),
@@ -536,24 +574,34 @@ void Portfolio::log_position_open(shared_ptr<Position> &new_position)
 }
 
 void Portfolio::log_trade_open(trade_sp_t &new_trade)
-{
+{   
     auto datetime_str = nanosecond_epoch_time_to_string(new_trade->get_trade_open_time());
-    fmt::print("{}:  PORTFOLIO {}: TRADE {} OPENED AT {}, ASSET_ID: {}",
+    fmt::print("{}:  PORTFOLIO {} TRADE OPENED: source portfolio id: {}, trade id: {}, asset id: {}, avg price: {}\n",
                datetime_str,
                this->portfolio_id,
+               new_trade->get_source_portfolio()->get_portfolio_id(),
                new_trade->get_trade_id(),
-               new_trade->get_average_price(),
-               new_trade->get_asset_id());
+               new_trade->get_asset_id(),
+               new_trade->get_average_price());
 };
 
+void Portfolio::log_order_create(order_sp_t &filled_order)
+{
+    fmt::print("PORTFOLIO {} ORDER CREATED: order id:  {}, asset id: {}, trade id: {}\n",
+               this->portfolio_id,
+               filled_order->get_order_id(),
+               filled_order->get_asset_id(),
+               filled_order->get_trade_id());
+};
 
 void Portfolio::log_order_fill(order_sp_t &filled_order)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
-    fmt::print("{}:  PORTFOLIO {}: ORDER {} FILLED AT {}, ASSET_ID: {}",
-               datetime_str,
-               this->portfolio_id,
-               filled_order->get_order_id(),
-               filled_order->get_average_price(),
-               filled_order->get_asset_id());
+    fmt::print("{}:  PORTFOLIO {} ORDER FILLED: order id: {}, asset id: {}, trade id: {}, avg price: {}\n",
+                datetime_str,
+                this->portfolio_id,
+                filled_order->get_order_id(),
+                filled_order->get_asset_id(),
+                filled_order->get_trade_id(),
+                filled_order->get_average_price());
 };

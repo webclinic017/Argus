@@ -35,6 +35,27 @@ class AssetTestMethods(unittest.TestCase):
         
         assert(portfolio3.get_mem_address() == portfolio3_search_mp.get_mem_address() == portfolio3_search_1.get_mem_address())
             
+    def test_portfolio_order_prop(self):
+        hydra = helpers.build_simple_hydra(logging=0)
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
+        portfolio3 = portfolio1.create_sub_portfolio("test_portfolio3",100.0);
+        
+        hydra.forward_pass()
+        
+        portfolio2.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        assert(True)    
+    
         
 if __name__ == '__main__':
     unittest.main()

@@ -3,6 +3,7 @@
 //
 
 #include <memory>
+#include <fmt/core.h>
 
 #include "order.h"
 #include "trade.h"
@@ -20,15 +21,15 @@ void Trade::cancel_child_order(unsigned int order_id)
         order_id);
 }
 
-Trade::Trade(shared_ptr<Order> &filled_order, unsigned int trade_id_) 
+Trade::Trade(shared_ptr<Order> filled_order, unsigned int trade_id_) : source_portfolio(filled_order->get_source_portfolio())
 {
+    assert(this->source_portfolio);
+    
     // populate the ids
     this->trade_id = trade_id_;
     this->asset_id = filled_order->get_asset_id();
     this->exchange_id = filled_order->get_exchange_id();
     this->broker_id = filled_order->get_broker_id();
-
-    this->source_portfolio = filled_order->get_source_portfolio();
     this->strategy_id = filled_order->get_strategy_id();
 
     // set the trade member variables

@@ -22,6 +22,8 @@ class Hydra
 {
 private:
     using portfolio_sp_t = Portfolio::portfolio_sp_t;
+    
+    typedef shared_ptr<Brokers> brokers_sp_t;
 
     /// logging level
     int logging;
@@ -30,13 +32,13 @@ private:
     bool is_built{};
 
     /// mapping between exchange id and smart pointer to an exchange
-    Exchanges exchanges;
+    Exchanges exchanges{};
 
     /// mapping between broker id and smart pointer to a broker
-    Brokers brokers;
+    brokers_sp_t brokers{};
 
     /// mapping between broker id and portfolio held at broker
-    portfolio_sp_t master_portfolio;
+    portfolio_sp_t master_portfolio{};
 
     /// container for remembering historical events and structs
     shared_ptr<History> history;

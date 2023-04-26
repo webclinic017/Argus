@@ -27,12 +27,19 @@ public:
     typedef shared_ptr<Portfolio> portfolio_sp_t;
     typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
     typedef tsl::robin_map<std::string, portfolio_sp_t> portfolios_map_t;
+    typedef shared_ptr<tsl::robin_map<string, shared_ptr<Broker>>> brokers_sp_t;
 
     /// portfolio constructor
     /// @param logging logging level
     /// @param cash    starting cash of the portfolio
     /// @param id      unique id of the portfolio
-    Portfolio(int logging, double cash, string id, Portfolio* parent_portfolio);
+    Portfolio(
+        int logging, 
+        double cash, 
+        string id, 
+        Portfolio* parent_portfolio,
+        brokers_sp_t brokers
+        );
 
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
@@ -96,13 +103,15 @@ public:
                             const string &exchange_id,
                             const string &broker_id,
                             const string &strategy_id,
-                            OrderExecutionType order_execution_type = LAZY);
+                            OrderExecutionType order_execution_type = LAZY,
+                            int trade_id = -1);
 
     void place_limit_order(const string &asset_id, double units, double limit,
                            const string &exchange_id,
                            const string &broker_id,
                            const string &strategy_id,
-                           OrderExecutionType order_execution_type = LAZY);
+                           OrderExecutionType order_execution_type = LAZY,
+                           int tade_id = -1);
 
     const string & get_portfolio_id() const {return this->portfolio_id;}
     double get_cash() const {return this->cash;}
@@ -116,7 +125,7 @@ private:
     int logging;
 
     /// smart pointer to parent_portfolio
-    Portfolio* parent_portfolio;
+    Portfolio* parent_portfolio = nullptr;
 
     /// mapping between sub portfolio id and potfolio smart poitner
     portfolios_map_t portfolio_map;
@@ -128,7 +137,7 @@ private:
     exchanges_sp_t exchanges_sp;
 
     /// smart pointer to broker map
-    shared_ptr<tsl::robin_map<string, Broker>> broker_map;
+    brokers_sp_t brokers;
 
     /// position counter for position ids
     unsigned int position_counter;
@@ -178,16 +187,10 @@ private:
     /// @brief propogate a trade close up the portfolio tree
     void propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash);
 
-    /// log order fill
-    /// @param filled_order filled order to log
+    void log_order_create(order_sp_t &filled_order);
     void log_order_fill(order_sp_t &filled_order);
 
-    /// log position open
-    /// @param new_position new position to log
     void log_position_open(shared_ptr<Position> &new_position);
-
-    /// log trade open
-    /// @param new_trade new trade to log
     void log_trade_open(trade_sp_t &new_trade);
 
 };
@@ -195,14 +198,19 @@ private:
 template<typename T>
 void Portfolio::open_position(T open_obj, bool adjust_cash)
 {   
+    #ifdef DEBUGGING
+    fmt::print("Portfolio::open_position: {}\n",this->portfolio_id);
+    #endif
     // build the new position and increment position counter used to set ids
-    auto position = make_shared<Position>(open_obj, this->trade_counter, this);
+    auto position = make_shared<Position>(open_obj);
     position->set_position_id(this->position_counter);
     this->position_counter++;
-    this->trade_counter++;
+
+    // insert the new position into the portfolio object
+    this->add_position(open_obj->get_asset_id(), position);
 
     //propgate the new trade up portfolio tree
-    auto trade_sp = position->get_trade(this->trade_counter - 1);
+    auto trade_sp = position->get_trade(open_obj->get_trade_id());
     this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly
@@ -210,8 +218,6 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     {
         this->cash -= open_obj->get_units() * open_obj->get_average_price();
     }
-    // insert the new position into the portfolio object
-    this->add_position(open_obj->get_asset_id(), position);
 
     // log the position if needed
     if (this->logging == 1)
@@ -219,6 +225,9 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
         this->log_position_open(position);
         this->log_trade_open(trade_sp);
     }
+    #ifdef DEBUGGING
+    fmt::print("Portfolio::open_position: {} done\n",this->portfolio_id);
+    #endif
 }
 
 #endif // ARGUS_PORTFOLIO_H

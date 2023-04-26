@@ -58,9 +58,6 @@ private:
     /// number of bars the positions has been held for
     unsigned int bars_held = 0;
 
-    /// counter for setting trade id's
-    unsigned int trade_counter;
-
     tsl::robin_map<unsigned int, shared_ptr<Trade>> trades;
 
 public:
@@ -70,8 +67,8 @@ public:
     using trade_sp_t = std::shared_ptr<Trade>;
 
     /// position constructors
-    Position(order_sp_t filled_order, unsigned int trade_id,  Portfolio* source_portfolio );
-    Position(trade_sp_t trade, unsigned int trade_id,  Portfolio* source_portfolio );
+    Position(order_sp_t filled_order);
+    Position(trade_sp_t trade);
 
     /// close the position out at given time and price
     /// \param market_price price the trade was closed out at

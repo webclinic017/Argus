@@ -51,6 +51,10 @@ void init_hydra_ext(py::module &m)
 {
     py::class_<Hydra, std::shared_ptr<Hydra>>(m, "Hydra")
         .def(py::init<int>())
+        .def("build", &Hydra::build, "build hydra class")
+
+        .def("forward_pass", &Hydra::forward_pass, "forward pass")
+
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
         .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
         .def("new_portfolio", &Hydra::new_portfolio, "adds new portfolio to master portfolio", py::return_value_policy::reference)
@@ -73,6 +77,9 @@ void init_portfolio_ext(py::module &m)
     py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
         .def("get_mem_address", &Portfolio::get_mem_address, "get memory address")
         .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
+
+        .def("place_market_order", &Portfolio::place_market_order, "place market order")
+        
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
         .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
 
@@ -80,9 +87,15 @@ void init_portfolio_ext(py::module &m)
 
 void init_broker_ext(py::module &m)
 {
-    py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker")
-        .def("place_market_order", &Broker::place_market_order, "place market order")
-        .def("place_limit_order", &Broker::place_limit_order, "place limit order");
+    py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker");
+
+}
+
+void init_enum(py::module &m){
+     py::enum_<OrderExecutionType>(m, "OrderExecutionType")
+        .value("EAGER", OrderExecutionType::EAGER)
+        .value("Green", OrderExecutionType::LAZY)
+        .export_values();
 }
 
 PYBIND11_MODULE(FastTest, m)
@@ -106,4 +119,7 @@ PYBIND11_MODULE(FastTest, m)
 
     // build python portfolio class bindings
     init_portfolio_ext(m);
+
+    // build python enum bindings
+    init_enum(m);
 }

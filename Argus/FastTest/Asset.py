@@ -9,7 +9,6 @@ from ctypes import *
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-
 def asset_from_df(df: Type[pd.DataFrame], asset_id: str) -> FastTest.Asset:
     # extract underlying numpy arrays
     values = df.values.astype(np.float64)

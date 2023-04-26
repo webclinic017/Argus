@@ -125,7 +125,6 @@ private:
     /// unique id of the broker to place the order to
     string broker_id;
 
-
     /// unique id of the strategy the order was placed by
     string strategy_id;
 
@@ -134,7 +133,7 @@ public:
 
     /// order constructor
     Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
-          string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_ = -1);
+          string broker_id_, Portfolio* source_portfolio, string strategy_id_, unsigned int trade_id_);
 
     void cancel_child_order(unsigned int order_id);
 

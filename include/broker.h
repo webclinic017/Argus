@@ -61,21 +61,8 @@ public:
     /// process all open orders
     void process_orders();
 
-    void place_order(shared_ptr<Order> &order);
-    void place_order_buffer(shared_ptr<Order> &order);
-
-    /// order placement wrappers exposed to python
-    void place_market_order(const string &asset_id, double units,
-                            const string &exchange_id,
-                            const string &portfolio_id,
-                            const string &strategy_id,
-                            OrderExecutionType order_execution_type = LAZY);
-
-    void place_limit_order(const string &asset_id, double units, double limit,
-                           const string &exchange_id,
-                           const string &portfolio_id,
-                           const string &strategy_id,
-                           OrderExecutionType order_execution_type = LAZY);
+    void place_order(shared_ptr<Order> order);
+    void place_order_buffer(shared_ptr<Order> order);
 
     // void place_limit_order();
     // void place_stop_loss_order();

@@ -4,8 +4,10 @@
 
 #include <iostream>
 #include <optional>
+#include <stdexcept>
 #include "exchange.h"
 #include "asset.h"
+#include "fmt/core.h"
 #include "utils_array.h"
 #include "settings.h"
 
@@ -199,7 +201,7 @@ void Exchange::process_order(shared_ptr<Order> &order)
     // check to see if asset is currently streaming
     if (!asset)
     {
-        throw std::runtime_error("failed to find asset in market view");
+        ARGUS_RUNTIME_ERROR("failed to find asset in market view");
     }
 
     // switch on order type and process accordingly

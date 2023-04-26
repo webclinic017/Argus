@@ -1,6 +1,7 @@
 //
 // Created by Nathan Tormaschy on 4/22/23.
 //
+#include <cstdio>
 #include <memory>
 #include <string>
 #include "order.h"
@@ -10,7 +11,7 @@
 
 using order_sp_t = Order::order_sp_t;
 
-Position::Position(trade_sp_t trade, unsigned int trade_id, Portfolio* source_portfolio){
+Position::Position(trade_sp_t trade){
     //populate common position values
     this->asset_id = trade->get_asset_id();
     this->exchange_id = trade->get_exchange_id();
@@ -23,14 +24,13 @@ Position::Position(trade_sp_t trade, unsigned int trade_id, Portfolio* source_po
     this->position_open_time = trade->get_trade_open_time();
 
     //set the source portfolio
-    trade->set_source_portfolio(source_portfolio);
+    trade->set_source_portfolio(trade->get_source_portfolio());
 
     // insert the new trade
-    this->trades.insert({trade_id,trade});
-    this->trade_counter = 1;
+    this->trades.insert({trade->get_trade_id(),trade});
 };
 
-Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id_,  Portfolio* source_portfolio )
+Position::Position(shared_ptr<Order> filled_order_)
 {   
     //populate common position values
     this->asset_id = filled_order_->get_asset_id();
@@ -44,12 +44,11 @@ Position::Position(shared_ptr<Order> filled_order_, unsigned int trade_id_,  Por
     this->position_open_time = filled_order_->get_fill_time();
 
     // insert the new trade
-    this->trades.insert({trade_id_,
-                         std::make_shared<Trade>(
+    auto trade = std::make_shared<Trade>(
                             filled_order_, 
-                            trade_id_
-                            )});
-    this->trade_counter = 1;
+                            filled_order_->get_trade_id()
+                            );
+    this->trades.insert({filled_order_->get_trade_id(),trade});
 }
 
 void Position::close(double market_price_, long long int position_close_time_)
@@ -126,7 +125,7 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
     this->units += units_;
 
     // get the trade id unsigned, and signed raw (-1 means open new trade)
-    auto trade_id_uint = filled_order->get_unsigned_trade_id();
+    auto trade_id_uint = filled_order->get_trade_id();
     if (!this->trades.contains(trade_id_uint))
     {   
         // trade id was passed but is not in position's child trade map so create new trade
@@ -135,8 +134,7 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
                                 filled_order,
                                 filled_order->get_trade_id()
                                 )});
-        this->trade_counter++;
-        return this->trades.at(this->trade_counter - 1);
+        return this->trades.at(trade_id_uint);
     }
     else
     {   

@@ -25,7 +25,7 @@ public:
 
     /// @brief process a filled order for the account
     /// @param filled_order reference to a smart pointer for a filled order
-    void on_order_fill(order_sp_t &filled_order);
+    void on_order_fill(order_sp_t filled_order);
 
 private:
     /// @brief map between asset ids and trades

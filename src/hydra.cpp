@@ -22,7 +22,14 @@ Hydra::Hydra(int logging_)
 {   
     this->logging = logging_;
     this->history = std::make_shared<History>();
-    this->master_portfolio = std::make_shared<Portfolio>(logging_, 0, "master", nullptr);
+    this->brokers = std::make_shared<Brokers>();
+
+    this->master_portfolio = std::make_shared<Portfolio>(
+            logging_, 
+            0,
+            "master", 
+            nullptr,
+            this->brokers);
 }
 
 Hydra::~Hydra()
@@ -67,10 +74,9 @@ void Hydra::build()
     }
 
     // build the brokers
-    for (auto it = this->brokers.begin(); it != this->brokers.end(); ++it)
+    for (auto it = this->brokers->begin(); it != this->brokers->end(); ++it)
     {
-        it.value()->build(
-            &this->exchanges);
+        it.value()->build(&this->exchanges);
     }
 
     // build the combined datetime index from all the exchanges
@@ -91,7 +97,8 @@ portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash){
         this->logging, 
         cash, 
         portfolio_id_,
-        this->master_portfolio.get()
+        this->master_portfolio.get(),
+        this->brokers
     );
 
     //add it to the master portfolio
@@ -143,11 +150,11 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
         this->master_portfolio);
 
     // insert a clone of the smart pointer into the exchange
-    this->brokers.emplace(broker_id, broker);
+    this->brokers->emplace(broker_id, broker);
 
     if (this->logging == 1)
     {
-        fmt::print("HYDRA: NEW BROKER: {} AT {}", broker_id, static_cast<void *>(broker.get()));
+        fmt::print("HYDRA: NEW BROKER: {} AT {}\n", broker_id, static_cast<void *>(broker.get()));
     }
 
 #ifdef DEBUGGING
@@ -175,7 +182,7 @@ shared_ptr<Broker> Hydra::get_broker(const std::string &broker_id)
 {
     try
     {
-        return this->brokers.at(broker_id);
+        return this->brokers->at(broker_id);
     }
     catch (const std::out_of_range &e)
     {
@@ -229,7 +236,7 @@ void Hydra::forward_pass()
 
 void Hydra::evaluate_orders_on_open(){
      // allow broker to process orders that have been filled
-    for (auto &broker_pair : this->brokers)
+    for (auto &broker_pair : *this->brokers)
     {   
         broker_pair.second->send_orders();
         broker_pair.second->process_orders();
@@ -257,7 +264,7 @@ bool Hydra::backward_pass(){
     }
 
     // process any filled orders
-    for (auto &broker_pair : this->brokers)
+    for (auto &broker_pair : *this->brokers)
     {
         broker_pair.second->process_orders();
     }

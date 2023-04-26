@@ -25,7 +25,7 @@ public:
     using order_sp_t = Order::order_sp_t;
 
     /// trade constructor
-    Trade(order_sp_t &filled_order, unsigned int trade_id_);
+    Trade(order_sp_t filled_order, unsigned int trade_id_);
 
     void adjust(order_sp_t filled_order);
 
@@ -72,7 +72,6 @@ public:
     /// get the id of the trade 
     /// @return id of the trade
     unsigned int get_trade_id() const {return this->trade_id;}
-    unsigned int get_unsigned_trade_id() const {return this->trade_id;}
 
     /// get the id of the underlying exchange of the trade
     /// @return ref to string of underlying exchange id 
@@ -94,7 +93,7 @@ public:
     /// @return ref to vec of order smart pointers
     vector<order_sp_t> &get_open_orders() { return this->open_orders; }
 
-    Portfolio* get_source_portfolio() {return this->get_source_portfolio();}
+    Portfolio* get_source_portfolio() {return this->source_portfolio;}
 
     /// @brief generate the inverse order needed to close out a trade, (MARKET_ORDER)
     /// @return a smart pointer to a order that when placed will close out the trade
@@ -111,7 +110,7 @@ private:
     /// is the trade currently open
     bool is_open;
 
-    Portfolio* source_portfolio = nullptr;
+    Portfolio* source_portfolio;
 
     /// unique id of the trade
     unsigned int trade_id;

@@ -1,6 +1,7 @@
 //
 // Created by Nathan Tormaschy on 4/21/23.
 //
+#include <cstdio>
 #include <string>
 #include <memory>
 #include <fmt/core.h>
@@ -84,12 +85,12 @@ void Broker::cancel_order(unsigned int order_id)
     this->history->remember_order(std::move(order));
 }
 
-void Broker::place_order_buffer(shared_ptr<Order> &order)
+void Broker::place_order_buffer(shared_ptr<Order> order)
 {
     this->open_orders_buffer.push_back(order);
 }
 
-void Broker::place_order(shared_ptr<Order> &order)
+void Broker::place_order(shared_ptr<Order> order)
 {
     // get smart pointer to the right exchange
     auto exchange = this->exchanges->at(order->get_exchange_id());
@@ -100,75 +101,12 @@ void Broker::place_order(shared_ptr<Order> &order)
     // if the order was filled then process fill
     if (order->get_order_state() == FILLED)
     {
-        this->process_filled_order(order);
+        this->process_filled_order(std::move(order));
     }
     // else push the order to the open order vector to be monitored
     else
     {
         this->open_orders.push_back(order);
-    }
-}
-
-void Broker::place_market_order(const string &asset_id_, double units_,
-                                const string &exchange_id_,
-                                const string &portfolio_id_,
-                                const string &strategy_id_,
-                                OrderExecutionType order_execution_type)
-{
-    auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
-    assert(source_portfolio);
-
-    // build new smart pointer to shared order
-    auto market_order = make_shared<Order>(MARKET_ORDER,
-                                           asset_id_,
-                                           units_,
-                                           exchange_id_,
-                                           this->broker_id,
-                                           source_portfolio.get(),
-                                           strategy_id_);
-
-    if (order_execution_type == EAGER)
-    {
-        // place order directly and process
-        this->place_order(market_order);
-    }
-    else
-    {
-        // push the order to the buffer that will be processed when the buffer is flushed
-        this->open_orders_buffer.push_back(market_order);
-    }
-}
-
-void Broker::place_limit_order(const string &asset_id_, double units_, double limit_,
-                               const string &exchange_id_,
-                               const string &portfolio_id_,
-                               const string &strategy_id_,
-                               OrderExecutionType order_execution_type)
-{   
-    auto source_portfolio = this->master_portfolio->find_portfolio(portfolio_id_);
-    assert(source_portfolio);
-
-    // build new smart pointer to shared order
-    auto limit_order = make_shared<Order>(LIMIT_ORDER,
-                                          asset_id_,
-                                          units_,
-                                          exchange_id_,
-                                          this->broker_id,
-                                          source_portfolio.get(),
-                                          strategy_id_);
-
-    // set the limit of the order
-    limit_order->set_limit(limit_);
-
-    if (order_execution_type == EAGER)
-    {
-        // place order directly and process
-        this->place_order(limit_order);
-    }
-    else
-    {
-        // push the order to the buffer that will be processed when the buffer is flushed
-        this->open_orders_buffer.push_back(limit_order);
     }
 }
 
@@ -201,17 +139,14 @@ void Broker::send_orders()
 void Broker::process_filled_order(order_sp_t filled_order)
 {
     // adjust the account held at the broker
+    assert(filled_order->get_source_portfolio());
     this->broker_account.on_order_fill(filled_order);
 
     // get the portfolio the order was placed for, adjust the sub portfolio accorindly
     filled_order->get_source_portfolio()->on_order_fill(filled_order);
 
-    // adjust the master portfolio's personal position map which contains all open trades
-    this->master_portfolio->on_order_fill(filled_order);
-
     //remember the order
     this->history->remember_order(std::move(filled_order));
-
 }
 
 void Broker::process_orders()
