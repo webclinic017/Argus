@@ -147,9 +147,8 @@ double Asset::c_get(const std::string &column) const
     }
     
     // derefence data pointer at current row plus column offset
-    return *(this->row + column_index);
+    return *(this->row -this->cols + column_index);
 }
-
 
 double Asset::get(const std::string &column, size_t row_index) const
 {
@@ -182,10 +181,12 @@ double Asset::get_market_price(bool on_close) const
     assert(index < size);
     #endif
 
+    //subtract this->cols to move back row, then get_market_view is called, asset->step()
+    //is called so we need to move back a row when accessing asset data
     if (on_close)
-        return *(this->row + this->close_column);
+        return *(this->row - this->cols + this->close_column);
     else
-        return *(this->row + this->close_column);
+        return *(this->row - this->cols + this->open_column);
 }
 
 long long *Asset::get_datetime_index() const

@@ -41,6 +41,7 @@ public:
         brokers_sp_t brokers
         );
 
+    /// get the memory addres of the portfolio object
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
     void on_order_fill(order_sp_t filled_order);
@@ -143,7 +144,7 @@ private:
     unsigned int position_counter;
 
     /// trade counter shared by all portfolios
-    static unsigned int trade_counter;
+    unsigned int trade_counter = 0;
 
     /// cash held by the portfolio
     double cash;

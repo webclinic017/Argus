@@ -39,7 +39,6 @@ class AssetTestMethods(unittest.TestCase):
         hydra = helpers.build_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
-        
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
         portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
         portfolio3 = portfolio1.create_sub_portfolio("test_portfolio3",100.0);
@@ -63,7 +62,61 @@ class AssetTestMethods(unittest.TestCase):
         assert(p2 is not None)    
         assert(portfolio3.get_position(helpers.test2_asset_id) is None)
         assert(portfolio1.get_position(helpers.test2_asset_id) is None)
-
         
+        assert(p1.get_units() == 100.0)
+        assert(p1.get_average_price() == 101.0)
+        assert(p2.get_units() == 100.0)
+        assert(p2.get_average_price() == 101.0)
+        
+        trade1 = p1.get_trade(0)
+        trade_mp = p2.get_trade(0)
+        
+        assert(trade1 is not None)
+        assert(trade_mp is not None)    
+        assert(trade1.get_mem_address() == trade_mp.get_mem_address())
+        assert(trade1.get_units() == 100.0)
+        assert(trade1.get_average_price() == 101.0)
+
+
+    def test_portfolio_order_increase(self):
+        hydra = helpers.build_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
+        
+        hydra.forward_pass()
+        
+        portfolio2.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+
+        portfolio1.place_market_order(
+            helpers.test2_asset_id,
+            50.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        p_mp = mp.get_position(helpers.test2_asset_id) 
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        p2 = portfolio2.get_position(helpers.test2_asset_id)
+        assert(p1.get_units() == 50.0)
+        assert(p2.get_units() == 100.0)
+        assert(p_mp.get_units() == 150.0)
+        
+        
+        assert(True)
+
+                
 if __name__ == '__main__':
     unittest.main()

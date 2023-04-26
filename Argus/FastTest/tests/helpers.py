@@ -7,7 +7,6 @@ sys.path.append(os.path.abspath('..'))
 import Asset
 import FastTest
 
-
 test1_file_path = "./data/test1.csv"
 test2_file_path = "./data/test2.csv"
 

@@ -53,6 +53,10 @@ public:
     /// remove open order that has been canceled;
     void cancel_child_order(unsigned int order_id);
 
+    /// get the id of the source portfolio of a trade
+    /// @return ref to string of underlying source portfolio id 
+    [[nodiscard]] Portfolio* get_source_portfolio() const { return this->source_portfolio; }
+
     /// is the trade currently open
     /// @return is the trade open
     [[nodiscard]] bool get_is_open() const { return this->is_open; }
@@ -71,19 +75,15 @@ public:
 
     /// get the id of the underlying asset of the trade
     /// @return underlying asset of the trade
-    [[nodiscard]] string get_asset_id() const { return this->asset_id; }
+    [[nodiscard]] string const & get_asset_id() const { return this->asset_id; }
 
     /// get the id of the trade 
     /// @return id of the trade
-    unsigned int get_trade_id() const {return this->trade_id;}
+    [[nodiscard]] unsigned int get_trade_id() const {return this->trade_id;}
 
     /// get the id of the underlying exchange of the trade
     /// @return ref to string of underlying exchange id 
     [[nodiscard]] string const & get_exchange_id() const { return this->exchange_id; }
-
-    /// get the id of the source portfolio of a trade
-    /// @return ref to string of underlying source portfolio id 
-    [[nodiscard]] Portfolio* get_source_portfolio() const { return this->source_portfolio; }
 
     /// get the average price of the trade
     /// @return average price of the trade
@@ -108,12 +108,16 @@ public:
     /// \param on_close is it the open or close of current candle
     void evaluate(double market_price, bool on_close);
 
+    /// set the trade source portfolio 
+    /// @param pointer to source portfolio of the trade
     void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
 
 private:
     /// is the trade currently open
     bool is_open;
 
+    /// pointer to the source portfolio if the trade, i.e. the deepest portfolio in the
+    /// portfolio tree to contain the trade that essentially "owns it"
     Portfolio* source_portfolio;
 
     /// unique id of the trade

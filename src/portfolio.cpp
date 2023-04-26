@@ -20,8 +20,6 @@ using order_sp_t = Order::order_sp_t;
 
 using namespace std;
 
-unsigned int Portfolio::trade_counter = 0;
-
 Portfolio::Portfolio(
     int logging_, 
     double cash_, 
