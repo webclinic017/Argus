@@ -25,13 +25,13 @@ void Account::on_order_fill(order_sp_t filled_order)
     // adjust the account's cash
     this->cash -= order_units * order_fill_price;
 
+    
     // no trade exists with the given asset id
     if (!this->trades.contains(asset_id))
     {
         this->trades.insert({asset_id,
                              Trade(
-                                filled_order, 
-                                filled_order->get_unsigned_trade_id()
+                                filled_order, true
                                 )});
     }
     // trade exists, modify it accorind to the order
@@ -39,5 +39,10 @@ void Account::on_order_fill(order_sp_t filled_order)
     {
         auto trade = &this->trades.at(asset_id);
         trade->adjust(filled_order);
+
+        if(!trade->get_is_open())
+        {
+            this->trades.erase(asset_id);
+        }
     }
 };

@@ -79,7 +79,7 @@ class AssetTestMethods(unittest.TestCase):
 
 
     def test_portfolio_order_increase(self):
-        hydra = helpers.build_simple_hydra(logging=0)
+        hydra = helpers.build_simple_hydra(logging=1)
         mp = hydra.get_master_portfolio()
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
@@ -113,6 +113,17 @@ class AssetTestMethods(unittest.TestCase):
         assert(p1.get_units() == 50.0)
         assert(p2.get_units() == 100.0)
         assert(p_mp.get_units() == 150.0)
+        
+        
+        portfolio2.place_market_order(
+            helpers.test2_asset_id,
+            -100.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
         
         
         assert(True)

@@ -133,7 +133,7 @@ public:
 
     /// order constructor
     Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
-          string broker_id_, Portfolio* source_portfolio, string strategy_id_, unsigned int trade_id_);
+          string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_);
 
     void cancel_child_order(unsigned int order_id);
 
@@ -188,6 +188,9 @@ public:
     /// set the limit of the order
     inline void set_limit(double limit_) { this->limit = limit_; }
 
+    // set the unique id of the order (broker sets when it is placed)
+    inline void set_order_id(unsigned int order_id_) {this->order_id = order_id_;}
+    
     /// set the trade id of the order
     inline void set_trade_id(unsigned int trade_id_) { this->trade_id = trade_id_; }
 

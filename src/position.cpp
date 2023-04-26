@@ -3,7 +3,9 @@
 //
 #include <cstdio>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include "fmt/core.h"
 #include "order.h"
 #include "position.h"
 #include "settings.h"
@@ -46,10 +48,9 @@ Position::Position(shared_ptr<Order> filled_order_)
 
     // insert the new trade
     auto trade = std::make_shared<Trade>(
-                            filled_order_, 
-                            filled_order_->get_trade_id()
+                            filled_order_
                             );
-    this->trades.insert({filled_order_->get_trade_id(),trade});
+    this->trades.insert({trade->get_trade_id(),trade});
 }
 
 void Position::close(double market_price_, long long int position_close_time_)
@@ -93,7 +94,9 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
 
         //make sure trade does not already exists
         #ifdef ARGUS_RUNTIME_ASSERT        
-        assert(!this->trades.contains(trade->get_trade_id()));
+        if(this->trades.contains(trade->get_trade_id())){
+            ARGUS_RUNTIME_ERROR("trade already exists");
+        }        
         #endif
 
         //add the trade to the position's trades map
@@ -101,7 +104,10 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
     }
     //remove existing trade from the trades map
     else{
-        this->trades.erase(trade->get_trade_id());
+        if(this->trades.contains(trade->get_trade_id()))
+        {
+            this->trades.erase(trade->get_trade_id());
+        }
     }
     return trade;
 }
@@ -126,27 +132,24 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
     this->units += units_;
 
     // get the trade id unsigned, and signed raw (-1 means open new trade)
-    auto trade_id_uint = filled_order->get_trade_id();
-    if (!this->trades.contains(trade_id_uint))
+    if (filled_order->get_trade_id() == -1)
     {   
         // trade id was passed but is not in position's child trade map so create new trade
-        this->trades.insert({trade_id_uint,
-                            std::make_shared<Trade>(
-                                filled_order,
-                                filled_order->get_trade_id()
-                                )});
-        return this->trades.at(trade_id_uint);
+        auto trade = std::make_shared<Trade>(filled_order);
+        this->trades.insert({trade->get_trade_id(),
+                            trade});
+        return this->trades.at(trade->get_trade_id());
     }
     else
     {   
         // found the trade currently open
-        auto trade = this->trades[trade_id_uint];
+        auto trade = this->trades[filled_order->get_trade_id()];
         trade->adjust(filled_order);
 
         // if the adjustment causes the trade to close remove from position child trades
         if (!trade->get_is_open())
         {
-            this->trades.erase(trade_id_uint);
+            this->trades.erase(trade->get_trade_id());
         }
         return trade;
     }

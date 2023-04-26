@@ -95,6 +95,10 @@ void Broker::place_order(shared_ptr<Order> order)
     // get smart pointer to the right exchange
     auto exchange = this->exchanges->at(order->get_exchange_id());
 
+    // set the order id
+    order->set_order_id(this->order_counter);
+    this->order_counter++;
+
     // send the order
     exchange->place_order(order);
 

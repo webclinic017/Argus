@@ -25,7 +25,7 @@ public:
     using order_sp_t = Order::order_sp_t;
 
     /// trade constructor
-    Trade(order_sp_t filled_order, unsigned int trade_id_);
+    Trade(order_sp_t filled_order, bool dummy = false);
 
     /// get the location in memory of the trade
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
@@ -113,6 +113,9 @@ public:
     void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
 
 private:
+    /// static trade counter shared by all trade objects
+    static inline unsigned int trade_counter = 0;
+
     /// is the trade currently open
     bool is_open;
 

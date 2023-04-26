@@ -141,9 +141,9 @@ private:
     brokers_sp_t brokers;
 
     /// position counter for position ids
-    unsigned int position_counter;
+    unsigned int position_counter = 0;
 
-    /// trade counter shared by all portfolios
+    /// trade counter shared
     unsigned int trade_counter = 0;
 
     /// cash held by the portfolio
@@ -192,6 +192,7 @@ private:
     void log_order_fill(order_sp_t &filled_order);
 
     void log_position_open(shared_ptr<Position> &new_position);
+    void log_position_close(shared_ptr<Position> &closed_position);
     void log_trade_open(trade_sp_t &new_trade);
 
 };
@@ -211,7 +212,7 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     this->add_position(open_obj->get_asset_id(), position);
 
     //propgate the new trade up portfolio tree
-    auto trade_sp = position->get_trade(open_obj->get_trade_id()).value();
+    auto trade_sp = position->get_trades().begin().value();
     this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly

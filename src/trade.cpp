@@ -22,12 +22,17 @@ void Trade::cancel_child_order(unsigned int order_id)
         order_id);
 }
 
-Trade::Trade(shared_ptr<Order> filled_order, unsigned int trade_id_) : source_portfolio(filled_order->get_source_portfolio())
+Trade::Trade(shared_ptr<Order> filled_order, bool dummy) : source_portfolio(filled_order->get_source_portfolio())
 {
     assert(this->source_portfolio);
     
     // populate the ids
-    this->trade_id = trade_id_;
+    this->trade_id = this->trade_counter;
+    if(!dummy)
+    {
+        this->trade_counter++;
+    }
+
     this->asset_id = filled_order->get_asset_id();
     this->exchange_id = filled_order->get_exchange_id();
     this->broker_id = filled_order->get_broker_id();
@@ -45,6 +50,7 @@ Trade::Trade(shared_ptr<Order> filled_order, unsigned int trade_id_) : source_po
     this->trade_close_time = 0;
     this->trade_open_time = filled_order->get_fill_time();
     this->bars_held = 0;
+    this->is_open = true;
 }
 
 void Trade::evaluate(double market_price, bool on_close)
@@ -60,7 +66,7 @@ void Trade::evaluate(double market_price, bool on_close)
 void Trade::adjust(shared_ptr<Order> filled_order)
 {
     #ifdef ARGUS_RUNTIME_ASSERT
-    assert(filled_order->get_trade_id() == this->trade_id);
+    //assert(filled_order->get_trade_id() == this->trade_id);
     #endif
 
     // extract order information

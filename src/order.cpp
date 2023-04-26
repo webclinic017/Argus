@@ -60,7 +60,7 @@ void OrderConsolidated::fill_child_orders(){
 
 
 Order::Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
-             string broker_id_, Portfolio* source_portfolio, string strategy_id_, unsigned int trade_id_)
+             string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_)
 {
     this->order_type = order_type_;
     this->units = units_;

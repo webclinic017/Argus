@@ -26,6 +26,7 @@ private:
     vector<shared_ptr<Position>> positions;
 
 public:
+
     void remember_order(shared_ptr<Order> order){
 #ifdef ARGUS_RUNTIME_ASSERT
         assert(order.use_count() == 1);
@@ -35,20 +36,32 @@ public:
 
     void remember_trade(shared_ptr<Trade> trade){        
 #ifdef ARGUS_RUNTIME_ASSERT
+        //printf("1\n");
+        assert(trade);
+        //printf("2\n");
         //assert no one hold sp to trade
-        assert(trade.use_count() == 1);   
+        assert(trade.use_count() == 1); 
+        //printf("3\n");  
         
          //assert trade id was given
         assert(trade->get_trade_id() >= 0);
+        //printf("4\n");
 #endif
-        this->trades.push_back(std::move(trade));
+        //printf("trade avg price: %s \n", trade->get_asset_id().c_str());
+        //printf("trade avg price: %ld \n", trade->get_mem_address());
+        //this->trades.emplace_back(trade);
+        //printf("5\n");
     };
 
     void remember_position(shared_ptr<Position> position){
+        printf("a\n");
 #ifdef ARGUS_RUNTIME_ASSERT
         assert(position.use_count() == 1);
 #endif
+        printf("b\n");
+        printf("%f\n", position->get_units());
         this->positions.push_back(std::move(position));
+        printf("c\n");
     };
 
 

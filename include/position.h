@@ -98,6 +98,7 @@ public:
     /// get the average price of the position
     /// \return position's average price
     [[nodiscard]] double get_average_price() const { return this->average_price; };
+    [[nodiscard]] double get_close_price() const { return this->close_price; };
 
     /// get the id of the exchange the position's underlying asset is on
     /// \return id of the exchange the position's underlying asset is on
