@@ -38,12 +38,13 @@ class AssetTestMethods(unittest.TestCase):
     def test_portfolio_order_prop(self):
         hydra = helpers.build_simple_hydra(logging=0)
         
+        
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
         portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
         portfolio3 = portfolio1.create_sub_portfolio("test_portfolio3",100.0);
         
         hydra.forward_pass()
-        
+
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             100.0,
@@ -55,7 +56,6 @@ class AssetTestMethods(unittest.TestCase):
         )
         
         assert(True)    
-    
         
 if __name__ == '__main__':
     unittest.main()
