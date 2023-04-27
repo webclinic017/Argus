@@ -95,10 +95,10 @@ public:
     bool get_is_open() const {return this->is_open;}
 
     /// @brief get the positions net liquidation value as last calculated
-    bool get_nlv() const {return this->nlv;}
+    double get_nlv() const {return this->nlv;}
 
     /// @brief get the positions unrealized pl
-    bool get_unrealized_pl() const {return this->unrealized_pl;}
+    double get_unrealized_pl() const {return this->unrealized_pl;}
 
     ///@brief get the number of trades in the position
     ///@return return the number of trades in the position

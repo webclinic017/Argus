@@ -55,6 +55,8 @@ void init_hydra_ext(py::module &m)
         .def("build", &Hydra::build, "build hydra class")
 
         .def("forward_pass", &Hydra::forward_pass, "forward pass")
+        .def("on_open", &Hydra::on_open, "on open")
+        .def("backward_pass", &Hydra::backward_pass, "backwards pass")
 
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
         .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
@@ -80,11 +82,14 @@ void init_portfolio_ext(py::module &m)
         .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
         .def("get_position", &Portfolio::get_position, "get position from portfolio")
 
+        .def("get_nlv", &Portfolio::get_nlv, "get net liquidation value")
+        .def("get_cash", &Portfolio::get_cash, "get cash held in the portfolio")
+        .def("get_unrealized_pl", &Portfolio::get_unrealized_pl, "get unrealized pl")
+        
         .def("place_market_order", &Portfolio::place_market_order, "place market order")
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
         .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
-
 }
 
 
@@ -92,8 +97,12 @@ void init_position_ext(py::module &m)
 {
     py::class_<Position, std::shared_ptr<Position>>(m, "Position")
         .def("get_trade", &Position::get_trade, "get child trade from position")
+        
         .def("get_average_price", &Position::get_average_price, "get position average price")
         .def("get_units", &Position::get_units, "get position units")
+        .def("get_nlv", &Position::get_nlv, "get net liquidation value")
+        .def("get_unrealized_pl", &Position::get_unrealized_pl, "get unrealized pl")
+        
         .def("is_open", &Position::get_is_open, "is position open");
 
     py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")

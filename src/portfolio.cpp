@@ -7,6 +7,7 @@
 #include <fmt/core.h>
 #include <vector>
 
+#include "exchange.h"
 #include "history.h"
 #include "order.h"
 #include "portfolio.h"
@@ -27,14 +28,17 @@ Portfolio::Portfolio(
     string id_, 
     shared_ptr<History> history,
     Portfolio* parent_portfolio_,
-    brokers_sp_t brokers_) : positions_map()
+    brokers_sp_t brokers_,
+    shared_ptr<Exchanges> exchanges_) : positions_map()
 {
     this->brokers = brokers_;
     this->parent_portfolio = parent_portfolio_;
     this->history = history;
+    this->exchanges_sp = exchanges_;
 
     this->logging = logging_;
     this->cash = cash_;
+    this->nlv = cash_;
     this->portfolio_id = std::move(id_);
     this->position_counter = 0;
 }
@@ -371,11 +375,12 @@ portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, doub
     //create new portfolio
     auto portfolio_ = std::make_shared<Portfolio>(
         this->logging, 
-        cash, 
+        cash_, 
         portfolio_id_,
         this->history,
         this,
-        this->brokers
+        this->brokers,
+        this->exchanges_sp
     );
     
     //insert into child portfolio map
@@ -439,7 +444,7 @@ void Portfolio::evaluate(bool on_close)
     this->unrealized_pl = 0;
     // evaluate all positions in the master portfolio. Note valuation will propogate down from whichever
     // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
-     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
+    for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
     {
         auto position = it->second;
 
@@ -480,7 +485,7 @@ void Portfolio::evaluate(bool on_close)
         position->evaluate(market_price, on_close);
 
         this->nlv += position->get_nlv();
-        this->unrealized_pl += position->get_nlv();
+        this->unrealized_pl += position->get_unrealized_pl();
     }
 }
 

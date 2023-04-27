@@ -33,7 +33,7 @@ Broker::Broker(string broker_id_,
 }
 
 void Broker::build(
-    Exchanges *exchanges_)
+    exchanges_sp_t exchanges_)
 {
     this->exchanges = exchanges_;
 }

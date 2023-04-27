@@ -6,7 +6,6 @@
 #include <chrono>
 #include <ctime>
 
-
 std::string nanosecond_epoch_time_to_string(long long ns_epoch_time) {
     // Define the epoch time for the system clock
     std::chrono::system_clock::time_point sys_epoch_time;

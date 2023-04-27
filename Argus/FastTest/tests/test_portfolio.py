@@ -55,6 +55,7 @@ class PortfolioTestMethods(unittest.TestCase):
             -1
         )
         
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
         p2 = portfolio2.get_position(helpers.test2_asset_id)
         p_mp = mp.get_position(helpers.test2_asset_id)
 
@@ -65,18 +66,17 @@ class PortfolioTestMethods(unittest.TestCase):
         
         assert(p2.get_units() == 100.0)
         assert(p2.get_average_price() == 101.0)
-        assert(p2.get_units() == 100.0)
-        assert(p2.get_average_price() == 101.0)
+        assert(p1 is None)
         
         #static trade counter
-        trade1 = p2.get_trade(2)
-        trade_mp = p_mp.get_trade(2)
+        #trade1 = p2.get_trade(0)
+        #trade_mp = p_mp.get_trade(0)
         
-        assert(trade1 is not None)
-        assert(trade_mp is not None)    
-        assert(trade1.get_mem_address() == trade_mp.get_mem_address())
-        assert(trade1.get_units() == 100.0)
-        assert(trade1.get_average_price() == 101.0)
+        ##assert(trade1 is not None)
+        #assert(trade_mp is not None)    
+        #assert(trade1.get_mem_address() == trade_mp.get_mem_address())
+        #assert(trade1.get_units() == 100.0)
+        #assert(trade1.get_average_price() == 101.0)
 
     def test_portfolio_order_increase(self):
         hydra = helpers.build_simple_hydra(logging=0)
@@ -87,7 +87,6 @@ class PortfolioTestMethods(unittest.TestCase):
         
         hydra.forward_pass()
         
-        st = time.time()
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             100.0,
@@ -106,8 +105,6 @@ class PortfolioTestMethods(unittest.TestCase):
             FastTest.OrderExecutionType.EAGER,
             -1
         )
-        et = time.time()
-        print((et - st) * 1e6)
         
         p_mp = mp.get_position(helpers.test2_asset_id) 
         p1 = portfolio1.get_position(helpers.test2_asset_id)
@@ -131,6 +128,53 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(not p2.is_open())
         assert(p_mp.get_units() == 50)
         assert(p1.get_units() == 50)
+        
+    def test_portfolio_eval(self):
+        hydra = helpers.build_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",10000.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",10000.0);  
+        
+        hydra.forward_pass()
+        
+        portfolio2.place_market_order(
+            helpers.test2_asset_id,
+            -100.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        portfolio1.place_market_order( 
+            helpers.test2_asset_id,
+            50.0,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        p0 = mp.get_position(helpers.test2_asset_id)
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        p2 = portfolio2.get_position(helpers.test2_asset_id)
+        
+        assert(p0.get_units() == -50.0)
+        assert(p1.get_units() == 50.0)
+        assert(p2.get_units() == -100.0)
+        
+        assert(p0.get_unrealized_pl() == (-50.0 * .5))
+            
+        assert(mp.get_unrealized_pl() == (-50.0 * .5))
+        assert(portfolio1.get_unrealized_pl() == (50.0 * .5))
+        assert(portfolio2.get_unrealized_pl() == (-100.0 * .5))
+        
+    
                 
 if __name__ == '__main__':
     unittest.main()

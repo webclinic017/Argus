@@ -32,7 +32,7 @@ private:
     bool is_built{};
 
     /// mapping between exchange id and smart pointer to an exchange
-    Exchanges exchanges{};
+    exchanges_sp_t exchanges{};
 
     /// mapping between broker id and smart pointer to a broker
     brokers_sp_t brokers{};
@@ -43,6 +43,8 @@ private:
     /// container for remembering historical events and structs
     shared_ptr<History> history;
 
+    long long hydra_time;
+
     /// master datetime index of the combined exchanges
     long long *datetime_index{};
 
@@ -51,6 +53,8 @@ private:
 
     /// length of datetime index
     size_t datetime_index_length{};
+
+    void log(const string& msg);
 
 public:
     /// hydra constructor
@@ -63,7 +67,7 @@ public:
     void build();
 
     // process orders that were placed at the open
-    void evaluate_orders_on_open();
+    void on_open();
 
     // forward pass of hydra
     void forward_pass();

@@ -37,9 +37,10 @@ public:
         int logging, 
         double cash, 
         string id, 
-        shared_ptr<History> history,
-        Portfolio* parent_portfolio,
-        brokers_sp_t brokers
+        shared_ptr<History> history_,
+        Portfolio* parent_portfolio_,
+        brokers_sp_t brokers_,
+        shared_ptr<Exchanges> exchanges_
         );
 
     /// get the memory addres of the portfolio object
@@ -50,6 +51,9 @@ public:
 
     /// @brief get the net liquidation as last calculated
     double get_nlv() const {return this->nlv;}
+
+    /// @brief get the net liquidation as last calculated
+    double get_unrealized_pl() const {return this->unrealized_pl;}
     
     /// @brief function to handle a order fill event
     /// @param filled_order a sp to a new filled order recieved from a broker
@@ -104,6 +108,7 @@ public:
     /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
     /// @param nlv_adjustment adjustment size
     void nlv_adjust(double nlv_adjustment) {this->nlv += nlv_adjustment;};
+    void cash_adjust(double cash_adjustment) {this->cash += cash_adjustment;};
     void unrealized_adjust(double unrealized_adjustment) {this->unrealized_pl += unrealized_adjustment;};
 
     /// @brief generate and send nessecary orders to completely exist position by asset id (including all child portfolios)
@@ -168,7 +173,7 @@ private:
     double nlv;
 
     /// unrealized_pl of the portfolio
-    double unrealized_pl;
+    double unrealized_pl = 0;
 
     // shared pointer to history objects
     shared_ptr<History> history;

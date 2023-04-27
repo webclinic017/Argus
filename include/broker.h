@@ -46,7 +46,7 @@ public:
 
     /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map
-    void build(Exchanges *exchanges);
+    void build(exchanges_sp_t exchanges);
 
     /// cancel orders by order_id
     void cancel_order(unsigned int order_id);
@@ -91,7 +91,7 @@ private:
     vector<order_sp_t> open_orders_buffer;
 
     /// pointer to exchange map for routing incoming orders
-    Exchanges *exchanges;
+    exchanges_sp_t exchanges;
 
     /// broker's account
     Account broker_account;
