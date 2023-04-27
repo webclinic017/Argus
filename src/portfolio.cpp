@@ -7,6 +7,7 @@
 #include <fmt/core.h>
 #include <vector>
 
+#include "history.h"
 #include "order.h"
 #include "portfolio.h"
 #include "broker.h"
@@ -24,11 +25,14 @@ Portfolio::Portfolio(
     int logging_, 
     double cash_, 
     string id_, 
+    shared_ptr<History> history,
     Portfolio* parent_portfolio_,
     brokers_sp_t brokers_) : positions_map()
 {
     this->brokers = brokers_;
     this->parent_portfolio = parent_portfolio_;
+    this->history = history;
+
     this->logging = logging_;
     this->cash = cash_;
     this->portfolio_id = std::move(id_);
@@ -295,12 +299,12 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     this->delete_position(asset_id);
 
     // push position to history
-    this->history->remember_position(std::move(position));
+    position->set_is_open(false);
+    this->history->remember_position(position);
 }
 
 void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
     //reached master portfolio
-    //MASTER NEVER CALL
   
     #ifdef ARGUS_RUNTIME_ASSERT
     //auto parent_position = this->get_position(trade_sp->get_asset_id());
@@ -352,7 +356,10 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
         position->adjust_trade(trade_sp);
 
         //log the new trade open for the parent
+        if(this->logging == 1)
+        {
         parent->log_trade_open(trade_sp);
+        }
     }
     
     //recursively proprate trade up up portfolio tree
@@ -368,6 +375,7 @@ portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, doub
         this->logging, 
         cash, 
         portfolio_id_,
+        this->history,
         this,
         this->brokers
     );

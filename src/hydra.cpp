@@ -28,6 +28,7 @@ Hydra::Hydra(int logging_)
             logging_, 
             0,
             "master", 
+            this->history,
             nullptr,
             this->brokers);
 }
@@ -97,6 +98,7 @@ portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash){
         this->logging, 
         cash, 
         portfolio_id_,
+        this->history,
         this->master_portfolio.get(),
         this->brokers
     );

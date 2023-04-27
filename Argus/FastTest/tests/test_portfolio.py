@@ -9,7 +9,7 @@ import FastTest
 
 sys.path.append(os.path.abspath('..'))
 
-class AssetTestMethods(unittest.TestCase):
+class PortfolioTestMethods(unittest.TestCase):
     def test_mp_new_portfolio(self):
         hydra = FastTest.new_hydra(0)
         portfolio = hydra.new_portfolio("test_portfolio",100.0);
@@ -36,7 +36,6 @@ class AssetTestMethods(unittest.TestCase):
         assert(portfolio3.get_mem_address() == portfolio3_search_mp.get_mem_address() == portfolio3_search_1.get_mem_address())
             
     def test_portfolio_order_prop(self):
-        """
         hydra = helpers.build_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
@@ -56,32 +55,31 @@ class AssetTestMethods(unittest.TestCase):
             -1
         )
         
-        p1 = portfolio2.get_position(helpers.test2_asset_id)
-        p2 = mp.get_position(helpers.test2_asset_id)
+        p2 = portfolio2.get_position(helpers.test2_asset_id)
+        p_mp = mp.get_position(helpers.test2_asset_id)
 
-        assert(p1 is not None)
-        assert(p2 is not None)    
+        assert(p2 is not None)
+        assert(p_mp is not None)    
         assert(portfolio3.get_position(helpers.test2_asset_id) is None)
         assert(portfolio1.get_position(helpers.test2_asset_id) is None)
         
-        assert(p1.get_units() == 100.0)
-        assert(p1.get_average_price() == 101.0)
+        assert(p2.get_units() == 100.0)
+        assert(p2.get_average_price() == 101.0)
         assert(p2.get_units() == 100.0)
         assert(p2.get_average_price() == 101.0)
         
-        trade1 = p1.get_trade(0)
-        trade_mp = p2.get_trade(0)
+        #static trade counter
+        trade1 = p2.get_trade(2)
+        trade_mp = p_mp.get_trade(2)
         
         assert(trade1 is not None)
         assert(trade_mp is not None)    
         assert(trade1.get_mem_address() == trade_mp.get_mem_address())
         assert(trade1.get_units() == 100.0)
         assert(trade1.get_average_price() == 101.0)
-        """
-
 
     def test_portfolio_order_increase(self):
-        hydra = helpers.build_simple_hydra(logging=1)
+        hydra = helpers.build_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
@@ -127,9 +125,10 @@ class AssetTestMethods(unittest.TestCase):
             -1
         )
         
-        
-        assert(True)
-
+        assert(portfolio2.get_position(helpers.test2_asset_id) is None)
+        assert(not p2.is_open())
+        assert(p_mp.get_units() == 50)
+        assert(p1.get_units() == 50)
                 
 if __name__ == '__main__':
     unittest.main()

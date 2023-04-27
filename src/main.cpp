@@ -93,7 +93,8 @@ void init_position_ext(py::module &m)
     py::class_<Position, std::shared_ptr<Position>>(m, "Position")
         .def("get_trade", &Position::get_trade, "get child trade from position")
         .def("get_average_price", &Position::get_average_price, "get position average price")
-        .def("get_units", &Position::get_units, "get position units");
+        .def("get_units", &Position::get_units, "get position units")
+        .def("is_open", &Position::get_is_open, "is position open");
 
     py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")
         .def("get_mem_address", &Trade::get_mem_address, "get memory address of trade object")

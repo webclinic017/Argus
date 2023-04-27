@@ -5,12 +5,33 @@
 #ifndef ARGUS_HISTORY_H
 #define ARGUS_HISTORY_H
 #include <vector>
+#include <list>
+#include <unordered_map>
 #include <memory>
 
 #include "settings.h"
 #include "trade.h"
 #include "order.h"
 #include "position.h"
+
+/*
+template <typename T>
+class LinkedList {
+public:
+    // Add a new element to the beginning of the list
+    void push_front(T element) {
+        list_.push_front(element);
+    }
+
+    // Remove the first element from the list
+    void pop_front() {
+        list_.pop_front();
+    }
+
+private:
+    std::list<T> list_;
+};
+*/
 
 using namespace std;
 
@@ -23,44 +44,34 @@ private:
     vector<shared_ptr<Trade>> trades;
 
     /// history of all positions
-    vector<shared_ptr<Position>> positions;
+    //LinkedList<shared_ptr<Position>> positions;
+    unordered_map<unsigned int, shared_ptr<Position>> positions;
+
 
 public:
+    vector<shared_ptr<Position>> test;
 
     void remember_order(shared_ptr<Order> order){
 #ifdef ARGUS_RUNTIME_ASSERT
-        assert(order.use_count() == 1);
+        assert(order);
 #endif
         this->orders.push_back(std::move(order));
     };
 
     void remember_trade(shared_ptr<Trade> trade){        
 #ifdef ARGUS_RUNTIME_ASSERT
-        //printf("1\n");
         assert(trade);
-        //printf("2\n");
-        //assert no one hold sp to trade
-        assert(trade.use_count() == 1); 
-        //printf("3\n");  
-        
-         //assert trade id was given
         assert(trade->get_trade_id() >= 0);
-        //printf("4\n");
 #endif
-        //printf("trade avg price: %s \n", trade->get_asset_id().c_str());
-        //printf("trade avg price: %ld \n", trade->get_mem_address());
-        //this->trades.emplace_back(trade);
-        //printf("5\n");
+        this->trades.emplace_back(trade);
     };
 
     void remember_position(shared_ptr<Position> position){
 #ifdef ARGUS_RUNTIME_ASSERT
-        //assert(position.use_count() == 1);
+        assert(position);
 #endif
-        //this->positions.push_back(std::move(position));
+        this->positions.insert({position->get_position_id(), position});
     };
-
-
 };
 
 #endif //ARGUS_HISTORY_H

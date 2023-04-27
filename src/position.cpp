@@ -86,11 +86,10 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
         this->realized_pl += abs(units_) * (fill_price - this->average_price);
     }
 
-    // adjust position units
-    this->units += units_;
-
     //insert new trade into trades map
     if(trade->get_is_open()){
+        // adjust position units
+        this->units += units_;
 
         //make sure trade does not already exists
         #ifdef ARGUS_RUNTIME_ASSERT        
@@ -104,6 +103,8 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
     }
     //remove existing trade from the trades map
     else{
+        // adjust position units (subtract trade units as trade units reflect the size of the trade that was closed)
+        this->units -= units_;
         if(this->trades.contains(trade->get_trade_id()))
         {
             this->trades.erase(trade->get_trade_id());

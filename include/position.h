@@ -85,6 +85,9 @@ public:
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
 
+    void set_is_open(bool is_open_) {this->is_open = is_open_;}
+    bool get_is_open() const {return this->is_open;}
+
     ///@brief get the number of trades in the position
     ///@return return the number of trades in the position
     unsigned int get_trade_count() const {return this->trades.size();}

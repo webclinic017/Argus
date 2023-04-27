@@ -37,6 +37,7 @@ public:
         int logging, 
         double cash, 
         string id, 
+        shared_ptr<History> history,
         Portfolio* parent_portfolio,
         brokers_sp_t brokers
         );
@@ -124,6 +125,8 @@ private:
 
     /// logging level
     int logging;
+
+    vector<position_sp_t> test;
 
     /// smart pointer to parent_portfolio
     Portfolio* parent_portfolio = nullptr;
