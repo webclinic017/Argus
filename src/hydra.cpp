@@ -245,7 +245,7 @@ void Hydra::evaluate_orders_on_open(){
     }
 
     // evaluate the master portfolio at the open
-    this->master_portfolio->evaluate(false, false);
+    this->master_portfolio->evaluate(false);
 
     // move the test to the closing period
     for (auto &exchange_pair : this->exchanges)
@@ -272,7 +272,7 @@ bool Hydra::backward_pass(){
     }
 
     // evaluate the master portfolio at the close
-    this->master_portfolio->evaluate(false, false);
+    this->master_portfolio->evaluate(true);
 
     // handel any assets done streaming
     for (auto &exchange_pair : this->exchanges)

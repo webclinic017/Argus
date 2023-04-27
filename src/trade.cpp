@@ -56,6 +56,7 @@ Trade::Trade(shared_ptr<Order> filled_order, bool dummy) : source_portfolio(fill
 void Trade::evaluate(double market_price, bool on_close)
 {
     this->last_price = market_price;
+    this->nlv = market_price * this->units;
     this->unrealized_pl = this->units * (market_price - this->average_price);
     if (on_close)
     {

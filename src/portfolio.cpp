@@ -430,9 +430,31 @@ std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfol
     return this->portfolio_map.at(portfolio_id_);
 }
 
-void Portfolio::evaluate(bool on_close, bool recursive)
+void Portfolio::evaluate_refresh(){
+    this->nlv = this->cash;
+    this->unrealized_pl = 0;
+     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) {
+        auto position = it->second;
+
+        this->nlv += position->get_nlv();
+        this->unrealized_pl += position->get_nlv();
+    }
+    for(auto& portfolio_pair : this->portfolio_map){
+        portfolio_pair.second->evaluate_refresh();
+    }
+}
+
+void Portfolio::evaluate(bool on_close)
 {
-    // evaluate all positions in the current portfolio
+    #ifdef ARGUS_RUNTIME_ASSERT
+    //for performance sake only run from master portfolio
+    assert(!this->parent_portfolio);
+    #endif
+
+    this->nlv = this->cash;
+    this->unrealized_pl = 0;
+    // evaluate all positions in the current portfolio. Note valuation will propogate down from whichever
+    // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
     for (auto &position_pair : this->positions_map)
     {
         auto asset_id = position_pair.first;
@@ -447,19 +469,17 @@ void Portfolio::evaluate(bool on_close, bool recursive)
         {
             position->evaluate(market_price, on_close);
         }
+
+        this->nlv += position->get_nlv();
+        this->unrealized_pl += position->get_nlv();
     }
 
-    //only evaluate the portfolio's own positions
-    if(!recursive){
-        return;
+    // recursively call evaluate refresh on all child portfolios. This refreshes values like nlv and 
+    // unrealied pl without having to get market price, we took care of that above
+    for(auto& portfolio_pair : this->portfolio_map){
+        portfolio_pair.second->evaluate_refresh();
     }
-    else{
-        // recursively evaluate sub portfolios
-        for (auto &portfolio_pair : this->portfolio_map)
-        {
-            portfolio_pair.second->evaluate(on_close, recursive);
-        }
-    }
+
 }
 
 void Portfolio::position_cancel_order(Broker::position_sp_t position_sp)

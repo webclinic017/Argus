@@ -45,6 +45,14 @@ public:
     /// get the memory addres of the portfolio object
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
+    /// @brief the amount of cash held by the portfolio (recursive sum of all child portfolios)
+    double get_cash() const {return this->cash;}
+
+    /// @brief get the net liquidation as last calculated
+    double get_nlv() const {return this->nlv;}
+    
+    /// @brief function to handle a order fill event
+    /// @param filled_order a sp to a new filled order recieved from a broker
     void on_order_fill(order_sp_t filled_order);
 
     /// generate a iterator begin and end for the position map
@@ -91,7 +99,10 @@ public:
     /// @brief evaluate the portfolio on open or close
     /// @param on_close are we at close of the candle
     /// @param recursive wether to recursievly evalute all portfolios
-    void evaluate(bool on_close, bool recursive);
+    void evaluate(bool on_close);
+
+    /// @brief update portfolio values (nlv, cash, etc) without fetching market prices
+    void evaluate_refresh();
 
     /// @brief generate and send nessecary orders to completely exist position by asset id (including all child portfolios)
     /// @param orders to vector to hold inverse orders
@@ -116,7 +127,6 @@ public:
                            int tade_id = -1);
 
     const string & get_portfolio_id() const {return this->portfolio_id;}
-    double get_cash() const {return this->cash;}
     bool is_empty() const {return this->positions_map.size() > 0;}
 
 private:
@@ -151,6 +161,12 @@ private:
 
     /// cash held by the portfolio
     double cash;
+
+    /// net liquidation value of the portfolio
+    double nlv;
+
+    /// unrealized_pl of the portfolio
+    double unrealized_pl;
 
     // shared pointer to history objects
     shared_ptr<History> history;
@@ -191,9 +207,9 @@ private:
     /// @brief propogate a trade close up the portfolio tree
     void propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash);
 
+    // logging helper functions
     void log_order_create(order_sp_t &filled_order);
     void log_order_fill(order_sp_t &filled_order);
-
     void log_position_open(shared_ptr<Position> &new_position);
     void log_position_close(shared_ptr<Position> &closed_position);
     void log_trade_open(trade_sp_t &new_trade);

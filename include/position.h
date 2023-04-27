@@ -32,6 +32,9 @@ private:
     /// unique id of the exchange the underlying asset is on
     string exchange_id;
 
+    /// net liquidation value of the position
+    double nlv; 
+
     /// how many units in the position
     double units;
 
@@ -85,8 +88,17 @@ public:
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
 
+    /// @brief is the position currently open
     void set_is_open(bool is_open_) {this->is_open = is_open_;}
+
+    /// @brief set the position open status
     bool get_is_open() const {return this->is_open;}
+
+    /// @brief get the positions net liquidation value as last calculated
+    bool get_nlv() const {return this->nlv;}
+
+    /// @brief get the positions unrealized pl
+    bool get_unrealized_pl() const {return this->unrealized_pl;}
 
     ///@brief get the number of trades in the position
     ///@return return the number of trades in the position
@@ -133,6 +145,7 @@ public:
     {
         this->last_price = market_price;
         this->unrealized_pl = this->units * (market_price - this->average_price);
+        this->nlv = market_price * this->units;
         if (on_close)
         {
             this->bars_held++;
