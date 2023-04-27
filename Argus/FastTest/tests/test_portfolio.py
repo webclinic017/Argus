@@ -1,7 +1,7 @@
 import helpers
-import Asset
 import sys
 import os
+import time
 import unittest
 import numpy as np
 
@@ -87,6 +87,7 @@ class PortfolioTestMethods(unittest.TestCase):
         
         hydra.forward_pass()
         
+        st = time.time()
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             100.0,
@@ -96,7 +97,6 @@ class PortfolioTestMethods(unittest.TestCase):
             FastTest.OrderExecutionType.EAGER,
             -1
         )
-
         portfolio1.place_market_order(
             helpers.test2_asset_id,
             50.0,
@@ -106,6 +106,8 @@ class PortfolioTestMethods(unittest.TestCase):
             FastTest.OrderExecutionType.EAGER,
             -1
         )
+        et = time.time()
+        print((et - st) * 1e6)
         
         p_mp = mp.get_position(helpers.test2_asset_id) 
         p1 = portfolio1.get_position(helpers.test2_asset_id)

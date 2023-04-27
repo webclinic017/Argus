@@ -150,10 +150,6 @@ public:
         {
             this->bars_held++;
         }
-        for (auto &trade : this->trades)
-        {
-            trade.second->evaluate(market_price, on_close);
-        }
     };
 };
 #endif // ARGUS_POSITION_H

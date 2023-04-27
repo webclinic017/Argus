@@ -101,8 +101,10 @@ public:
     /// @param recursive wether to recursievly evalute all portfolios
     void evaluate(bool on_close);
 
-    /// @brief update portfolio values (nlv, cash, etc) without fetching market prices
-    void evaluate_refresh();
+    /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
+    /// @param nlv_adjustment adjustment size
+    void nlv_adjust(double nlv_adjustment) {this->nlv += nlv_adjustment;};
+    void unrealized_adjust(double unrealized_adjustment) {this->unrealized_pl += unrealized_adjustment;};
 
     /// @brief generate and send nessecary orders to completely exist position by asset id (including all child portfolios)
     /// @param orders to vector to hold inverse orders

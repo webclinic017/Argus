@@ -303,12 +303,10 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     this->history->remember_position(position);
 }
 
-void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
-    //reached master portfolio
-  
+void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){  
     #ifdef ARGUS_RUNTIME_ASSERT
-    //auto parent_position = this->get_position(trade_sp->get_asset_id());
-    //assert(parent_position.has_value());
+    auto parent_position = this->get_position(trade_sp->get_asset_id());
+    assert(parent_position.has_value());
     #endif
 
     //get the parent position
@@ -358,7 +356,7 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
         //log the new trade open for the parent
         if(this->logging == 1)
         {
-        parent->log_trade_open(trade_sp);
+            parent->log_trade_open(trade_sp);
         }
     }
     
@@ -430,20 +428,6 @@ std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfol
     return this->portfolio_map.at(portfolio_id_);
 }
 
-void Portfolio::evaluate_refresh(){
-    this->nlv = this->cash;
-    this->unrealized_pl = 0;
-     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) {
-        auto position = it->second;
-
-        this->nlv += position->get_nlv();
-        this->unrealized_pl += position->get_nlv();
-    }
-    for(auto& portfolio_pair : this->portfolio_map){
-        portfolio_pair.second->evaluate_refresh();
-    }
-}
-
 void Portfolio::evaluate(bool on_close)
 {
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -453,33 +437,51 @@ void Portfolio::evaluate(bool on_close)
 
     this->nlv = this->cash;
     this->unrealized_pl = 0;
-    // evaluate all positions in the current portfolio. Note valuation will propogate down from whichever
+    // evaluate all positions in the master portfolio. Note valuation will propogate down from whichever
     // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
-    for (auto &position_pair : this->positions_map)
+     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
     {
-        auto asset_id = position_pair.first;
-        auto position = position_pair.second;
+        auto position = it->second;
 
         // get the exchange the asset is listed on
         auto exchange_id = position->get_exchange_id();
         auto exchange = this->exchanges_sp->at(exchange_id);
-        auto market_price = exchange->get_market_price(asset_id);
+        auto market_price = exchange->get_market_price(it->first);
 
-        if (market_price != 0)
+        // asset is not in market view
+        if (market_price == 0)
         {
-            position->evaluate(market_price, on_close);
+            continue;
         }
+
+        auto trades = position->get_trades();
+        //evaluate indivual trades, adjusting source portfolios as we go
+        for(auto& trade_pair : trades){
+            auto trade = trade_pair.second;
+
+            //update source portfolio values nlv and unrealized pl
+            auto nlv_new = market_price * trade->get_units();
+            trade->get_source_portfolio()->nlv_adjust(nlv_new - trade->get_nlv());
+        
+            auto unrealized_pl_new = trade->get_units() * (market_price - trade->get_average_price());
+            trade->get_source_portfolio()->unrealized_adjust(unrealized_pl_new - trade->get_unrealized_pl());
+            
+            //update trade values to new evaluations
+            trade->set_unrealized_pl(unrealized_pl_new);
+            trade->set_nlv(nlv_new);
+            trade->set_last_price(market_price);
+
+            if(on_close)
+            {
+                trade->bars_held++;
+            }
+        }
+
+        position->evaluate(market_price, on_close);
 
         this->nlv += position->get_nlv();
         this->unrealized_pl += position->get_nlv();
     }
-
-    // recursively call evaluate refresh on all child portfolios. This refreshes values like nlv and 
-    // unrealied pl without having to get market price, we took care of that above
-    for(auto& portfolio_pair : this->portfolio_map){
-        portfolio_pair.second->evaluate_refresh();
-    }
-
 }
 
 void Portfolio::position_cancel_order(Broker::position_sp_t position_sp)

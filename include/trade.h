@@ -24,6 +24,9 @@ public:
 
     using order_sp_t = Order::order_sp_t;
 
+    /// number of bars the positions has been held for
+    unsigned int bars_held;
+
     /// trade constructor
     Trade(order_sp_t filled_order, bool dummy = false);
 
@@ -103,14 +106,15 @@ public:
     /// @return a smart pointer to a order that when placed will close out the trade
     order_sp_t generate_order_inverse();
 
-    /// evaluate the trade at the current market price either at open of close of candle
-    /// \param market_price current market price of the underlying asset
-    /// \param on_close is it the open or close of current candle
-    void evaluate(double market_price, bool on_close);
-
     /// set the trade source portfolio 
     /// @param pointer to source portfolio of the trade
     void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
+
+    double get_nlv(){return this->nlv;}
+    double get_unrealized_pl(){return this->unrealized_pl;}
+    void set_nlv(double nlv_){this->nlv = nlv_;}
+    void set_last_price(double last_price_){this->last_price = last_price_;}
+    void set_unrealized_pl(double unrealized_pl_){this->unrealized_pl = unrealized_pl_;}
 
 private:
     /// static trade counter shared by all trade objects
@@ -167,9 +171,6 @@ private:
 
     /// time the trade was changed
     long long trade_change_time;
-
-    /// number of bars the positions has been held for
-    unsigned int bars_held;
 
     /// child orders currently open, used for take profit and stop loss orders
     vector<shared_ptr<Order>> open_orders;

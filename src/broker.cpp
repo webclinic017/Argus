@@ -63,16 +63,18 @@ void Broker::cancel_order(unsigned int order_id)
     // remove the open order from the open order's parent
     switch (order_parent_struct->order_parent_type)
     {
-    case TRADE:
-    {
-        auto trade = order_parent_struct->member.parent_trade;
-        trade->cancel_child_order(order_id);
-    }
-    case ORDER:
-    {
-        auto parent_order = order_parent_struct->member.parent_order;
-        parent_order->cancel_child_order(order_id);
-    }
+        case TRADE:
+        {
+            auto trade = order_parent_struct->member.parent_trade;
+            trade->cancel_child_order(order_id);
+            break;
+        }
+        case ORDER:
+        {
+            auto parent_order = order_parent_struct->member.parent_order;
+            parent_order->cancel_child_order(order_id);
+            break;
+        }
     }
 
     // recursively cancel all child orders of the canceled order
