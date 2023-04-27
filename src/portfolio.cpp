@@ -357,6 +357,10 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
         //insert the trade into the position
         position->adjust_trade(trade_sp);
 
+        //adjust parent portfolios cash
+        auto cash_adjustment = -1 * trade_sp->get_units() * trade_sp->get_average_price();
+        parent->cash_adjust(cash_adjustment);
+
         //log the new trade open for the parent
         if(this->logging == 1)
         {

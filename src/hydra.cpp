@@ -119,8 +119,6 @@ portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash_){
         this->exchanges
     );
 
-    this->master_portfolio->cash_adjust(cash_);
-
     //add it to the master portfolio
     this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio);
 

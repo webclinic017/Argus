@@ -45,6 +45,7 @@ Trade::Trade(shared_ptr<Order> filled_order, bool dummy) : source_portfolio(fill
     this->realized_pl = 0;
     this->close_price = 0;
     this->last_price = filled_order->get_average_price();
+    this->nlv = this->units * this->average_price;
 
     // set the times
     this->trade_close_time = 0;

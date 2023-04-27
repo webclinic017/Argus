@@ -174,7 +174,15 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(portfolio1.get_unrealized_pl() == (50.0 * .5))
         assert(portfolio2.get_unrealized_pl() == (-100.0 * .5))
         
-    
+        assert(portfolio1.get_cash() == (10000 - (50 * 101)))
+        assert(portfolio2.get_cash() == (10000 - (-100 * 101)))
+        assert(mp.get_cash() == portfolio1.get_cash() + portfolio2.get_cash())
+        
+        assert(portfolio1.get_nlv() == (10000 + (50 * .5)))
+        assert(portfolio2.get_nlv() == (10000 + (-100 * .5)))
+        assert(mp.get_nlv() == portfolio1.get_nlv() + portfolio2.get_nlv())
+        
+
                 
 if __name__ == '__main__':
     unittest.main()
