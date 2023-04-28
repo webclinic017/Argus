@@ -1,6 +1,7 @@
 //
 // Created by Nathan Tormaschy on 4/19/23.
 //
+#include <cstddef>
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -49,6 +50,7 @@ Hydra::~Hydra()
     }
 }
 
+#ifdef ARGUS_STRIP
 void Hydra::log(const string& msg){
     if(this->logging == 1){
             auto datetime_str = nanosecond_epoch_time_to_string(this->hydra_time);
@@ -58,6 +60,7 @@ void Hydra::log(const string& msg){
             );
     }
 }
+#endif
 
 shared_ptr<Hydra> new_hydra(int logging_)
 {
@@ -107,6 +110,15 @@ void Hydra::build()
     this->is_built = true;
 };
 
+portfolio_sp_t Hydra::get_portfolio(const string& portfolio_id){
+    if(portfolio_id == this->master_portfolio->get_portfolio_id()){
+        return this->master_portfolio;
+    }
+    else{
+        return this->master_portfolio->find_portfolio(portfolio_id);
+    }
+}
+
 portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash_){
     //build new smart pointer to portfolio 
     auto portfolio = std::make_shared<Portfolio>(
@@ -130,23 +142,25 @@ shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 {
     if (this->exchanges->contains(exchange_id))
     {
-        throw std::runtime_error("exchange already exists");
+        ARGUS_RUNTIME_ERROR("exchange already exists");
     }
-
+    
     // build new exchange wrapped in shared pointer
     auto exchange = make_shared<Exchange>(exchange_id, this->logging);
 
     // insert a clone of the smart pointer into the exchange
     this->exchanges->emplace(exchange_id, exchange);
 
+    #ifdef ARGUS_STRIP
     if (this->logging == 1)
     {
         fmt::print("HYDRA: NEW EXCHANGE: {} AT {} \n", exchange_id, static_cast<void *>(exchange.get()));
     }
+    #endif
 
-#ifdef DEBUGGING
-    printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
-#endif
+    #ifdef DEBUGGING
+        printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
+    #endif
 
     // return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
     return exchange;
@@ -170,10 +184,12 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
     // insert a clone of the smart pointer into the exchange
     this->brokers->emplace(broker_id, broker);
 
+    #ifdef ARGUS_STRIP
     if (this->logging == 1)
     {
         fmt::print("HYDRA: NEW BROKER: {} AT {}\n", broker_id, static_cast<void *>(broker.get()));
     }
+    #endif
 
 #ifdef DEBUGGING
     printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
@@ -253,25 +269,39 @@ void Hydra::on_open(){
      // strategies with lazy execution
     for (auto &broker_pair : *this->brokers)
     {   
+        #ifdef ARGUS_STRIP
         this->log(
           fmt::format("BROKER: {} sending orders...", 
                 broker_pair.first
             )
         );
+        #endif
+
         broker_pair.second->send_orders();
+
+        #ifdef ARGUS_STRIP
         this->log(
           fmt::format("BROKER: {} processing orders...", 
                 broker_pair.first
             )
         );
+        #endif
     
         broker_pair.second->process_orders();
-    }
+    }   
 
+    #ifdef ARGUS_STRIP
     this->log("evaluating master portfolio...");
+    #endif
 
     // evaluate the master portfolio at the open
     this->master_portfolio->evaluate(false);
+
+    // move exchanges to close
+    for (auto &exchange_pair : *this->exchanges)
+    {
+        exchange_pair.second->set_on_close(true);
+    }
 }
 
 //ALLOW STRATEGIES TO PLACE ORDERS AT CLOSE
@@ -280,7 +310,6 @@ bool Hydra::backward_pass(){
     // allow exchanges to process orders placed at close
     for (auto &exchange_pair : *this->exchanges)
     {
-        exchange_pair.second->set_on_close(true);
         exchange_pair.second->process_orders();
     }
 
@@ -296,6 +325,10 @@ bool Hydra::backward_pass(){
     // handel any assets done streaming
     for (auto &exchange_pair : *this->exchanges)
     {
+        //move exchange to the open
+        exchange_pair.second->set_on_close(false);
+
+        //find expired assets and remove them from portfolio and appropriate exchange
         auto expired_assets =  exchange_pair.second->get_expired_assets();
     
         if(!expired_assets.has_value()){

@@ -100,9 +100,11 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
 
     auto broker = this->brokers->at(broker_id_);
 
+    #ifdef ARGUS_STRIP
     if(this->logging){
         this->log_order_create(market_order);
     }
+    #endif
 
     if (order_execution_type == EAGER)
     {
@@ -154,10 +156,12 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
 void Portfolio::on_order_fill(order_sp_t filled_order)
 {
     // log the order if needed
+    #ifdef ARGUS_STRIP
     if (this->logging == 1)
     {
         this->log_order_fill(filled_order);
     }
+    #endif
 
     // no position exists in the portfolio with the filled order's asset_id
     if (!this->position_exists(filled_order->get_asset_id()))
@@ -257,9 +261,11 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
         filled_order->get_average_price(), 
         filled_order->get_fill_time());
 
+    #ifdef ARGUS_STRIP
     if(this->logging == 1){
         this->log_position_close(position);
     }
+    #endif
 
     // adjust cash held at the broker
     this->cash += filled_order->get_units() * filled_order->get_average_price();
@@ -325,7 +331,6 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
             this->history->remember_position(std::move(position));
         }
     }
-
     //propgate trade close up portfolio tree
     if(!this->parent_portfolio)
     {
@@ -333,6 +338,11 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
     }
     else
     {
+        //adjust parent portfolio cash
+        auto cash_adjustment = -1 * trade_sp->get_units() * trade_sp->get_average_price();
+        this->parent_portfolio->cash_adjust(cash_adjustment);
+
+        //recursivly close trade
         this->parent_portfolio->propogate_trade_close_up(trade_sp, adjust_cash);   
     }
 }
@@ -362,10 +372,12 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
         parent->cash_adjust(cash_adjustment);
 
         //log the new trade open for the parent
+        #ifdef ARGUS_STRIP
         if(this->logging == 1)
         {
             parent->log_trade_open(trade_sp);
         }
+        #endif
     }
     
     //recursively proprate trade up up portfolio tree
@@ -574,24 +586,30 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
 void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
 {
+    #ifdef ARGUS_STRIP
     if(this->logging == 1){
         fmt::print("PORTFOLIO: {} canceling orders for trade: {} \n",
             this->portfolio_id, 
             trade_sp->get_trade_id()
         );
     }
+    #endif
+    
     for (auto &order : trade_sp->get_open_orders())
     {   
         // get corresponding broker for the order then cancel it
         auto broker = this->brokers->at(order->get_broker_id());
         broker->cancel_order(order->get_order_id());
     }
+
+    #ifdef ARGUS_STRIP
     if(this->logging == 1){
         fmt::print("PORTFOLIO: {} order canceled for trade: {} \n",
             this->portfolio_id, 
             trade_sp->get_trade_id()
         );
     }
+    #endif
 }
 
 portfolio_sp_t Portfolio::find_portfolio(const string &portfolio_id_){
@@ -610,6 +628,7 @@ portfolio_sp_t Portfolio::find_portfolio(const string &portfolio_id_){
     ARGUS_RUNTIME_ERROR("failed to find portfolio");
 };
 
+#ifdef ARGUS_STRIP
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_open_time());
@@ -664,3 +683,4 @@ void Portfolio::log_order_fill(order_sp_t &filled_order)
                 filled_order->get_trade_id(),
                 filled_order->get_average_price());
 };
+#endif

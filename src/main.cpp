@@ -1,6 +1,7 @@
 //
 // Created by Nathan Tormaschy on 4/18/23.
 //
+#include <fmt/core.h>
 #include <string>
 #include <memory>
 #include <pybind11/pybind11.h>
@@ -52,6 +53,10 @@ void init_hydra_ext(py::module &m)
 {
     py::class_<Hydra, std::shared_ptr<Hydra>>(m, "Hydra")
         .def(py::init<int>())
+        .def("get_void_ptr", [](Hydra& self) {
+                    void* ptr = self.void_ptr();
+                    return py::capsule(ptr, "void*");
+                })
         .def("build", &Hydra::build, "build hydra class")
 
         .def("forward_pass", &Hydra::forward_pass, "forward pass")
@@ -64,6 +69,7 @@ void init_hydra_ext(py::module &m)
         
         .def("get_broker", &Hydra::get_broker, "gets existing broker object")
         .def("get_master_portfolio", &Hydra::get_master_portflio, "get smart pointer to master portfolio")
+        .def("get_portfolio", &Hydra::get_portfolio, "search through portfolio tree to find portfolio")
         .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange");
 
     m.def("new_hydra", &new_hydra, py::return_value_policy::reference);

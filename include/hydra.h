@@ -5,6 +5,7 @@
 #ifndef ARGUS_HYDRA_H
 #define ARGUS_HYDRA_H
 
+#include <functional>
 #include <string>
 #include <memory>
 #include <tsl/robin_map.h>
@@ -54,6 +55,9 @@ private:
     /// length of datetime index
     size_t datetime_index_length{};
 
+    // function calls on open
+    vector<std::function<int(int)>> functions_on_open;
+
     void log(const string& msg);
 
 public:
@@ -62,6 +66,9 @@ public:
 
     /// hydra destructor
     ~Hydra();
+
+    /// call python registered call backs
+    void call_py_on_open();
 
     /// build all members
     void build();
@@ -78,24 +85,35 @@ public:
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
 
+    /// get sp to master portfolio
     portfolio_sp_t get_master_portflio() {return this->master_portfolio;}
+
+    /// search for a portfolio in portfolio tree and return it 
+    portfolio_sp_t get_portfolio(const string & portfolio_id);
 
     // add a new child portfolio to the master portfolio and return sp to it
     portfolio_sp_t new_portfolio(const string & portfolio_id, double cash);
 
-    /// add a  new exchange
-    shared_ptr<Exchange> new_exchange(const string &exchange_id);
-
-    /// add a new broker
-    broker_sp_t new_broker(const string &broker_id, double cash);
-
     /// get shared pointer to an exchange
     shared_ptr<Exchange> get_exchange(const string &exchange_id);
+
+    /// add a  new exchange to hydra class
+    shared_ptr<Exchange> new_exchange(const string &exchange_id);
 
     /// get shared pointer to a broker
     broker_sp_t get_broker(const string &broker_id);
 
+    /// add a new broker
+    broker_sp_t new_broker(const string &broker_id, double cash);
+
+    /// handle a asset id that has finished streaming (remove from portfolio and exchange)
     void cleanup_asset(const string& asset_id);
+
+    //cast self to void ptr and return
+    void* void_ptr() { return static_cast<void*>(this);};
+
+    //test
+    double test_call() {return 34.6;}
 };
 
 /// function for creating a shared pointer to a hydra

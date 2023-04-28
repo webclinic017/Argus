@@ -74,4 +74,9 @@ public:
     };
 };
 
+
+class PortfolioHistory{
+    
+};
+
 #endif //ARGUS_HISTORY_H
