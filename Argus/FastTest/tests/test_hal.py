@@ -15,8 +15,7 @@ class SimpleStrategy:
     def __init__(self, hal : Hal) -> None:
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
-        
-        self.portfolio1 = hal.new_portfolio("test_portfolio1",10000.0);
+        self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
         
     def on_open(self) -> None:
         return
@@ -67,6 +66,13 @@ class HalTestMethods(unittest.TestCase):
         hal.run()
         et = time.time()
         
+        portfolio_history = hal.get_portfolio("test_portfolio1").get_portfolio_history()
+        cash_history = portfolio_history.get_cash_history()
+        nlv_history = portfolio_history.get_nlv_history()
+        
+        print(cash_history)
+        print(nlv_history)
+        
         assert(True)
         
     """
@@ -82,9 +88,6 @@ class HalTestMethods(unittest.TestCase):
         
         assert(True)
     """
-
-
-
 
 if __name__ == '__main__':
     unittest.main()

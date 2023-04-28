@@ -60,12 +60,12 @@ struct OrderParent
 class OrderConsolidated{
 public:
     //generate consolidated order
-    OrderConsolidated(vector<shared_ptr<Order>> orders);
+    OrderConsolidated(vector<shared_ptr<Order>> orders, Portfolio* source_portfolio);
 
     //get sp to parent order
     shared_ptr<Order> get_parent_order() const{ return this->parent_order;}
 
-    vector<shared_ptr<Order>> const & get_child_orders() const { return this->child_orders;}
+    vector<shared_ptr<Order>> & get_child_orders() { return this->child_orders;}
 
     //fill child orders using parent order fill;
     void fill_child_orders();

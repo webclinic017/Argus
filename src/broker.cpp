@@ -92,7 +92,7 @@ void Broker::place_order_buffer(shared_ptr<Order> order)
     this->open_orders_buffer.push_back(order);
 }
 
-void Broker::place_order(shared_ptr<Order> order)
+void Broker::place_order(shared_ptr<Order> order, bool process_fill)
 {
     // get smart pointer to the right exchange
     auto exchange = this->exchanges->at(order->get_exchange_id());
@@ -107,7 +107,10 @@ void Broker::place_order(shared_ptr<Order> order)
     // if the order was filled then process fill
     if (order->get_order_state() == FILLED)
     {
-        this->process_filled_order(std::move(order));
+        if(process_fill)
+        {
+            this->process_filled_order(std::move(order));
+        }
     }
     // else push the order to the open order vector to be monitored
     else

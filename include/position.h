@@ -129,6 +129,10 @@ public:
     /// \return position open time
     [[nodiscard]] long long get_position_open_time() const { return this->position_open_time; };
 
+    /// get the time the position was opened
+    /// \return position open time
+    [[nodiscard]] long long get_position_close_time() const { return this->position_close_time; };
+
     /// get a smart pointer to child trade
     std::optional<trade_sp_t> get_trade(unsigned int trade_id);
 

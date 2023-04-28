@@ -17,6 +17,8 @@ class Broker;
 #include "history.h"
 #include "exchange.h"
 
+class PortfolioHistory;
+
 class Portfolio : public std::enable_shared_from_this<Portfolio>
 {
 public:
@@ -43,6 +45,9 @@ public:
         brokers_sp_t brokers_,
         shared_ptr<Exchanges> exchanges_
         );
+
+
+    void build(size_t portfolio_eval_length);
 
     /// get the memory addres of the portfolio object
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
@@ -72,6 +77,9 @@ public:
     /// \return does the position exist
     [[nodiscard]] bool position_exists(const string &asset_id) const { return this->positions_map.contains(asset_id); };
 
+    /// @brief get sp to portfolio history object
+    shared_ptr<PortfolioHistory> get_portfolio_history(){return this->portfolio_history;};
+    
     /// get smart pointer to existing position
     /// @param asset_id unique ass id of the position
     /// \return smart pointer to the existing position
@@ -102,8 +110,10 @@ public:
 
     /// @brief evaluate the portfolio on open or close
     /// @param on_close are we at close of the candle
-    /// @param recursive wether to recursievly evalute all portfolios
     void evaluate(bool on_close);
+
+    /// @brief recursivly populate PortfolioHistory object with current portfolio values
+    void update();
 
     /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
     /// @param nlv_adjustment adjustment size
@@ -159,6 +169,9 @@ private:
 
     /// smart pointer to broker map
     brokers_sp_t brokers;
+
+    /// smart pointer to portfolio history object
+    shared_ptr<PortfolioHistory> portfolio_history;
 
     /// position counter for position ids
     unsigned int position_counter = 0;
@@ -219,6 +232,7 @@ private:
     void log_order_fill(order_sp_t &filled_order);
     void log_position_open(shared_ptr<Position> &new_position);
     void log_position_close(shared_ptr<Position> &closed_position);
+    void log_trade_close(shared_ptr<Trade> &closed_trade);
     void log_trade_open(trade_sp_t &new_trade);
 
 };
@@ -248,7 +262,6 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     }
 
     // log the position if needed
-
     #ifdef ARGUS_STRIP
     if (this->logging == 1)
     {
@@ -266,37 +279,46 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
 class PortfolioHistory{
 public:
     /// portfolio history constructor
-    PortfolioHistory(Portfolio* parent_portfolio_, size_t portfolio_eval_length): parent_portfolio(parent_portfolio_){
-        this->cash_history = new double[portfolio_eval_length];
-        this->nlv_history = new double[portfolio_eval_length];
-    }
-
-    /// portfolio history destructor
-    ~PortfolioHistory(){
-        delete[] this->cash_history;
-        delete[] this->nlv_history;
+    PortfolioHistory(Portfolio* parent_portfolio_): parent_portfolio(parent_portfolio_){};
+    
+    // allocate memory
+    void build(size_t portfolio_eval_length){
+        this->cash_history.reserve(portfolio_eval_length); 
+        this->nlv_history.reserve(portfolio_eval_length); 
     }
     
     /// pointer to the parent portfolio
     Portfolio* parent_portfolio;
 
     /// historical cash values of the portfolio
-    double* cash_history;
+    vector<double> cash_history;
     
     /// historical net liquidation values of the portfolio
-    double* nlv_history;
+    vector<double> nlv_history;
 
-    /// update historical values with current snapshot
-    void update(){
-        //update historical value
-        *cash_history = this->parent_portfolio->get_cash();
-        *nlv_history = this->parent_portfolio->get_nlv();
-
-        //move pointers forward one step
-        cash_history++;
-        nlv_history++;
+    py::array_t<double> get_cash_history(){
+        return to_py_array(
+        this->cash_history.data(),
+        this->cash_history.size(),
+        true);
     }
 
+    py::array_t<double> get_nlv_history(){
+        return to_py_array(
+        this->cash_history.data(),
+        this->cash_history.size(),
+        true);
+    }
+
+    /// @brief update historical values with current snapshot
+    void update(){
+        this->cash_history.push_back(this->parent_portfolio->get_cash());
+        this->nlv_history.push_back(this->parent_portfolio->get_nlv());
+    }
+
+    bool is_built;
+
 };
+
 
 #endif // ARGUS_PORTFOLIO_H

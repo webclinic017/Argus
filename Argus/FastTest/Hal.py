@@ -33,7 +33,7 @@ class Hal:
     
     def new_portfolio(self, portfolio_id : str, cash : float, parent_portfolio_id : str = "master") -> Portfolio:
         parent_portfolio = self.hydra.get_portfolio(parent_portfolio_id)
-        parent_portfolio.create_sub_portfolio(portfolio_id, cash)
+        return parent_portfolio.create_sub_portfolio(portfolio_id, cash)
         
     def register_asset(self, asset : Asset, exchange_id : str) -> None:
         exchange = self.hydra.get_exchange(exchange_id)

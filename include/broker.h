@@ -61,7 +61,7 @@ public:
     /// process all open orders
     void process_orders();
 
-    void place_order(shared_ptr<Order> order);
+    void place_order(shared_ptr<Order> order, bool process_fill = true);
     void place_order_buffer(shared_ptr<Order> order);
 
     // void place_limit_order();

@@ -110,6 +110,14 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
             this->trades.erase(trade->get_trade_id());
         }
     }
+
+    //if position is closed update values
+    if(this->trades.size() == 0)
+    {
+        this->close_price = trade->get_close_price();
+        this->position_close_time = trade->get_trade_close_time();
+    }
+
     return trade;
 }
 

@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstdio>
 
-OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
+OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders, Portfolio* source_portfolio){
     double units_ = 0;
 
     //validate at least 1 order
@@ -30,18 +30,20 @@ OrderConsolidated::OrderConsolidated(vector<shared_ptr<Order>> orders){
         assert(order->get_broker_id() == broker_id_);
         
         //orders must be market orders
-        assert(order->get_order_type() != MARKET_ORDER);
+        assert(order->get_order_type() == MARKET_ORDER);
         #endif
     }
-
-    this->parent_order = make_shared<Order>(LIMIT_ORDER,
+    
+    this->parent_order = make_shared<Order>(MARKET_ORDER,
             asset_id_,
             units_,
             order->get_exchange_id(),
             broker_id_,
-            nullptr,
+            source_portfolio,
             "master",
             0);
+
+    this->child_orders = std::move(orders);
 }
 
 void OrderConsolidated::fill_child_orders(){

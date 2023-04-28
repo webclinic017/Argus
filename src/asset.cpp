@@ -179,7 +179,7 @@ double Asset::get_market_price(bool on_close) const
     //make sure row pointer is not out of bounds
     ptrdiff_t index = this->row - this->data; 
     auto size = this->rows * this->cols;
-    assert(index < size);
+    assert(index - this->cols  < size);
     #endif
 
     //subtract this->cols to move back row, then get_market_view is called, asset->step()
@@ -197,7 +197,7 @@ double Asset::get_asset_feature(const string& column_name, int index)
     //make sure row pointer is not out of bounds
     ptrdiff_t ptr_index = this->row - this->data; 
     auto size = this->rows * this->cols;
-    assert(ptr_index < size);
+    assert(ptr_index - this->cols < size);
     assert(index <= 0);
     #endif
 

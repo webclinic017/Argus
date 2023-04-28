@@ -105,8 +105,13 @@ void Hydra::build()
         { return obj->get_datetime_index(); },
         [](const shared_ptr<Exchange> &obj)
         { return obj->get_rows(); });
+
     this->datetime_index = get<0>(datetime_index_);
     this->datetime_index_length = get<1>(datetime_index_);
+
+    //build portfolios with given size
+    this->master_portfolio->build(this->datetime_index_length);
+
     this->is_built = true;
 };
 
@@ -228,8 +233,15 @@ shared_ptr<Broker> Hydra::get_broker(const std::string &broker_id)
 void Hydra::cleanup_asset(const string& asset_id){
     //test to see if position exists with that asset id
     auto position = this->master_portfolio->get_position(asset_id);
-    
+
+
     if(position.has_value()){
+        #ifdef ARGUS_STRIP
+        this->log(fmt::format("found expiring position: {}, units: {}", 
+            position.value()->get_asset_id(),
+            position.value()->get_units()));
+        #endif
+    
         //generate and send orders needed to close the position
         auto orders_nullopt = this->master_portfolio->generate_order_inverse(asset_id, false, true);
     }
@@ -241,10 +253,12 @@ void Hydra::cleanup_asset(const string& asset_id){
 
 void Hydra::forward_pass()
 {
+    //current global simulation time
+    this->hydra_time = this->datetime_index[this->current_index];
+
     #ifdef ARGUS_STRIP
     this->log("executing forward pass...");
     #endif
-    this->hydra_time = this->datetime_index[this->current_index];
 
     // build market views for exchanges
     for (auto &exchange_pair : *this->exchanges)
@@ -356,7 +370,7 @@ bool Hydra::backward_pass(){
     }
 
     // check to see if we have reached the end
-    if (this->current_index == datetime_index_length)
+    if (this->current_index == datetime_index_length - 1)
     {
         return false;
     }

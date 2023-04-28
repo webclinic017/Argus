@@ -12,6 +12,7 @@
 #include "exchange.h"
 #include "hydra.h"
 #include "order.h"
+#include "portfolio.h"
 #include "position.h"
 
 namespace py = pybind11;
@@ -95,6 +96,7 @@ void init_portfolio_ext(py::module &m)
         .def("get_mem_address", &Portfolio::get_mem_address, "get memory address")
         .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
         .def("get_position", &Portfolio::get_position, "get position from portfolio")
+        .def("get_portfolio_history", &Portfolio::get_portfolio_history, "get portfolio history object")
 
         .def("get_nlv", &Portfolio::get_nlv, "get net liquidation value")
         .def("get_cash", &Portfolio::get_cash, "get cash held in the portfolio")
@@ -104,8 +106,12 @@ void init_portfolio_ext(py::module &m)
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
         .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
-}
 
+    py::class_<PortfolioHistory, std::shared_ptr<PortfolioHistory>>(m, "PortfolioHistory")
+        .def("get_cash_history", &PortfolioHistory::get_cash_history, "get cash history",py::return_value_policy::reference)
+        .def("get_nlv_history", &PortfolioHistory::get_nlv_history, "get cash history",py::return_value_policy::reference);
+
+}
 
 void init_position_ext(py::module &m)
 {

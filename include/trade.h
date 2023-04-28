@@ -72,6 +72,10 @@ public:
     /// @return the time the trade opened
     [[nodiscard]] long long get_trade_open_time() const {return this->trade_open_time;}
 
+    /// get the time the trade was closed
+    /// @return the time the trade closed
+    [[nodiscard]] long long get_trade_close_time() const {return this->trade_close_time;}
+
     /// get closing price of the trade
     /// @return closing price of the trade
     [[nodiscard]] double get_close_price() const { return this->close_price; }
