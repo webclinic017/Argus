@@ -7,6 +7,7 @@
 #include "../include/asset.h"
 #include "../include/settings.h"
 #include "../include/utils_string.h"
+#include "fmt/core.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -187,6 +188,28 @@ double Asset::get_market_price(bool on_close) const
         return *(this->row - this->cols + this->close_column);
     else
         return *(this->row - this->cols + this->open_column);
+}
+
+double Asset::get_asset_feature(const string& column_name, int index)
+{
+
+    #ifdef ARGUS_ASSET_H
+    //make sure row pointer is not out of bounds
+    ptrdiff_t ptr_index = this->row - this->data; 
+    auto size = this->rows * this->cols;
+    assert(ptr_index < size);
+    assert(index <= 0);
+    #endif
+
+    //subtract this->cols to move back row, then get_market_view is called, asset->step()
+    //is called so we need to move back a row when accessing asset data
+    auto column_offset = this->headers.at(column_name);
+    auto row_offset = static_cast<int>(this->cols) * index;
+
+    //prevent acces index < 0
+    assert(row_offset + ptr_index > 0);
+
+    return *(this->row - this->cols + column_offset + row_offset);
 }
 
 long long *Asset::get_datetime_index() const

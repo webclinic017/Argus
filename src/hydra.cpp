@@ -54,7 +54,7 @@ Hydra::~Hydra()
 void Hydra::log(const string& msg){
     if(this->logging == 1){
             auto datetime_str = nanosecond_epoch_time_to_string(this->hydra_time);
-            fmt::print("{}:  {}\n", 
+            fmt::print("{}:  HYDRA: {}\n", 
                 datetime_str,
                 msg
             );
@@ -241,13 +241,15 @@ void Hydra::cleanup_asset(const string& asset_id){
 
 void Hydra::forward_pass()
 {
+    #ifdef ARGUS_STRIP
+    this->log("executing forward pass...");
+    #endif
     this->hydra_time = this->datetime_index[this->current_index];
 
     // build market views for exchanges
     for (auto &exchange_pair : *this->exchanges)
     {
         auto exchange = exchange_pair.second;
-
         // set the exchange is_close
         exchange->set_on_close(false);
 
@@ -259,7 +261,10 @@ void Hydra::forward_pass()
 
         // allow exchanges to process open orders
         exchange_pair.second->process_orders();
-    }   
+    }  
+    #ifdef ARGUS_STRIP
+    this->log("forward pass complete");
+    #endif 
 }
 
 //ALLOW STRATEGIES TO PLACE ORDERS AT OPEN
@@ -293,9 +298,11 @@ void Hydra::on_open(){
     #ifdef ARGUS_STRIP
     this->log("evaluating master portfolio...");
     #endif
-
     // evaluate the master portfolio at the open
     this->master_portfolio->evaluate(false);
+    #ifdef ARGUS_STRIP
+    this->log("master portfolio evaluation complete");
+    #endif
 
     // move exchanges to close
     for (auto &exchange_pair : *this->exchanges)
@@ -307,6 +314,9 @@ void Hydra::on_open(){
 //ALLOW STRATEGIES TO PLACE ORDERS AT CLOSE
 
 bool Hydra::backward_pass(){
+    #ifdef ARGUS_STRIP
+    this->log("executing backward pass...");
+    #endif
     // allow exchanges to process orders placed at close
     for (auto &exchange_pair : *this->exchanges)
     {
@@ -322,7 +332,7 @@ bool Hydra::backward_pass(){
     // evaluate the master portfolio at the close
     this->master_portfolio->evaluate(true);
 
-    // handel any assets done streaming
+    // hanndle any assets done streaming
     for (auto &exchange_pair : *this->exchanges)
     {
         //move exchange to the open
@@ -354,5 +364,8 @@ bool Hydra::backward_pass(){
         // increment the hydra's current index
         this->current_index++;
     }
+    #ifdef ARGUS_STRIP
+    this->log("backward pass complete");
+    #endif
     return true;
 }

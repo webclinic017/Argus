@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath('..'))
 
 import Asset
 import FastTest
+from Hal import Hal
 
 test1_file_path = "./data/test1.csv"
 test2_file_path = "./data/test2.csv"
@@ -38,7 +39,7 @@ def load_asset(file_path, asset_id, is_view=False):
 
     return asset
 
-def build_simple_hydra(logging = 0):
+def create_simple_hydra(logging = 0) -> FastTest.Hydra:
     asset1 = load_asset(
         test1_file_path,
         test1_asset_id
@@ -53,5 +54,22 @@ def build_simple_hydra(logging = 0):
     exchange = hydra.new_exchange(test1_exchange_id)
     exchange.register_asset(asset1)
     exchange.register_asset(asset2)
-    hydra.build()
     return hydra
+
+def create_simple_hal(logging: int = 0) -> Hal:
+    asset1 = load_asset(
+        test1_file_path,
+        test1_asset_id
+    )
+    asset2 = load_asset(
+        test2_file_path,
+        test2_asset_id,
+    )
+    
+    hal = Hal(logging)
+    broker = hal.new_broker(test1_broker_id,100000.0)
+    exchange = hal.new_exchange(test1_exchange_id)
+    exchange.register_asset(asset1)
+    exchange.register_asset(asset2)
+    
+    return hal

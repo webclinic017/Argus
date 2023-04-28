@@ -301,8 +301,8 @@ bool Exchange::get_market_view()
         // get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
         auto asset_id = asset_raw_pointer->get_asset_id();
-      
-        if (*asset_datetime == this->exchange_time)
+
+        if (asset_datetime && *asset_datetime == this->exchange_time)
         {
             // add asset to market view, step the asset forward in time
             this->market_view[asset_id] = asset_raw_pointer;
@@ -324,6 +324,17 @@ bool Exchange::get_market_view()
     this->current_index++;
     return true;
 }
+
+double Exchange::get_asset_feature(const string& asset_id, const string& column_name, int index){
+    auto asset_sp = this->market_view.at(asset_id);
+    
+    #ifdef ARGUS_RUNTIME_ASSERT
+    assert(asset_sp);
+    #endif
+
+    return asset_sp->get_asset_feature(column_name, index);
+}
+
 
 shared_ptr<Exchange> new_exchange(const string &exchange_id, int logging_)
 {

@@ -88,6 +88,8 @@ public:
     /// return the number of rows in the asset
     [[nodiscard]] size_t get_rows() const { return this->datetime_index_length; }
 
+    double get_asset_feature(const string& asset_id, const string& column, int index = 0);
+
     inline double get_market_price(const string &asset_id)
     {
         // get pointer to asset, nullptr if asset is not currently streaming

@@ -19,8 +19,17 @@ class Hal:
     def new_broker(self, broker_id : str, cash : float) -> Broker:
         return self.hydra.new_broker(broker_id, cash)
     
-    def new_exchange(self, exchange_id : str, cash : float) -> Exchange:
-        return self.hydra.new_exchange(exchange_id, cash)
+    def new_exchange(self, exchange_id : str) -> Exchange:
+        return self.hydra.new_exchange(exchange_id)
+    
+    def get_broker(self, broker_id : str) -> Broker:
+        return self.hydra.get_broker(broker_id)
+    
+    def get_exchange(self, exchange_id : str) -> Exchange:
+        return self.hydra.get_exchange(exchange_id)
+    
+    def get_portfolio(self, portfolio_id : str) -> Portfolio:
+        return self.hydra.get_portfolio(portfolio_id)
     
     def new_portfolio(self, portfolio_id : str, cash : float, parent_portfolio_id : str = "master") -> Portfolio:
         parent_portfolio = self.hydra.get_portfolio(parent_portfolio_id)
@@ -31,10 +40,9 @@ class Hal:
         exchange.register_asset(asset)
         
     def register_strategy(self, strategy) -> None:
-        if not hasattr(strategy, 'on_open'):
-            raise RuntimeError("strategy must implement on_open()")
-        if not hasattr(strategy, 'on_close'):
-            raise RuntimeError("strategy must implement on_close()")
+        for attr in ["on_open","on_close","build"]:
+            if not hasattr(strategy, attr):
+                raise RuntimeError(f"strategy must implement {attr}()")
             
         self.strategies = np.append(self.strategies,(strategy))
         

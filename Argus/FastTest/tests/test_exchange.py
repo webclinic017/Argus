@@ -43,6 +43,24 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange_index = exchange.get_datetime_index_view()
 
         assert(np.array_equal(exchange_index, asset2.get_datetime_index_view()))
-
+        
+    def test_exchange_get_asset_feature(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        
+        hydra.build()
+        hydra.forward_pass()
+        
+        exchange = hydra.get_exchange(helpers.test1_exchange_id)
+        
+        assert(exchange.get_asset_feature(helpers.test2_asset_id, "CLOSE",0) == 101.5)
+        assert(exchange.get_asset_feature(helpers.test2_asset_id, "CLOSE") == 101.5)
+        
+        hydra.backward_pass()
+        hydra.forward_pass()
+        
+        assert(exchange.get_asset_feature(helpers.test2_asset_id, "CLOSE") == 99)
+        assert(exchange.get_asset_feature(helpers.test2_asset_id, "OPEN") == 100)
+        assert(exchange.get_asset_feature(helpers.test2_asset_id, "OPEN", -1) == 101)
+                
 if __name__ == '__main__':
     unittest.main()

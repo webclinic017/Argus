@@ -29,7 +29,7 @@ public:
     /// asset destructor
     ~Asset();
 
-    bool is_last_view() const {return this->current_index - 1 == this->rows;};
+    bool is_last_view() const {return this->current_index == this->rows;};
 
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
@@ -77,6 +77,8 @@ public:
 
     /// get read only numpy array of the asset's datetime index
     py::array_t<long long> get_datetime_index_view();
+
+    [[nodiscard]] double get_asset_feature(const string& column_name, int index);
 
     /// step the asset forward in time
     void step();

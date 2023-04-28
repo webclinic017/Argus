@@ -44,8 +44,16 @@ void init_exchange_ext(py::module &m)
     py::class_<Exchange, std::shared_ptr<Exchange>>(m, "Exchange")
         .def("build", &Exchange::build, "builds the exchange")
         .def("new_asset", &Exchange::new_asset, "builds a new asset to the exchange")
-        .def("get_asset", &Exchange::get_asset, "get pointer to existing asset on the exchange", py::return_value_policy::reference)
         .def("register_asset", &Exchange::register_asset, "register a new asset to the exchange")
+        
+        .def("get_asset", &Exchange::get_asset, "get pointer to existing asset on the exchange", py::return_value_policy::reference)
+        .def("get_asset_feature", 
+            &Exchange::get_asset_feature, 
+            "get asset feature",
+            py::arg("asset_id"),
+            py::arg("column_name"),
+            py::arg("index") = 0)
+
         .def("get_datetime_index_view", &Exchange::get_datetime_index_view, "get view of exchange datetime index");
 }
 

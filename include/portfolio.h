@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <optional>
+#include <sys/_types/_size_t.h>
 #include <tsl/robin_map.h>
 #include <fmt/core.h>
 
@@ -260,5 +261,42 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     fmt::print("Portfolio::open_position: {} done\n",this->portfolio_id);
     #endif
 }
+
+
+class PortfolioHistory{
+public:
+    /// portfolio history constructor
+    PortfolioHistory(Portfolio* parent_portfolio_, size_t portfolio_eval_length): parent_portfolio(parent_portfolio_){
+        this->cash_history = new double[portfolio_eval_length];
+        this->nlv_history = new double[portfolio_eval_length];
+    }
+
+    /// portfolio history destructor
+    ~PortfolioHistory(){
+        delete[] this->cash_history;
+        delete[] this->nlv_history;
+    }
+    
+    /// pointer to the parent portfolio
+    Portfolio* parent_portfolio;
+
+    /// historical cash values of the portfolio
+    double* cash_history;
+    
+    /// historical net liquidation values of the portfolio
+    double* nlv_history;
+
+    /// update historical values with current snapshot
+    void update(){
+        //update historical value
+        *cash_history = this->parent_portfolio->get_cash();
+        *nlv_history = this->parent_portfolio->get_nlv();
+
+        //move pointers forward one step
+        cash_history++;
+        nlv_history++;
+    }
+
+};
 
 #endif // ARGUS_PORTFOLIO_H

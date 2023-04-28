@@ -1,4 +1,3 @@
-import helpers
 import sys
 import os
 import time
@@ -6,6 +5,8 @@ import unittest
 import numpy as np
 
 import FastTest
+import helpers
+
 
 #sys.path.append(os.path.abspath('..'))
 
@@ -36,13 +37,14 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(portfolio3.get_mem_address() == portfolio3_search_mp.get_mem_address() == portfolio3_search_1.get_mem_address())
             
     def test_portfolio_order_prop(self):
-        hydra = helpers.build_simple_hydra(logging=0)
+        hydra = helpers.create_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
         portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
         portfolio3 = portfolio1.create_sub_portfolio("test_portfolio3",100.0);
         
+        hydra.build()
         hydra.forward_pass()
 
         portfolio2.place_market_order(
@@ -79,12 +81,13 @@ class PortfolioTestMethods(unittest.TestCase):
         #assert(trade1.get_average_price() == 101.0)
 
     def test_portfolio_order_increase(self):
-        hydra = helpers.build_simple_hydra(logging=0)
+        hydra = helpers.create_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
         portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
         
+        hydra.build()
         hydra.forward_pass()
         
         portfolio2.place_market_order(
@@ -130,12 +133,13 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(p1.get_units() == 50)
         
     def test_portfolio_eval(self):
-        hydra = helpers.build_simple_hydra(logging=0)
+        hydra = helpers.create_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
         
         portfolio1 = hydra.new_portfolio("test_portfolio1",10000.0);
         portfolio2 = hydra.new_portfolio("test_portfolio2",10000.0);  
         
+        hydra.build()
         hydra.forward_pass()
         
         portfolio2.place_market_order(
