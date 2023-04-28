@@ -1,12 +1,12 @@
 import sys
 import os
+import time
 import unittest
 sys.path.append(os.path.abspath('..'))
 
 import Asset
-from Hal import Hal
-
 import FastTest
+from Hal import Hal
 from FastTest import Portfolio, Exchange, Broker
 
 import helpers
@@ -17,19 +17,35 @@ class SimpleStrategy:
         self.broker = hal.get_broker(helpers.test1_broker_id)
         
         self.portfolio1 = hal.new_portfolio("test_portfolio1",10000.0);
-        self.portfolio2 = hal.new_portfolio("test_portfolio2",10000.0);  
         
     def on_open(self) -> None:
         return
     
     def on_close(self) -> None:
         position = self.portfolio1.get_position(helpers.test2_asset_id)
-        
+        close_price = self.exchange.get_asset_feature(helpers.test2_asset_id, "CLOSE")
         if position is None:
-            pass
-            
-        
-    
+            if close_price <= 97.0:
+                self.portfolio1.place_market_order(
+                    helpers.test2_asset_id,
+                    100.0,
+                    helpers.test1_exchange_id,
+                    helpers.test1_broker_id,
+                    "dummy",
+                    FastTest.OrderExecutionType.EAGER,
+                    -1
+                )
+        elif close_price >= 101.5:
+            self.portfolio1.place_market_order(
+                    helpers.test2_asset_id,
+                    -1 * position.get_units(),
+                    helpers.test1_exchange_id,
+                    helpers.test1_broker_id,
+                    "dummy",
+                    FastTest.OrderExecutionType.EAGER,
+                    -1
+                )
+
     def build(self) -> None:
         return
         
@@ -45,6 +61,28 @@ class HalTestMethods(unittest.TestCase):
 
         strategy = SimpleStrategy(hal)
         hal.register_strategy(strategy)
+        
+        hal.build()
+        st = time.time()
+        hal.run()
+        et = time.time()
+        
+        assert(True)
+        
+    """
+    def test_hal_big(self):
+        hal = helpers.create_big_hal(logging=0)
+        
+        hal.build()
+        st = time.time()
+        hal.run()
+        et = time.time()
+        
+        print(et - st)
+        
+        assert(True)
+    """
+
 
 
 

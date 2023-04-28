@@ -4,11 +4,10 @@ import time
 import unittest
 import numpy as np
 
+sys.path.append(os.path.abspath('..'))
+
 import FastTest
 import helpers
-
-
-#sys.path.append(os.path.abspath('..'))
 
 class PortfolioTestMethods(unittest.TestCase):
     def test_mp_new_portfolio(self):

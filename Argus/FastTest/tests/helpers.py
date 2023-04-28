@@ -73,3 +73,18 @@ def create_simple_hal(logging: int = 0) -> Hal:
     exchange.register_asset(asset2)
     
     return hal
+
+def create_big_hal(logging: int = 0) -> Hal:
+    hal = Hal(logging)
+    broker = hal.new_broker(test1_broker_id,100000.0)
+    exchange = hal.new_exchange(test1_exchange_id)
+    
+    
+    for i in range(100):
+        asset = load_asset(
+            test_spy_file_path,
+            str(i),
+        )
+        exchange.register_asset(asset)
+    
+    return hal
