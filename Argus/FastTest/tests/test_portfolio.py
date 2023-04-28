@@ -7,7 +7,7 @@ import numpy as np
 
 import FastTest
 
-sys.path.append(os.path.abspath('..'))
+#sys.path.append(os.path.abspath('..'))
 
 class PortfolioTestMethods(unittest.TestCase):
     def test_mp_new_portfolio(self):
@@ -182,7 +182,5 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(portfolio2.get_nlv() == (10000 + (-100 * .5)))
         assert(mp.get_nlv() == portfolio1.get_nlv() + portfolio2.get_nlv())
         
-
-                
 if __name__ == '__main__':
     unittest.main()
