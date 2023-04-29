@@ -1,8 +1,9 @@
 import sys
 import os
 import time
-import numpy as np
 import unittest
+import cProfile
+import numpy as np
 sys.path.append(os.path.abspath('..'))
 
 import Asset
@@ -12,12 +13,62 @@ from FastTest import Portfolio, Exchange, Broker
 
 import helpers
 
-class SimpleStrategy:
+class MovingAverageStrategy:
     def __init__(self, hal : Hal) -> None:
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
         self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
         
+    def build(self) -> None:
+        return
+        
+    def buy(self, asset_id : str, units : float) -> None:
+        self.portfolio1.place_market_order(
+            asset_id,
+            units,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+    def on_open(self) -> None:
+        return
+    
+    def on_close(self) -> None:
+        cross_dict = {}
+        close_dict = {}
+        self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
+        self.exchange.get_exchange_feature(close_dict, "Close")
+
+        for asset_id, cross_value in cross_dict.items():
+            
+            close_price = close_dict[asset_id]
+            position = self.portfolio1.get_position(asset_id)
+            
+            if position is None:
+                if cross_value == 1:
+                    self.buy(asset_id, 1 / close_price)
+                elif cross_value == 0: 
+                    self.buy(asset_id, -1 / close_price)
+            else:
+                position_units = position.get_units()
+                if cross_value == 1 and position_units > 0:
+                    continue
+                elif cross_value == 0 and position_units < 0: 
+                    continue
+                elif cross_value == 1 and position_units < 0:
+                    self.buy(asset_id, 2*abs(position.get_units()))
+                elif cross_value == 0 and position_units > 0:
+                    self.buy(asset_id, -2*abs(position.get_units()))
+            
+class SimpleStrategy:
+    def __init__(self, hal : Hal) -> None:
+        self.exchange = hal.get_exchange(helpers.test1_exchange_id)
+        self.broker = hal.get_broker(helpers.test1_broker_id)
+        self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
+                
     def on_open(self) -> None:
         return
     
@@ -75,18 +126,29 @@ class HalTestMethods(unittest.TestCase):
             
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
-  
+
+    
     def test_hal_big(self):
         hal = helpers.create_big_hal(logging=0)
         
+        exchange = hal.get_exchange(helpers.test1_exchange_id)
+        strategy = MovingAverageStrategy(hal)
+        hal.register_strategy(strategy)
+        
         hal.build()
+
         st = time.time()
         hal.run()
+        #hal.profile()
         et = time.time()
         
-        print(et - st)
-        
+        execution_time = et - st
+        candles = hal.get_candles()
+        print(f"HAL: execution time: {execution_time}")
+        print(f"HAL: candles per seoncd: {candles / execution_time}")      
         assert(True)
+    
+    
 
 if __name__ == '__main__':
     unittest.main()

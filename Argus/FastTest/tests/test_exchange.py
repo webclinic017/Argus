@@ -61,6 +61,33 @@ class ExchangeTestMethods(unittest.TestCase):
         assert(exchange.get_asset_feature(helpers.test2_asset_id, "CLOSE") == 99)
         assert(exchange.get_asset_feature(helpers.test2_asset_id, "OPEN") == 100)
         assert(exchange.get_asset_feature(helpers.test2_asset_id, "OPEN", -1) == 101)
+        
+    def test_exchange_get_exchange_feature(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        exchange = hydra.get_exchange(helpers.test1_exchange_id)
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
+        
+        hydra.build()
+        hydra.forward_pass()
+        hydra.on_open()
+        
+        exchange_features = {}
+        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        assert(exchange_features[helpers.test2_asset_id] == 101.5)
+        assert(exchange_features[helpers.test1_asset_id] is None)
+        
+        hydra.backward_pass()
+        hydra.forward_pass()
+        
+        exchange_features = {}
+        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        assert(exchange_features[helpers.test2_asset_id] == 99.0)
+        assert(exchange_features[helpers.test1_asset_id] == 101.0)
+        
+
                 
 if __name__ == '__main__':
     unittest.main()

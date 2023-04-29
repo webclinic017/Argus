@@ -72,19 +72,28 @@ def create_simple_hal(logging: int = 0) -> Hal:
     exchange.register_asset(asset1)
     exchange.register_asset(asset2)
     
-    return hal
+    return hal 
 
 def create_big_hal(logging: int = 0) -> Hal:
     hal = Hal(logging)
     broker = hal.new_broker(test1_broker_id,100000.0)
     exchange = hal.new_exchange(test1_exchange_id)
     
-    
-    for i in range(100):
-        asset = load_asset(
-            test_spy_file_path,
-            str(i),
-        )
-        exchange.register_asset(asset)
-    
+    dir_path = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+    data_path = os.path.join(dir_path, "SP500_D")
+    file_list = [os.path.join(data_path, f) for f in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, f))]
+
+    for _file in file_list:
+        _file_base = os.path.basename(_file)
+        asset_id = os.path.splitext(_file_base)[0]
+        
+        df = pd.read_feather(_file)
+        df["Date"] = df["Date"] * 1e9
+        df.set_index("Date", inplace=True)
+        
+        df["FAST_ABOVE_SLOW"] = df["Close"].rolling(50).mean() >  df["Close"].rolling(200).mean()
+        df.dropna(inplace = True)
+        
+        asset = Asset.asset_from_df(df, asset_id)
+        exchange.register_asset(asset)    
     return hal
