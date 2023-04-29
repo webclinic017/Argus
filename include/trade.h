@@ -114,6 +114,7 @@ public:
     /// @param pointer to source portfolio of the trade
     void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
 
+    double get_last_price(){return this->last_price;}
     double get_nlv(){return this->nlv;}
     double get_unrealized_pl(){return this->unrealized_pl;}
     void set_nlv(double nlv_){this->nlv = nlv_;}

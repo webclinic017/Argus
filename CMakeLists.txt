@@ -9,6 +9,22 @@ set(CMAKE_OSX_ARCHITECTURES arm64)
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-S")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+
+# Set Link Time Optimization flag
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+
+# Set stack protection flag
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fstack-protector-strong")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong")
+
+# Enable Position Independent Executable mode
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -fPIE")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pie -fPIE")
+
+# Link with all required shared libraries at startup
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,now")
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Argus/FastTest)
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -22,7 +38,7 @@ find_package(tsl-robin-map REQUIRED)
 include_directories(external/robin-map/include)
 
 #Python
-find_package(Python3 3.9 EXACT COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 include_directories(${Python3_INCLUDE_DIRS})
 
 include_directories(include)

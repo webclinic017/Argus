@@ -280,7 +280,8 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     #endif
 
     // adjust cash held at the broker
-    this->cash += filled_order->get_units() * filled_order->get_average_price();
+    // sell order has units -XYZ, therefore need -=
+    this->cash -= filled_order->get_units() * filled_order->get_average_price();
 
     // close all child trade of the position whose broker is equal to current broker id
     auto trades = position->get_trades();
@@ -347,8 +348,8 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
     position->adjust_trade(trade_sp);
 
     //adjust parent portfolio cash
-    auto cash_adjustment = -1 * trade_sp->get_units() * trade_sp->get_average_price();
-    this->parent_portfolio->cash_adjust(cash_adjustment);
+    auto cash_adjustment = trade_sp->get_units() * trade_sp->get_close_price();
+    parent->cash_adjust(cash_adjustment);
 
     //test to see if position should be removed
     if(position->get_trade_count() == 0)
@@ -498,6 +499,7 @@ void Portfolio::evaluate(bool on_close)
 
     this->nlv = this->cash;
     this->unrealized_pl = 0;
+
     // evaluate all positions in the master portfolio. Note valuation will propogate down from whichever
     // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
@@ -522,10 +524,11 @@ void Portfolio::evaluate(bool on_close)
 
             //update source portfolio values nlv and unrealized pl
             auto nlv_new = market_price * trade->get_units();
-            trade->get_source_portfolio()->nlv_adjust(nlv_new - trade->get_nlv());
-        
+            auto source_portfolio = trade->get_source_portfolio();
+            source_portfolio->nlv_adjust(nlv_new - trade->get_nlv());
+            
             auto unrealized_pl_new = trade->get_units() * (market_price - trade->get_average_price());
-            trade->get_source_portfolio()->unrealized_adjust(unrealized_pl_new - trade->get_unrealized_pl());
+            source_portfolio->unrealized_adjust(unrealized_pl_new - trade->get_unrealized_pl());
             
             //update trade values to new evaluations
             trade->set_unrealized_pl(unrealized_pl_new);
@@ -542,12 +545,6 @@ void Portfolio::evaluate(bool on_close)
 
         this->nlv += position->get_nlv();
         this->unrealized_pl += position->get_unrealized_pl();
-    }
-    //update and track portfolio values on the close
-    if(on_close)
-    {
-        // save histrorical values to Portfolio history object
-        this->update(); 
     }
 }
 

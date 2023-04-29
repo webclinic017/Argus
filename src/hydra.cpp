@@ -323,6 +323,9 @@ void Hydra::on_open(){
     {
         exchange_pair.second->set_on_close(true);
     }
+
+    //evaluate master portfolio at close
+    this->master_portfolio->evaluate(true);
 }
 
 //ALLOW STRATEGIES TO PLACE ORDERS AT CLOSE
@@ -331,9 +334,10 @@ bool Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
     this->log("executing backward pass...");
     #endif
-    // allow exchanges to process orders placed at close
+
     for (auto &exchange_pair : *this->exchanges)
     {
+        // allow exchanges to process orders placed at close
         exchange_pair.second->process_orders();
     }
 
@@ -343,15 +347,12 @@ bool Hydra::backward_pass(){
         broker_pair.second->process_orders();
     }
 
-    // evaluate the master portfolio at the close
-    this->master_portfolio->evaluate(true);
+    //update historicals values
+    this->master_portfolio->update();
 
     // hanndle any assets done streaming
     for (auto &exchange_pair : *this->exchanges)
     {
-        //move exchange to the open
-        exchange_pair.second->set_on_close(false);
-
         //find expired assets and remove them from portfolio and appropriate exchange
         auto expired_assets =  exchange_pair.second->get_expired_assets();
     
@@ -378,8 +379,10 @@ bool Hydra::backward_pass(){
         // increment the hydra's current index
         this->current_index++;
     }
+
     #ifdef ARGUS_STRIP
     this->log("backward pass complete");
     #endif
+
     return true;
 }

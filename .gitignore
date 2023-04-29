@@ -4,3 +4,5 @@ build/
 .idea/
 .cache/
 __pycache__/
+.DS_Store
+Argus/FastTest/FastTest.cpython-39-darwin.so

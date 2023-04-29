@@ -305,8 +305,8 @@ public:
 
     py::array_t<double> get_nlv_history(){
         return to_py_array(
-        this->cash_history.data(),
-        this->cash_history.size(),
+        this->nlv_history.data(),
+        this->nlv_history.size(),
         true);
     }
 

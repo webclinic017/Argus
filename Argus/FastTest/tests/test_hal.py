@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import numpy as np
 import unittest
 sys.path.append(os.path.abspath('..'))
 
@@ -65,15 +66,18 @@ class HalTestMethods(unittest.TestCase):
         st = time.time()
         hal.run()
         et = time.time()
+                
+        cash_actual = np.array([100000, 100000,  90300, 100450, 100450,  90850.0,])
+        nlv_actual = np.array([100000, 100000, 100000, 100450, 100450, 100450.0,])
         
-        portfolio_history = hal.get_portfolio("test_portfolio1").get_portfolio_history()
-        cash_history = portfolio_history.get_cash_history()
-        nlv_history = portfolio_history.get_nlv_history()
-        
-        print(cash_history)
-        print(nlv_history)
-        
-        assert(True)
+        for portfolio in ["master", "test_portfolio1"]:
+            portfolio_history = hal.get_portfolio(portfolio).get_portfolio_history()
+            cash_history = portfolio_history.get_cash_history()
+            nlv_history = portfolio_history.get_nlv_history()
+            
+            assert(np.array_equal(cash_actual, cash_history))
+            assert(np.array_equal(nlv_actual, nlv_history))
+  
         
     """
     def test_hal_big(self):
