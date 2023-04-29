@@ -316,14 +316,6 @@ void Hydra::on_open(){
         broker_pair.second->process_orders();
     }   
 
-    #ifdef ARGUS_STRIP
-    this->log("evaluating master portfolio...");
-    #endif
-    // evaluate the master portfolio at the open
-    this->master_portfolio->evaluate(false);
-    #ifdef ARGUS_STRIP
-    this->log("master portfolio evaluation complete");
-    #endif
 
     // move exchanges to close
     for (auto &exchange_pair : *this->exchanges)
@@ -331,11 +323,18 @@ void Hydra::on_open(){
         exchange_pair.second->set_on_close(true);
     }
 
+    #ifdef ARGUS_STRIP
+    this->log("evaluating master portfolio...");
+    #endif
+
     //evaluate master portfolio at close
     this->master_portfolio->evaluate(true);
-}
 
-//ALLOW STRATEGIES TO PLACE ORDERS AT CLOSE
+    #ifdef ARGUS_STRIP
+    this->log("master portfolio evaluation complete");
+    #endif
+
+}
 
 bool Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
