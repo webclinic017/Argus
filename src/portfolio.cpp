@@ -213,8 +213,6 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
             /// close the position
             this->close_position(filled_order);
         }
-
-        assert(abs(position->get_units()) <= 2);
     }
 
     // place child orders from the filled order

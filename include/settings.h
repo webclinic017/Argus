@@ -6,8 +6,8 @@
 #define ARGUS_SETTINGS_H
 
 //#define DEBUGGING
-//#define ARGUS_RUNTIME_ASSERT
-//#define ARGUS_STRIP
+#define ARGUS_RUNTIME_ASSERT
+#define ARGUS_STRIP
 
 static double constexpr ARGUS_PORTFOLIO_MAX_LEVERAGE  = 2;
 static double constexpr ARGUS_MP_PORTFOLIO_MAX_LEVERAGE = 1.75;

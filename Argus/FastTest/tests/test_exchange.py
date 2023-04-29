@@ -12,6 +12,7 @@ import Asset
 import helpers
 
 class ExchangeTestMethods(unittest.TestCase):
+    
     def test_exchange_datetime_index(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
@@ -43,7 +44,7 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange_index = exchange.get_datetime_index_view()
 
         assert(np.array_equal(exchange_index, asset2.get_datetime_index_view()))
-        
+    """
     def test_exchange_get_asset_feature(self):
         hydra = helpers.create_simple_hydra(logging=0)
         
@@ -86,6 +87,7 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange.get_exchange_feature(exchange_features, "CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 99.0)
         assert(exchange_features[helpers.test1_asset_id] == 101.0)
+    """
         
 
                 

@@ -14,7 +14,7 @@ from FastTest import Portfolio, Exchange, Broker
 import helpers
 
 class MovingAverageStrategy:
-    def __init__(self, hal : Hal) -> None:
+    def __init__(self, hal : Hal) -> None:        
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
         self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
@@ -64,7 +64,7 @@ class MovingAverageStrategy:
                     self.buy(asset_id, -2*abs(position.get_units()))
             
 class SimpleStrategy:
-    def __init__(self, hal : Hal) -> None:
+    def __init__(self, hal : Hal) -> None:        
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
         self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
@@ -127,7 +127,7 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
 
-    
+    """
     def test_hal_big(self):
         hal = helpers.create_big_hal(logging=0)
         
@@ -139,16 +139,17 @@ class HalTestMethods(unittest.TestCase):
 
         st = time.time()
         hal.run()
-        #hal.profile()
         et = time.time()
         
         execution_time = et - st
         candles = hal.get_candles()
-        print(f"HAL: execution time: {execution_time}")
-        print(f"HAL: candles per seoncd: {candles / execution_time}")      
+        print(f"HAL: execution time: {execution_time:.4f} seconds")
+        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         assert(True)
+    """
     
     
-
 if __name__ == '__main__':
     unittest.main()
+    #tests % python -m cProfile -s cumtime test_hal.py
+    

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <memory>
 #include <fmt/core.h>
@@ -145,6 +146,12 @@ portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash_){
     return std::move(portfolio);
 }
 
+shared_ptr<Strategy> Hydra::new_strategy(){
+    auto strategy = std::make_shared<Strategy>();
+    this->strategies.push_back(strategy);
+    return strategy;
+}
+
 shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 {
     if (this->exchanges->contains(exchange_id))
@@ -283,8 +290,6 @@ void Hydra::forward_pass()
     #endif 
 }
 
-//ALLOW STRATEGIES TO PLACE ORDERS AT OPEN
-
 void Hydra::on_open(){
      // allow broker to process orders that have been filled or orders that were placed by 
      // strategies with lazy execution
@@ -387,4 +392,35 @@ bool Hydra::backward_pass(){
     #endif
 
     return true;
+}
+
+void Hydra::run(){
+    if(!this->is_built){
+        throw std::runtime_error("hydra not built");
+    }
+
+    //core event loop
+    while (true)
+    {
+        this->forward_pass();
+
+        //allow strategies to place orders at open
+        for(auto & strategy : this->strategies)
+        {
+            strategy->cxx_handler_on_open();    
+        };
+
+        this->on_open();
+
+        //allow strategies to place orders at close
+        for(auto & strategy : this->strategies)
+        {
+            strategy->cxx_handler_on_close();    
+        };
+
+        if(!this->backward_pass())
+        {
+            return;
+        }
+    }
 }

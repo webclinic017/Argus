@@ -4,7 +4,7 @@ import cProfile
 import numpy as np
 
 import FastTest
-from FastTest import Broker, Exchange, Asset, Portfolio
+from FastTest import Broker, Exchange, Asset, Portfolio, Hydra
 
 class Hal:
     def __init__(self, logging : int) -> None:
@@ -16,6 +16,9 @@ class Hal:
     def build(self):
         self.hydra.build()
         self.is_built = True
+        
+    def get_hydra(self) -> Hydra:
+        return self.hydra
         
     def new_broker(self, broker_id : str, cash : float) -> Broker:
         return self.hydra.new_broker(broker_id, cash)
@@ -43,37 +46,26 @@ class Hal:
         exchange = self.hydra.get_exchange(exchange_id)
         exchange.register_asset(asset)
         
-    def register_strategy(self, strategy) -> None:
+    def register_strategy(self, py_strategy) -> None:
         for attr in ["on_open","on_close","build"]:
-            if not hasattr(strategy, attr):
+            if not hasattr(py_strategy, attr):
                 raise RuntimeError(f"strategy must implement {attr}()")
-            
-        self.strategies = np.append(self.strategies,(strategy))
         
+        strategy = self.hydra.new_strategy()
+        strategy.on_open = py_strategy.on_open
+        strategy.on_close = py_strategy.on_close    
+                
     def profile(self):
         pr = cProfile.Profile()
         pr.enable()
         self.run()
         pr.disable()
-        pr.print_stats(sort='time')
+        pr.print_stats(sort='cumulative')
 
         
     def run(self):
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
         
-        while True:
-            #allow brokers to process orders that have been filled or orders that were placed by 
-            #strategies with lazy execution. 
-            self.hydra.forward_pass()
-            
-            for strategy in self.strategies:
-                strategy.on_open()
-            
-            self.hydra.on_open()
-            
-            for strategy in self.strategies:
-                strategy.on_close()
-            
-            if not self.hydra.backward_pass():
-                return True    
+        return self.hydra.run()
+           

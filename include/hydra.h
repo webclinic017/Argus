@@ -16,6 +16,7 @@
 #include "portfolio.h"
 #include "history.h"
 #include "broker.h"
+#include "strategy.h"
 
 using namespace std;
 
@@ -59,7 +60,7 @@ private:
     size_t candles = 0;
 
     // function calls on open
-    vector<std::function<int(int)>> functions_on_open;
+    vector<shared_ptr<Strategy>> strategies;
 
     void log(const string& msg);
 
@@ -69,9 +70,6 @@ public:
 
     /// hydra destructor
     ~Hydra();
-
-    /// call python registered call backs
-    void call_py_on_open();
 
     /// build all members
     void build();
@@ -84,6 +82,9 @@ public:
 
     // backward pass of hydra
     bool backward_pass();
+
+    // execute simulation
+    void run();
 
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
@@ -102,6 +103,9 @@ public:
 
     /// add a  new exchange to hydra class
     shared_ptr<Exchange> new_exchange(const string &exchange_id);
+
+    /// create new strategy class
+    shared_ptr<Strategy> new_strategy();
 
     /// get shared pointer to a broker
     broker_sp_t get_broker(const string &broker_id);

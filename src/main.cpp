@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <pybind11/pybind11.h>
+#include <pybind11/functional.h>
 
 #include "account.h"
 #include "asset.h"
@@ -68,11 +69,9 @@ void init_hydra_ext(py::module &m)
                     return py::capsule(ptr, "void*");
                 })
         .def("build", &Hydra::build, "build hydra class")
+        .def("run", &Hydra::run, "run simulation")
 
-        .def("forward_pass", &Hydra::forward_pass, "forward pass")
-        .def("on_open", &Hydra::on_open, "on open")
-        .def("backward_pass", &Hydra::backward_pass, "backwards pass")
-
+        .def("new_strategy", &Hydra::new_strategy, "adds new strategy")
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
         .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
         .def("new_portfolio", &Hydra::new_portfolio, "adds new portfolio to master portfolio", py::return_value_policy::reference)
@@ -84,6 +83,13 @@ void init_hydra_ext(py::module &m)
         .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange");
 
     m.def("new_hydra", &new_hydra, py::return_value_policy::reference);
+}
+
+void init_strategy_ext(py::module &m)
+{
+    py::class_<Strategy, std::shared_ptr<Strategy>>(m, "Strategy")
+        .def_readwrite("on_close", &Strategy::python_handler_on_close)
+        .def_readwrite("on_open", &Strategy::python_handler_on_open);
 }
 
 void init_account_ext(py::module &m)
@@ -158,6 +164,9 @@ PYBIND11_MODULE(FastTest, m)
 
     // build python hydra class bindings
     init_hydra_ext(m);
+
+    // build python strategy class bindings
+    init_strategy_ext(m);
 
     // build python account class bindings
     init_account_ext(m);
