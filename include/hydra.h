@@ -23,7 +23,7 @@ using namespace std;
 class Hydra
 {
 private:
-    using portfolio_sp_t = Portfolio::portfolio_sp_t;
+    using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
     
     typedef shared_ptr<Brokers> brokers_sp_t;
 
@@ -40,7 +40,7 @@ private:
     brokers_sp_t brokers{};
 
     /// mapping between broker id and portfolio held at broker
-    portfolio_sp_t master_portfolio{};
+    portfolio_sp_threaded_t master_portfolio;
 
     /// container for remembering historical events and structs
     shared_ptr<History> history;
@@ -90,13 +90,13 @@ public:
     void evaluate_portfolio(bool on_close);
 
     /// get sp to master portfolio
-    portfolio_sp_t get_master_portflio() {return this->master_portfolio;}
+    shared_ptr<Portfolio> get_master_portflio() {return this->master_portfolio.get_shared_ptr();}
 
     /// search for a portfolio in portfolio tree and return it 
-    portfolio_sp_t get_portfolio(const string & portfolio_id);
+    shared_ptr<Portfolio> get_portfolio(const string & portfolio_id);
 
     // add a new child portfolio to the master portfolio and return sp to it
-    portfolio_sp_t new_portfolio(const string & portfolio_id, double cash);
+    shared_ptr<Portfolio> new_portfolio(const string & portfolio_id, double cash);
 
     /// get shared pointer to an exchange
     shared_ptr<Exchange> get_exchange(const string &exchange_id);
@@ -113,6 +113,7 @@ public:
     /// add a new broker
     broker_sp_t new_broker(const string &broker_id, double cash);
 
+    /// total number of rows loaded
     size_t get_candles(){return this->candles;}
     
     /// handle a asset id that has finished streaming (remove from portfolio and exchange)

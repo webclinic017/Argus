@@ -9,8 +9,6 @@
 #include <memory>
 #include <fmt/core.h>
 
-
-
 #include "asset.h"
 #include "exchange.h"
 #include "hydra.h"
@@ -21,16 +19,16 @@
 namespace py = pybind11;
 using namespace std;
 
-using portfolio_sp_t = Portfolio::portfolio_sp_t;
+using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
 
-Hydra::Hydra(int logging_)
+Hydra::Hydra(int logging_) : master_portfolio(nullptr)
 {   
     this->logging = logging_;
     this->history = std::make_shared<History>();
     this->brokers = std::make_shared<Brokers>();
     this->exchanges = std::make_shared<Exchanges>();
 
-    this->master_portfolio = std::make_shared<Portfolio>(
+    auto portfolio = new Portfolio(
             logging_, 
             0,
             "master", 
@@ -38,6 +36,8 @@ Hydra::Hydra(int logging_)
             nullptr,
             this->brokers,
             this->exchanges);
+
+    this->master_portfolio = ThreadSafeSharedPtr<Portfolio>(portfolio);
 }
 
 Hydra::~Hydra()
@@ -118,32 +118,34 @@ void Hydra::build()
     this->is_built = true;
 };
 
-portfolio_sp_t Hydra::get_portfolio(const string& portfolio_id){
+shared_ptr<Portfolio> Hydra::get_portfolio(const string& portfolio_id){
     if(portfolio_id == this->master_portfolio->get_portfolio_id()){
-        return this->master_portfolio;
+        return this->master_portfolio.get_shared_ptr();
     }
     else{
         return this->master_portfolio->find_portfolio(portfolio_id);
     }
 }
 
-portfolio_sp_t Hydra::new_portfolio(const string & portfolio_id_, double cash_){
+shared_ptr<Portfolio> Hydra::new_portfolio(const string & portfolio_id_, double cash_){
     //build new smart pointer to portfolio 
-    auto portfolio = std::make_shared<Portfolio>(
+     auto portfolio = std::make_shared<Portfolio>(
         this->logging, 
         cash_, 
         portfolio_id_,
         this->history,
-        this->master_portfolio.get(),
+        this->master_portfolio.get_shared_ptr().get(),
         this->brokers,
         this->exchanges
     );
 
+    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
+    
     //add it to the master portfolio
-    this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio);
+    this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio_threaded);
 
     //return sp to new child portfolio
-    return std::move(portfolio);
+    return portfolio;
 }
 
 shared_ptr<Strategy> Hydra::new_strategy(){
@@ -193,7 +195,7 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
         cash,
         this->logging,
         this->history,
-        this->master_portfolio);
+        this->master_portfolio.get_shared_ptr());
 
     // insert a clone of the smart pointer into the exchange
     this->brokers->emplace(broker_id, broker);

@@ -7,9 +7,11 @@
 #include <sys/_types/_size_t.h>
 #include <tsl/robin_map.h>
 #include <fmt/core.h>
+#include <mutex>
 
 class Broker;
 
+#include "threaded.h"
 #include "order.h"
 #include "trade.h"
 #include "position.h"
@@ -27,9 +29,9 @@ public:
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
-    typedef shared_ptr<Portfolio> portfolio_sp_t;
+    typedef ThreadSafeSharedPtr<Portfolio> portfolio_sp_threaded_t;
     typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
-    typedef tsl::robin_map<std::string, portfolio_sp_t> portfolios_map_t;
+    typedef tsl::robin_map<std::string, portfolio_sp_threaded_t> portfolios_map_t;
     typedef shared_ptr<tsl::robin_map<string, shared_ptr<Broker>>> brokers_sp_t;
 
     /// portfolio constructor
@@ -91,22 +93,22 @@ public:
     /// add new sub portfolio to the portfolio
     /// @param portfolio_id portfolio id of the new sub portfolio
     /// @param portfolio smart pointer to sub portfolio
-    void add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio);
+    void add_sub_portfolio(const string &portfolio_id, portfolio_sp_threaded_t portfolio);
     
     /// create a new sub portfolio to the parent
     /// @param portfolio_id portfolio id of the new sub portfolio
     /// @param amount of cash held in the new portfolio
-    portfolio_sp_t create_sub_portfolio(const string &portfolio_id, double cash);
+    shared_ptr<Portfolio> create_sub_portfolio(const string &portfolio_id, double cash);
 
     /// @brief get smartpointer to a sub portfolio
     /// @param portfolio_id id of the sub portfolio
     /// @return smart pointer to the sub portfolio
-    std::optional<portfolio_sp_t> get_sub_portfolio(const string &portfolio_id);
+    optional<portfolio_sp_threaded_t>  get_sub_portfolio(const string &portfolio_id);
 
     /// @brief recursively search through sub portfolios to find by portfolio id
     /// @param portfolio_id unique id of the portfolio
     /// @return sp to portfolio if exists
-    portfolio_sp_t find_portfolio(const string &portfolio_id);
+    shared_ptr<Portfolio> find_portfolio(const string &portfolio_id);
 
     /// @brief evaluate the portfolio on open or close
     /// @param on_close are we at close of the candle
@@ -152,8 +154,6 @@ private:
 
     /// logging level
     int logging;
-
-    vector<position_sp_t> test;
 
     /// smart pointer to parent_portfolio
     Portfolio* parent_portfolio = nullptr;

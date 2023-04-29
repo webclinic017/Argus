@@ -17,7 +17,7 @@
 #include "settings.h"
 #include "utils_time.h"
 
-using portfolio_sp_t = Portfolio::portfolio_sp_t;
+using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
 using position_sp_t = Position::position_sp_t;
 using order_sp_t = Order::order_sp_t;
 
@@ -98,8 +98,7 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
                                 const string &strategy_id_,
                                 OrderExecutionType order_execution_type,
                                 int trade_id)
-{
-
+{   
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
                                            asset_id_,
@@ -437,29 +436,31 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
     }
 };
 
-portfolio_sp_t Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
+shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
     //create new portfolio
-    auto portfolio_ = std::make_shared<Portfolio>(
-        this->logging, 
+    auto portfolio = new Portfolio(
+             this->logging, 
         cash_, 
         portfolio_id_,
         this->history,
         this,
         this->brokers,
         this->exchanges_sp
-    );
+        );
     
+    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
+
     //insert into child portfolio map
-    this->portfolio_map.insert({portfolio_id, portfolio_});
+    this->portfolio_map.insert({portfolio_id, portfolio_threaded});
 
     //update parent portfolio's values
     this->cash += cash_;
 
     //return smart pointer to the new portfolio
-    return portfolio_;
+    return portfolio_threaded.get_shared_ptr();
 }
 
-void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_t portfolio_)
+void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_threaded_t portfolio_)
 {
     auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() != iter)
@@ -499,12 +500,12 @@ void Portfolio::update(){
     }
 }
 
-std::optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfolio_id_)
+optional<portfolio_sp_threaded_t> Portfolio::get_sub_portfolio(const string &portfolio_id_)
 {
     auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() == iter)
     {
-        return std::nullopt;
+        return nullopt;
     }
     return this->portfolio_map.at(portfolio_id_);
 }
@@ -675,7 +676,7 @@ void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
     #endif
 }
 
-portfolio_sp_t Portfolio::find_portfolio(const string &portfolio_id_){
+shared_ptr<Portfolio> Portfolio::find_portfolio(const string &portfolio_id_){
     if(this->portfolio_id == portfolio_id_){
         return shared_from_this();
     }

@@ -20,7 +20,8 @@ Broker::Broker(string broker_id_,
                double cash_,
                int logging_,
                shared_ptr<History> history_,
-               shared_ptr<Portfolio> master_portfolio) : broker_account(broker_id_, cash_)
+               shared_ptr<Portfolio> master_portfolio) : broker_account(broker_id_, cash_),
+                                                         master_portfolio(nullptr)
 {
     this->history = std::move(history_);
     this->master_portfolio = std::move(master_portfolio);
