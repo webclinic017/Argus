@@ -85,11 +85,13 @@ void Hydra::build()
 
     this->datetime_index = new long long[0];
     this->datetime_index_length = 0;
+    this->candles = 0;
 
     // build the exchanges
     for (auto it = this->exchanges->begin(); it != this->exchanges->end(); ++it)
     {
         it.value()->build();
+        this->candles += it.value()->candles;
     }
 
     // build the brokers

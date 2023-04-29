@@ -14,6 +14,7 @@
 #include "asset.h"
 #include "order.h"
 
+#include "pybind11/pytypes.h"
 #include "utils_array.h"
 
 using namespace std;
@@ -43,6 +44,9 @@ public:
 
     /// Disable move assignment operator
     Exchange &operator=(Exchange &&) = delete;
+
+    /// total number of rows in the exhange
+    size_t candles;
 
     /// build the exchange
     void build();
@@ -88,7 +92,11 @@ public:
     /// return the number of rows in the asset
     [[nodiscard]] size_t get_rows() const { return this->datetime_index_length; }
 
+    /// get a values from asset data by column and row, (index 0 is current, row -1 is previous row)
     double get_asset_feature(const string& asset_id, const string& column, int index = 0);
+
+    /// get series of values for all asset's listed on the exchange
+    void get_exchange_feature(py::dict& feature_dict, const string& column);
 
     inline double get_market_price(const string &asset_id)
     {

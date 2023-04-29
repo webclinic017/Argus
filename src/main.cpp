@@ -48,6 +48,7 @@ void init_exchange_ext(py::module &m)
         .def("register_asset", &Exchange::register_asset, "register a new asset to the exchange")
         
         .def("get_asset", &Exchange::get_asset, "get pointer to existing asset on the exchange", py::return_value_policy::reference)
+        .def("get_exchange_feature", &Exchange::get_exchange_feature, "get asset feature for all assets in exchange")
         .def("get_asset_feature", 
             &Exchange::get_asset_feature, 
             "get asset feature",
@@ -76,6 +77,7 @@ void init_hydra_ext(py::module &m)
         .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
         .def("new_portfolio", &Hydra::new_portfolio, "adds new portfolio to master portfolio", py::return_value_policy::reference)
         
+        .def("get_candles", &Hydra::get_candles, "get number of rows loaded")
         .def("get_broker", &Hydra::get_broker, "gets existing broker object")
         .def("get_master_portfolio", &Hydra::get_master_portflio, "get smart pointer to master portfolio")
         .def("get_portfolio", &Hydra::get_portfolio, "search through portfolio tree to find portfolio")

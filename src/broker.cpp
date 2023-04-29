@@ -147,6 +147,10 @@ void Broker::send_orders()
 
 void Broker::process_filled_order(order_sp_t filled_order)
 {
+    #ifdef DEBUGGING
+    printf("broker processing filled order...\n");
+    #endif
+
     // adjust the account held at the broker
     assert(filled_order->get_source_portfolio());
     this->broker_account.on_order_fill(filled_order);
@@ -156,6 +160,10 @@ void Broker::process_filled_order(order_sp_t filled_order)
 
     //remember the order
     this->history->remember_order(std::move(filled_order));
+
+    #ifdef DEBUGGING
+    printf("broker filled order processed \n");
+    #endif
 }
 
 void Broker::process_orders()

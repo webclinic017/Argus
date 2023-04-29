@@ -9,6 +9,7 @@
 #include "exchange.h"
 #include "asset.h"
 #include "fmt/core.h"
+#include "pybind11/pytypes.h"
 #include "utils_array.h"
 #include "settings.h"
 
@@ -44,6 +45,8 @@ void Exchange::build()
         delete[] this->datetime_index;
     }
 
+    this->candles = 0;
+
     auto datetime_index_ = container_sorted_union(
         this->market,
         [](const shared_ptr<Asset> &obj)
@@ -56,6 +59,9 @@ void Exchange::build()
 
     for(auto& asset_pair : this->market){
         auto asset = asset_pair.second;
+        
+        // test to see if asset is alligned with the exchage's datetime index
+        // makes updating market view faster
         if(asset->get_rows() == this->datetime_index_length){
             asset->is_alligned = true;
             this->market_view[asset->get_asset_id()] = asset.get();
@@ -63,6 +69,9 @@ void Exchange::build()
         else{
             asset->is_alligned = false;
         }
+
+        this->candles+= asset->get_rows();
+
     }
 
     this->is_built = true;
@@ -365,6 +374,19 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
     return asset_sp->get_asset_feature(column_name, index);
 }
 
+void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column){
+    for(auto& asset_pair : this->market_view){
+        //check if asset is streaming
+        if(!asset_pair.second)
+        {
+            feature_dict[asset_pair.first.c_str()] = py::none();
+        }
+        else
+        {
+            feature_dict[asset_pair.first.c_str()] = asset_pair.second->get_asset_feature(column);
+        }
+    }
+}
 
 shared_ptr<Exchange> new_exchange(const string &exchange_id, int logging_)
 {

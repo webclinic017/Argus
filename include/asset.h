@@ -81,7 +81,7 @@ public:
     /// get read only numpy array of the asset's datetime index
     py::array_t<long long> get_datetime_index_view();
 
-    [[nodiscard]] double get_asset_feature(const string& column_name, int index);
+    [[nodiscard]] double get_asset_feature(const string& column_name, int index = 0);
 
     /// step the asset forward in time
     void step();

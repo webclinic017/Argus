@@ -50,10 +50,13 @@ private:
     long long *datetime_index{};
 
     /// current index of the datetime
-    size_t current_index{};
+    size_t current_index = 0;
 
     /// length of datetime index
-    size_t datetime_index_length{};
+    size_t datetime_index_length = 0;
+
+    /// total number of rows in the hydra across all exchanges
+    size_t candles = 0;
 
     // function calls on open
     vector<std::function<int(int)>> functions_on_open;
@@ -106,6 +109,8 @@ public:
     /// add a new broker
     broker_sp_t new_broker(const string &broker_id, double cash);
 
+    size_t get_candles(){return this->candles;}
+    
     /// handle a asset id that has finished streaming (remove from portfolio and exchange)
     void cleanup_asset(const string& asset_id);
 

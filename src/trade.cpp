@@ -103,11 +103,13 @@ void Trade::increase(double market_price, double units_, long long trade_change_
 }
 void Trade::reduce(double market_price_, double units_, long long int trade_change_time_)
 {
+
 #ifdef ARGUS_RUNTIME_ASSERT
     assert(this->is_open);              // assert trade is open
     assert(units + this->units > 1e-8); // assert note closing trade
     assert(units_ * this->units < 0);   // assert order was on different side
 #endif
+
     this->realized_pl += abs(units_) * (market_price_ - this->average_price);
     this->trade_change_time = trade_change_time_;
     this->units += units_;

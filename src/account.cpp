@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <tsl/robin_map.h>
@@ -25,9 +26,11 @@ void Account::on_order_fill(order_sp_t filled_order)
     // adjust the account's cash
     this->cash -= order_units * order_fill_price;
 
+    // find trade if exists
+    auto it = this->trades.find(asset_id);
     
     // no trade exists with the given asset id
-    if (!this->trades.contains(asset_id))
+    if (it == this->trades.end())
     {
         this->trades.insert({asset_id,
                              Trade(
@@ -38,11 +41,27 @@ void Account::on_order_fill(order_sp_t filled_order)
     else
     {
         auto trade = &this->trades.at(asset_id);
+
+        auto trade_units = trade->get_units();
+        if(trade_units * order_units < 0 && abs(order_units) > abs(trade_units))
+        {
+            // new order created to close out existing position, filled order now holds units 
+            // to open the position in the other direction
+            auto new_order = split_order(
+                filled_order,  
+                -1 * trade_units);
+
+            // process adjusted orders, first closes out, second creates new position
+            this->on_order_fill(new_order);
+            this->on_order_fill(filled_order);
+            return;
+        }
         trade->adjust(filled_order);
 
         if(!trade->get_is_open())
         {
             this->trades.erase(asset_id);
+            assert(!this->trades.contains(asset_id));
         }
     }
 };

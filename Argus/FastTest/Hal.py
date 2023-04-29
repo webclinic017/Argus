@@ -1,4 +1,5 @@
 from typing import Type
+import cProfile
 
 import numpy as np
 
@@ -31,6 +32,9 @@ class Hal:
     def get_portfolio(self, portfolio_id : str) -> Portfolio:
         return self.hydra.get_portfolio(portfolio_id)
     
+    def get_candles(self) -> int:
+        return self.hydra.get_candles()
+    
     def new_portfolio(self, portfolio_id : str, cash : float, parent_portfolio_id : str = "master") -> Portfolio:
         parent_portfolio = self.hydra.get_portfolio(parent_portfolio_id)
         return parent_portfolio.create_sub_portfolio(portfolio_id, cash)
@@ -46,10 +50,18 @@ class Hal:
             
         self.strategies = np.append(self.strategies,(strategy))
         
+    def profile(self):
+        pr = cProfile.Profile()
+        pr.enable()
+        self.run()
+        pr.disable()
+        pr.print_stats(sort='time')
+
+        
     def run(self):
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
-            
+        
         while True:
             #allow brokers to process orders that have been filled or orders that were placed by 
             #strategies with lazy execution. 

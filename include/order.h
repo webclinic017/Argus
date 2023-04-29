@@ -188,6 +188,8 @@ public:
     /// set the limit of the order
     inline void set_limit(double limit_) { this->limit = limit_; }
 
+    inline void set_units(double units_) { this->units = units_;}
+
     // set the unique id of the order (broker sets when it is placed)
     inline void set_order_id(unsigned int order_id_) {this->order_id = order_id_;}
     
@@ -196,9 +198,12 @@ public:
 
     /// set the order state of the order
     inline void set_order_state(OrderState order_state_) { this->order_state = order_state_; };
-
+    
     /// fill the order at a given price and time
     void fill(double market_price, long long fill_time);
 };
+
+/// split a order into multiple sub orders based on number of units
+shared_ptr<Order> split_order(shared_ptr<Order> existing_order, double new_order_units);
 
 #endif // ARGUS_ORDER_H

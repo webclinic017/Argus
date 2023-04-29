@@ -183,8 +183,26 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
     else
     {
         auto position = this->get_position(filled_order->get_asset_id()).value();
+        auto position_units = position->get_units();
+        auto order_units = filled_order->get_units();
+
+        // changing position sides
+        if(position_units * order_units < 0 && abs(order_units) > abs(position_units))
+        {
+            // new order created to close out existing position, filled order now holds units 
+            // to open the position in the other direction
+            auto new_order = split_order(
+                filled_order,  
+                -1 * position_units);
+
+            // process adjusted orders, first closes out, second creates new position
+            this->on_order_fill(new_order);
+            this->on_order_fill(filled_order);
+            return;
+        }
+        
         // filled order is not closing existing position
-        if (position->get_units() + filled_order->get_units() > 1e-7)
+        else if (position_units + filled_order->get_units() > 1e-7)
         {
             this->modify_position(filled_order);
         }
@@ -195,6 +213,8 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
             /// close the position
             this->close_position(filled_order);
         }
+
+        assert(abs(position->get_units()) <= 2);
     }
 
     // place child orders from the filled order
@@ -216,6 +236,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
         filled_order->set_trade_id(this->trade_counter);
         this->trade_counter++;
     }
+
 
     // adjust position and close out trade if needed
     auto trade = position->adjust_order(filled_order, this);
