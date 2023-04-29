@@ -33,12 +33,6 @@ private:
     /// is the hydra built
     bool is_built{};
 
-    /// mapping between exchange id and smart pointer to an exchange
-    exchanges_sp_t exchanges{};
-
-    /// mapping between broker id and smart pointer to a broker
-    brokers_sp_t brokers{};
-
     /// mapping between broker id and portfolio held at broker
     portfolio_sp_threaded_t master_portfolio;
 
@@ -65,6 +59,12 @@ private:
     void log(const string& msg);
 
 public:
+    /// mapping between exchange id and smart pointer to an exchange
+    exchanges_sp_t exchanges{};
+
+    /// mapping between broker id and smart pointer to a broker
+    brokers_sp_t brokers{};
+    
     /// hydra constructor
     explicit Hydra(int logging_);
 
@@ -122,8 +122,6 @@ public:
     //cast self to void ptr and return
     void* void_ptr() { return static_cast<void*>(this);};
 
-    //test
-    double test_call() {return 34.6;}
 };
 
 /// function for creating a shared pointer to a hydra

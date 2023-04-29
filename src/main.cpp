@@ -15,6 +15,7 @@
 #include "order.h"
 #include "portfolio.h"
 #include "position.h"
+#include "settings.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -70,6 +71,12 @@ void init_hydra_ext(py::module &m)
                 })
         .def("build", &Hydra::build, "build hydra class")
         .def("run", &Hydra::run, "run simulation")
+
+        #ifdef ARGUS_STRIP
+        .def("forward_pass", &Hydra::forward_pass, "forward pass")
+        .def("on_open", &Hydra::on_open, "on open")
+        .def("backward_pass", &Hydra::backward_pass, "backwards pass")
+        #endif
 
         .def("new_strategy", &Hydra::new_strategy, "adds new strategy")
         .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
@@ -148,7 +155,7 @@ void init_broker_ext(py::module &m)
 void init_enum(py::module &m){
      py::enum_<OrderExecutionType>(m, "OrderExecutionType")
         .value("EAGER", OrderExecutionType::EAGER)
-        .value("Green", OrderExecutionType::LAZY)
+        .value("LAZY", OrderExecutionType::LAZY)
         .export_values();
 }
 

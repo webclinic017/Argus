@@ -19,6 +19,8 @@ class MovingAverageStrategy:
         self.broker = hal.get_broker(helpers.test1_broker_id)
         self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
         
+        self.exchange_time = 0
+        
     def build(self) -> None:
         return
         
@@ -29,7 +31,7 @@ class MovingAverageStrategy:
             helpers.test1_exchange_id,
             helpers.test1_broker_id,
             "dummy",
-            FastTest.OrderExecutionType.EAGER,
+            FastTest.OrderExecutionType.LAZY,
             -1
         )
         
@@ -39,8 +41,12 @@ class MovingAverageStrategy:
     def on_close(self) -> None:
         cross_dict = {}
         close_dict = {}
+        
+        st = time.time()
         self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
         self.exchange.get_exchange_feature(close_dict, "Close")
+        et = time.time()
+        self.exchange_time += (et - st)
 
         for asset_id, cross_value in cross_dict.items():
             
@@ -136,8 +142,8 @@ class HalTestMethods(unittest.TestCase):
         strategy = MovingAverageStrategy(hal)
         hal.register_strategy(strategy) 
                
-        strategy = MovingAverageStrategy(hal)
-        hal.register_strategy(strategy) 
+        #strategy = MovingAverageStrategy(hal)
+        #hal.register_strategy(strategy) 
                
                
         hal.build()
@@ -148,8 +154,11 @@ class HalTestMethods(unittest.TestCase):
         
         execution_time = et - st
         candles = hal.get_candles()
-        print(f"HAL: execution time: {execution_time:.4f} seconds")
-        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
+        
+        ##print(f"HAL: execution time: {execution_time:.4f} seconds")
+        #print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
+        #print(f"HAL: exchange time: {strategy.exchange_time}")
+        
         assert(True)
     
     

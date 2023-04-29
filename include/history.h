@@ -14,25 +14,6 @@
 #include "order.h"
 #include "position.h"
 
-/*
-template <typename T>
-class LinkedList {
-public:
-    // Add a new element to the beginning of the list
-    void push_front(T element) {
-        list_.push_front(element);
-    }
-
-    // Remove the first element from the list
-    void pop_front() {
-        list_.pop_front();
-    }
-
-private:
-    std::list<T> list_;
-};
-*/
-
 using namespace std;
 
 class History{
@@ -44,7 +25,6 @@ private:
     vector<shared_ptr<Trade>> trades;
 
     /// history of all positions
-    //LinkedList<shared_ptr<Position>> positions;
     unordered_map<unsigned int, shared_ptr<Position>> positions;
 
 

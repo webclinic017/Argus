@@ -344,18 +344,18 @@ bool Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
     this->log("executing backward pass...");
     #endif
-
     for (auto &exchange_pair : *this->exchanges)
-    {
-        // allow exchanges to process orders placed at close
-        exchange_pair.second->process_orders();
-    }
+        {
+            // allow exchanges to process orders placed at close
+            exchange_pair.second->process_orders();
+        }
 
-    // process any filled orders, or send orders placed at close with lazy execution
-    for (auto &broker_pair : *this->brokers)
-    {
-        broker_pair.second->process_orders();
-    }
+        // process any filled orders, or send orders placed at close with lazy execution
+        for (auto &broker_pair : *this->brokers)
+        {
+            broker_pair.second->process_orders();
+        }
+
 
     //update historicals values
     this->master_portfolio->update();
@@ -416,17 +416,11 @@ void Hydra::run(){
         this->on_open();
 
         //allow strategies to place orders at close
-        py::gil_scoped_release release;
-
-        std::vector<std::thread> threads;
-        for (auto& strategy : this->strategies) {
-            threads.emplace_back(strategy->cxx_handler_on_close);
-        }
-
-        for (auto& t : threads) 
+        for(auto & strategy : this->strategies)
         {
-            t.join();
-        }
+            strategy->cxx_handler_on_close();    
+        };
+
 
         if(!this->backward_pass())
         {

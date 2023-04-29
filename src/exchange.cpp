@@ -377,13 +377,13 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
 void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column){
     for(auto& asset_pair : this->market_view){
         //check if asset is streaming
-        if(!asset_pair.second)
+        if(asset_pair.second)
         {
-            feature_dict[asset_pair.first.c_str()] = py::none();
+            feature_dict[asset_pair.first.c_str()] = asset_pair.second->get_asset_feature(column);
         }
         else
         {
-            feature_dict[asset_pair.first.c_str()] = asset_pair.second->get_asset_feature(column);
+            continue;        
         }
     }
 }
