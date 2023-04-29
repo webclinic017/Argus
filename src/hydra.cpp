@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <fmt/core.h>
+#include <thread>
 
 #include "asset.h"
 #include "exchange.h"
@@ -35,8 +36,9 @@ Hydra::Hydra(int logging_) : master_portfolio(nullptr)
             this->history,
             nullptr,
             this->brokers,
-            this->exchanges);
-
+            this->exchanges);   
+    
+    //wrap raw pointer in thread safe shared_ptr
     this->master_portfolio = ThreadSafeSharedPtr<Portfolio>(portfolio);
 }
 
@@ -414,10 +416,17 @@ void Hydra::run(){
         this->on_open();
 
         //allow strategies to place orders at close
-        for(auto & strategy : this->strategies)
+        py::gil_scoped_release release;
+
+        std::vector<std::thread> threads;
+        for (auto& strategy : this->strategies) {
+            threads.emplace_back(strategy->cxx_handler_on_close);
+        }
+
+        for (auto& t : threads) 
         {
-            strategy->cxx_handler_on_close();    
-        };
+            t.join();
+        }
 
         if(!this->backward_pass())
         {

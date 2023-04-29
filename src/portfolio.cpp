@@ -7,6 +7,7 @@
 #include <fmt/core.h>
 #include <vector>
 
+
 #include "asset.h"
 #include "exchange.h"
 #include "history.h"
@@ -16,6 +17,7 @@
 #include "position.h"
 #include "settings.h"
 #include "utils_time.h"
+
 
 using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
 using position_sp_t = Position::position_sp_t;

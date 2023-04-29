@@ -128,14 +128,18 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
 
-    """
     def test_hal_big(self):
         hal = helpers.create_big_hal(logging = 0)
         
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         
         strategy = MovingAverageStrategy(hal)
-        hal.register_strategy(strategy)        
+        hal.register_strategy(strategy) 
+               
+        strategy = MovingAverageStrategy(hal)
+        hal.register_strategy(strategy) 
+               
+               
         hal.build()
 
         st = time.time()
@@ -147,7 +151,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         assert(True)
-    """
+    
     
     
     

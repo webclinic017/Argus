@@ -48,7 +48,6 @@ public:
         shared_ptr<Exchanges> exchanges_
         );
 
-
     void build(size_t portfolio_eval_length);
 
     /// get the memory addres of the portfolio object
