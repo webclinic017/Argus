@@ -29,7 +29,10 @@ public:
     /// asset destructor
     ~Asset();
 
-    bool is_last_view() const {return this->current_index == this->rows;};
+    /// is the asset's datetime index alligend with it's exchange
+    bool is_alligned;
+
+    bool is_last_view() {return this->current_index == this->rows;};
 
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     

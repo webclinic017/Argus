@@ -63,9 +63,7 @@ class HalTestMethods(unittest.TestCase):
         hal.register_strategy(strategy)
         
         hal.build()
-        st = time.time()
         hal.run()
-        et = time.time()
                 
         cash_actual = np.array([100000, 100000,  90300, 100450, 100450,  90850.0,])
         nlv_actual = np.array([100000, 100000, 100000, 100450, 100450, 100450.0,])
@@ -78,8 +76,6 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
   
-        
-    """
     def test_hal_big(self):
         hal = helpers.create_big_hal(logging=0)
         
@@ -91,7 +87,6 @@ class HalTestMethods(unittest.TestCase):
         print(et - st)
         
         assert(True)
-    """
 
 if __name__ == '__main__':
     unittest.main()

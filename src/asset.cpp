@@ -208,7 +208,6 @@ double Asset::get_asset_feature(const string& column_name, int index)
 
     //prevent acces index < 0
     assert(row_offset + ptr_index > 0);
-
     return *(this->row - this->cols + column_offset + row_offset);
 }
 

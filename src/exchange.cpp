@@ -1,7 +1,8 @@
 //
 // Created by Nathan Tormaschy on 4/18/23.
 //
-
+#include <algorithm>
+#include <execution>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
@@ -52,6 +53,18 @@ void Exchange::build()
 
     this->datetime_index = get<0>(datetime_index_);
     this->datetime_index_length = get<1>(datetime_index_);
+
+    for(auto& asset_pair : this->market){
+        auto asset = asset_pair.second;
+        if(asset->get_rows() == this->datetime_index_length){
+            asset->is_alligned = true;
+            this->market_view[asset->get_asset_id()] = asset.get();
+        }
+        else{
+            asset->is_alligned = false;
+        }
+    }
+
     this->is_built = true;
 
 #ifdef DEBUGGING
@@ -291,12 +304,22 @@ bool Exchange::get_market_view()
     {
         return false;
     }
-    // loop through all the assets in this exchange. If the asset's next datetime is equal to the
-    // next datetime of the exchange, then that asset will be seen in the market view.
+
+    // set exchange time to compare to assets
     this->exchange_time = this->datetime_index[this->current_index];
-    for (auto &_asset_pair : this->market)
-    {
+
+    // Define a lambda function that processes each asset
+    auto process_asset = [&](auto& _asset_pair) {
         auto asset_raw_pointer = _asset_pair.second.get();
+
+        // if asset is alligned to exchange just step forward in time, clean up if needed 
+        if(asset_raw_pointer->is_alligned){
+            asset_raw_pointer->step();
+            if(asset_raw_pointer->is_last_view()){
+                expired_assets.push_back(_asset_pair.second);
+            }
+            return;
+        }
 
         // get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
@@ -305,6 +328,7 @@ bool Exchange::get_market_view()
         if (asset_datetime && *asset_datetime == this->exchange_time)
         {
             // add asset to market view, step the asset forward in time
+            
             this->market_view[asset_id] = asset_raw_pointer;
             asset_raw_pointer->step();
 
@@ -317,8 +341,14 @@ bool Exchange::get_market_view()
         {
             this->market_view[asset_id] = nullptr;
         }
-    }
+    };
+    std::for_each(
+        //std::execution::par,
+        this->market.begin(), 
+        this->market.end(), 
+        process_asset);
 
+    
     // move to next datetime and return true showing the market contains at least one
     // asset that is not done streaming
     this->current_index++;
