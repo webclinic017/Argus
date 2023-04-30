@@ -16,12 +16,16 @@ using namespace std;
 
 class Order;
 
+/**
+ * @brief An enumeration representing different order types
+ * 
+ */
 enum OrderType
 {
-    MARKET_ORDER,
-    LIMIT_ORDER,
-    STOP_LOSS_ORDER,
-    TAKE_PROFIT_ORDER
+    MARKET_ORDER   ,                   /**< market order*/
+    LIMIT_ORDER    ,                   /**< limit order */
+    STOP_LOSS_ORDER,                   /**< stop loss order */
+    TAKE_PROFIT_ORDER                  /**< take profit order */
 };
 
 enum OrderState

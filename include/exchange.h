@@ -98,7 +98,7 @@ public:
     double get_asset_feature(const string& asset_id, const string& column, int index = 0);
 
     /// get series of values for all asset's listed on the exchange
-    void get_exchange_feature(py::dict& feature_dict, const string& column);
+    void get_exchange_feature(py::dict& feature_dict, const string& column, int row = 0);
 
     inline double get_market_price(const string &asset_id)
     {

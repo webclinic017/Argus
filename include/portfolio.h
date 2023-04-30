@@ -130,8 +130,19 @@ public:
         const string & asset_id,
         bool send_orders,
         bool send_collapse);
-    
-    /// place an to target a certain size held be the portfolio it was placed to
+
+
+    /**
+     * @brief place a new order that when executed will create or modify a position to the given size
+     * 
+     * @param asset_id the unique id of the asset 
+     * @param size the size of the target to place (make sure to see order_target_type)
+     * @param strategy_id unique id of the strategy placing the order
+     * @param epsilon the minimum pct difference in new size relatvie to exisitng to where the order is executed eg (.01)
+     * @param order_target_type type of order target, raw units, dollars, or pct of nlv
+     * @param order_execution_type  order execution type
+     * @param trade_id unique id of the trade to adjust (-1 defaults to new trade)
+     */
     void order_target_size(const string &asset_id, double size,
                            const string &strategy_id,
                            double epsilon,
@@ -140,12 +151,30 @@ public:
                            int trade_id = -1
                     );
 
-    /// order placement wrappers exposed to python
+    /**
+     * @brief place a new market order
+     * 
+     * @param asset_id unique id of the underlying asset
+     * @param units number of units to buy/sell
+     * @param strategy_id unique id of the strategy
+     * @param order_execution_type execution type of the order
+     * @param trade_id unique id of the trade (-1 defaults to new trade)
+     */
     void place_market_order(const string &asset_id, double units,
                             const string &strategy_id,
                             OrderExecutionType order_execution_type = LAZY,
                             int trade_id = -1);
 
+    /**
+     * @brief place a new limit order
+     * 
+     * @param asset_id unique id of the underlying asset
+     * @param units number of units to buy/sell
+     * @param limit the limit price of the new order
+     * @param strategy_id unique id of the strategy
+     * @param order_execution_type execution type of the order
+     * @param trade_id unique id of the trade (-1 defaults to new trade)
+     */
     void place_limit_order(const string &asset_id, double units, double limit,
                            const string &strategy_id,
                            OrderExecutionType order_execution_type = LAZY,

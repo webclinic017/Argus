@@ -9,11 +9,6 @@
 #include <unordered_map>
 #include <memory>
 
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-
-namespace py = pybind11;
-
 #include "settings.h"
 #include "trade.h"
 #include "order.h"

@@ -8,7 +8,6 @@ import numpy as np
 sys.path.append(os.path.abspath('..'))
 
 import FastTest
-import Asset
 import helpers
 
 class ExchangeTestMethods(unittest.TestCase):
@@ -50,7 +49,7 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange_index = exchange.get_datetime_index_view()
 
         assert(np.array_equal(exchange_index, asset2.get_datetime_index_view()))
-    """
+    
     def test_exchange_get_asset_feature(self):
         hydra = helpers.create_simple_hydra(logging=0)
         
@@ -84,7 +83,7 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange_features = {}
         exchange.get_exchange_feature(exchange_features, "CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 101.5)
-        assert(exchange_features[helpers.test1_asset_id] is None)
+        assert(helpers.test1_asset_id not in exchange_features)
         
         hydra.backward_pass()
         hydra.forward_pass()
@@ -93,9 +92,14 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange.get_exchange_feature(exchange_features, "CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 99.0)
         assert(exchange_features[helpers.test1_asset_id] == 101.0)
-    """
         
-
-                
+        hydra.backward_pass()
+        hydra.forward_pass()
+        
+        exchange_features2 = {}
+        exchange.get_exchange_feature(exchange_features2, "CLOSE", -1)
+        assert(exchange_features2 == exchange_features)
+    
+    
 if __name__ == '__main__':
     unittest.main()

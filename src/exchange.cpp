@@ -379,14 +379,14 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
     return asset_sp->get_asset_feature(column_name, index);
 }
 
-void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column)
+void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column, int row)
 {
     for(auto it = this->market_view.begin(); it != this->market_view.end(); it++){
         //check if asset is streaming
         auto asset_sp = it->second;
         if(asset_sp)
         {
-            feature_dict[it->first.c_str()] = asset_sp->get_asset_feature(column);
+            feature_dict[it->first.c_str()] = asset_sp->get_asset_feature(column, row);
         }
         else
         {

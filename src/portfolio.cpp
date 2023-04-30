@@ -124,19 +124,18 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
 
     if(position.has_value())
     {
+        // if position exists adjust order units
+        // i.e. if currently long 10 units but target is -10, then have to subtract the 10 units.
         double existing_units = position.value()->get_units();
         units -= existing_units;
 
+        // check to see if units needed to adjust position to correct size is greater then the epsilon passed
         double offset = (existing_units - units) / units;
         if(offset < epsilon)
         {
             return;
         }
     }
-
-    // if position exists adjust order units
-    // i.e. if currently long 10 units but target is -10, then have to subtract the 10 units.
-
 
     // position is already at target size
     if(units == 0.0f)

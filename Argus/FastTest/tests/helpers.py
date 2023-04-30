@@ -4,9 +4,8 @@ import sys
 import os
 sys.path.append(os.path.abspath('..'))
 
-import Asset
 import FastTest
-from Hal import Hal
+from Hal import Hal, asset_from_df
 
 test1_file_path = "./data/test1.csv"
 test2_file_path = "./data/test2.csv"
@@ -35,7 +34,7 @@ def load_asset(file_path, asset_id, exchange_id, broker_id, is_view=False):
     df.set_index("DATE", inplace=True)
     df.set_index(pd.to_datetime(df.index).astype(np.int64), inplace=True)
 
-    asset = Asset.asset_from_df(df, asset_id, exchange_id, broker_id)
+    asset = asset_from_df(df, asset_id, exchange_id, broker_id)
 
     return asset
 
@@ -103,6 +102,5 @@ def create_big_hal(logging: int = 0, cash: float = 0) -> Hal:
         df["FAST_ABOVE_SLOW"] = df["Close"].rolling(50).mean() >  df["Close"].rolling(200).mean()
         df.dropna(inplace = True)
         
-        asset = Asset.asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id)
-        exchange.register_asset(asset)    
+        hal.register_asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id) 
     return hal

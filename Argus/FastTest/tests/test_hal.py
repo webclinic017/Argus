@@ -7,7 +7,6 @@ import cProfile
 import numpy as np
 sys.path.append(os.path.abspath('..'))
 
-import Asset
 import FastTest
 from Hal import Hal
 from FastTest import Portfolio, Exchange, Broker
@@ -133,8 +132,7 @@ class HalTestMethods(unittest.TestCase):
         print(nlv_history[-1])
         
         assert(True)
-    
-    
+     
     
     
 if __name__ == '__main__':
