@@ -623,8 +623,6 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
         for(auto child_order : child_orders){
             //process the orders indivually
             broker->process_filled_order(child_order);
-            //remember the child order
-            this->history->remember_order(std::move(child_order));
         }
 
         return std::nullopt;

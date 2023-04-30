@@ -8,6 +8,7 @@
 //#define DEBUGGING
 #define ARGUS_RUNTIME_ASSERT
 #define ARGUS_STRIP
+#define ARGUS_BROKER_ACCOUNT_TRACKING
 //#define ARGUS_HISTORY
 
 static double constexpr ARGUS_PORTFOLIO_MAX_LEVERAGE  = 2;

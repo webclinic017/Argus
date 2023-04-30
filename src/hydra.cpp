@@ -361,22 +361,25 @@ bool Hydra::backward_pass(){
     this->master_portfolio->update();
 
     // hanndle any assets done streaming
-    for (auto &exchange_pair : *this->exchanges)
+    if(this->current_index < datetime_index_length - 1)
     {
-        //find expired assets and remove them from portfolio and appropriate exchange
-        auto expired_assets =  exchange_pair.second->get_expired_assets();
-    
-        if(!expired_assets.has_value()){
-            continue;
-        }
-        else{
-            // close any open positions in the asset
-            for(auto const & asset : *expired_assets.value()){
-                this->cleanup_asset(asset->get_asset_id());
+        for (auto &exchange_pair : *this->exchanges)
+        {
+            //find expired assets and remove them from portfolio and appropriate exchange
+            auto expired_assets =  exchange_pair.second->get_expired_assets();
+        
+            if(!expired_assets.has_value()){
+                continue;
             }
+            else{
+                // close any open positions in the asset
+                for(auto const & asset : *expired_assets.value()){
+                    this->cleanup_asset(asset->get_asset_id());
+                }
 
-            //remove the asset from the market and market view
-            exchange_pair.second->move_expired_assets();
+                //remove the asset from the market and market view
+                exchange_pair.second->move_expired_assets();
+            }
         }
     }
 
