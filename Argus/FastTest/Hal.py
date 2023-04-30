@@ -10,8 +10,8 @@ import FastTest
 from FastTest import Broker, Exchange, Asset, Portfolio, Hydra
 
 class Hal:
-    def __init__(self, logging : int) -> None:
-        self.hydra = FastTest.Hydra(logging)
+    def __init__(self, logging : int, cash : float = 0.0) -> None:
+        self.hydra = FastTest.Hydra(logging, cash)
         self.logging = logging
         self.strategies = np.array([], dtype="O")
         self.is_built = False

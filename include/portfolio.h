@@ -5,7 +5,7 @@
 #include <string>
 #include <optional>
 #include <sys/_types/_size_t.h>
-#include <tsl/robin_map.h>
+#include <unordered_map>
 #include <fmt/core.h>
 #include <mutex>
 
@@ -30,9 +30,9 @@ public:
     using order_sp_t = Order::order_sp_t;
 
     typedef ThreadSafeSharedPtr<Portfolio> portfolio_sp_threaded_t;
-    typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
-    typedef tsl::robin_map<std::string, portfolio_sp_threaded_t> portfolios_map_t;
-    typedef shared_ptr<tsl::robin_map<string, shared_ptr<Broker>>> brokers_sp_t;
+    typedef std::unordered_map<std::string, position_sp_t> positions_map_t;
+    typedef std::unordered_map<std::string, portfolio_sp_threaded_t> portfolios_map_t;
+    typedef shared_ptr<std::unordered_map<string, shared_ptr<Broker>>> brokers_sp_t;
 
     /// portfolio constructor
     /// @param logging logging level
@@ -76,7 +76,7 @@ public:
     /// does the portfolio contain a position with the given asset id
     /// @param asset_id unique id of the asset
     /// \return does the position exist
-    [[nodiscard]] bool position_exists(const string &asset_id) const { return this->positions_map.contains(asset_id); };
+    [[nodiscard]] bool position_exists(const string &asset_id) const { return this->positions_map.count(asset_id); };
 
     /// @brief get sp to portfolio history object
     shared_ptr<PortfolioHistory> get_portfolio_history(){return this->portfolio_history;};
@@ -251,7 +251,7 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     this->add_position(open_obj->get_asset_id(), position);
 
     //propgate the new trade up portfolio tree
-    auto trade_sp = position->get_trades().begin().value();
+    auto trade_sp = position->get_trades().begin()->second;
     this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly

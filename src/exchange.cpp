@@ -108,7 +108,7 @@ shared_ptr<Asset> Exchange::get_asset(const std::string &asset_id_)
 
 shared_ptr<Asset> Exchange::new_asset(const string &asset_id_)
 {
-    if (this->market.contains(asset_id_))
+    if (this->market.count(asset_id_))
     {
         throw runtime_error("asset already exists");
     }
@@ -126,7 +126,7 @@ void Exchange::register_asset(const shared_ptr<Asset> &asset_)
     printf("EXCHANGE: exchange %s registering asset: %s \n", this->exchange_id, asset_id);
 #endif
 
-    if (this->market.contains(asset_id))
+    if (this->market.count(asset_id))
     {
         throw runtime_error("asset already exists");
     }
@@ -375,11 +375,12 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
 }
 
 void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column){
-    for(auto& asset_pair : this->market_view){
+    for(auto it = this->market_view.begin(); it != this->market_view.end(); it++){
         //check if asset is streaming
-        if(asset_pair.second)
+        auto asset_sp = it->second;
+        if(asset_sp)
         {
-            feature_dict[asset_pair.first.c_str()] = asset_pair.second->get_asset_feature(column);
+            feature_dict[it->first.c_str()] = asset_sp->get_asset_feature(column);
         }
         else
         {

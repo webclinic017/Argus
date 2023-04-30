@@ -93,7 +93,7 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
 
         //make sure trade does not already exists
         #ifdef ARGUS_RUNTIME_ASSERT        
-        if(this->trades.contains(trade->get_trade_id())){
+        if(this->trades.count(trade->get_trade_id())){
             ARGUS_RUNTIME_ERROR("trade already exists");
         }        
         #endif
@@ -105,7 +105,7 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
     else{
         // adjust position units (subtract trade units as trade units reflect the size of the trade that was closed)
         this->units -= units_;
-        if(this->trades.contains(trade->get_trade_id()))
+        if(this->trades.count(trade->get_trade_id()))
         {
             this->trades.erase(trade->get_trade_id());
         }

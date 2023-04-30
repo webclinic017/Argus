@@ -8,7 +8,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include <tsl/robin_map.h>
+#include <unordered_map>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
@@ -97,7 +97,7 @@ private:
     string asset_id;
 
     /// map between column name and column index
-    tsl::robin_map<string, size_t> headers;
+    std::unordered_map<string, size_t> headers;
 
     /// datetime index of the asset (ns epoch time stamp)
     long long *datetime_index;

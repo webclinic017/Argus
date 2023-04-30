@@ -59,26 +59,25 @@ void Portfolio::build(size_t portfolio_eval_length){
 
 std::optional<position_sp_t> Portfolio::get_position(const string &asset_id)
 {
-    auto iter = this->positions_map.find(asset_id);
-    if (this->positions_map.end() == iter)
-    {
-        return std::nullopt;
+    if(this->positions_map.count(asset_id)){
+        return this->positions_map[asset_id];
     }
-    return iter->second;
+    else {
+        return nullopt;
+    }
 }
 
 void Portfolio::delete_position(const string &asset_id)
 {   
-    auto iter = this->positions_map.find(asset_id);
-    if (this->positions_map.end() == iter)
+    if (!this->positions_map.count(asset_id))
     {
         ARGUS_RUNTIME_ERROR("Portfolio::delete_position position does not exist");
     };
 
     #ifdef ARGUS_RUNTIME_ASSERT
-    auto position = iter->second;
-    auto trade_count = position->get_trade_count();
-    assert(trade_count == 0);
+    //auto position = iter->second;
+    //auto trade_count = position->get_trade_count();
+    //assert(trade_count == 0);
     #endif 
 
     this->positions_map.erase(asset_id);

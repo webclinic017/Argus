@@ -17,7 +17,7 @@ class MovingAverageStrategy:
     def __init__(self, hal : Hal) -> None:        
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
-        self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
+        self.portfolio1 = hal.get_portfolio("master");
                 
     def build(self) -> None:
         return
@@ -41,18 +41,18 @@ class MovingAverageStrategy:
         close_dict = {}
         
         self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
-        self.exchange.get_exchange_feature(close_dict, "Close")
+        #self.exchange.get_exchange_feature(close_dict, "Close")
 
         for asset_id, cross_value in cross_dict.items():
             
-            close_price = close_dict[asset_id]
+            #close_price = close_dict[asset_id]
             position = self.portfolio1.get_position(asset_id)
             
             if position is None:
                 if cross_value == 1:
-                    self.buy(asset_id, 1 / close_price)
+                    self.buy(asset_id, 1 )
                 elif cross_value == 0: 
-                    self.buy(asset_id, -1 / close_price)
+                    self.buy(asset_id, -1 )
             else:
                 position_units = position.units
                 if cross_value == 1 and position_units > 0:
@@ -130,7 +130,7 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(nlv_actual, nlv_history))
 
     def test_hal_big(self):
-        hal = helpers.create_big_hal(logging = 0)
+        hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         

@@ -65,7 +65,7 @@ void init_exchange_ext(py::module &m)
 void init_hydra_ext(py::module &m)
 {
     py::class_<Hydra, std::shared_ptr<Hydra>>(m, "Hydra")
-        .def(py::init<int>())
+        .def(py::init<int,double>())
         .def("get_void_ptr", [](Hydra& self) {
                     void* ptr = self.void_ptr();
                     return py::capsule(ptr, "void*");

@@ -22,7 +22,7 @@ using namespace std;
 
 using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
 
-Hydra::Hydra(int logging_) : master_portfolio(nullptr)
+Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
 {   
     this->logging = logging_;
     this->history = std::make_shared<History>();
@@ -31,7 +31,7 @@ Hydra::Hydra(int logging_) : master_portfolio(nullptr)
 
     auto portfolio = new Portfolio(
             logging_, 
-            0,
+            cash_,
             "master", 
             this->history,
             nullptr,
@@ -93,14 +93,14 @@ void Hydra::build()
     // build the exchanges
     for (auto it = this->exchanges->begin(); it != this->exchanges->end(); ++it)
     {
-        it.value()->build();
-        this->candles += it.value()->candles;
+        it->second->build();
+        this->candles += it->second->candles;
     }
 
     // build the brokers
     for (auto it = this->brokers->begin(); it != this->brokers->end(); ++it)
     {
-        it.value()->build(this->exchanges);
+        it->second->build(this->exchanges);
     }
 
     // build the combined datetime index from all the exchanges
@@ -158,7 +158,7 @@ shared_ptr<Strategy> Hydra::new_strategy(){
 
 shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 {
-    if (this->exchanges->contains(exchange_id))
+    if (this->exchanges->count(exchange_id))
     {
         ARGUS_RUNTIME_ERROR("exchange already exists");
     }
@@ -186,7 +186,7 @@ shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 
 shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
 {
-    if (this->brokers->contains(broker_id))
+    if (this->brokers->count(broker_id))
     {
         throw std::runtime_error("broker already exists");
     }

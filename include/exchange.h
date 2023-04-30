@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 #include <utility>
-#include <tsl/robin_map.h>
+#include <unordered_map>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
@@ -23,7 +23,7 @@ namespace py = pybind11;
 // forward exchange class definition for typedef
 class Exchange;
 
-typedef tsl::robin_map<string, shared_ptr<Exchange>> Exchanges;
+typedef std::unordered_map<string, shared_ptr<Exchange>> Exchanges;
 typedef shared_ptr<Exchanges> exchanges_sp_t;
 
 class Exchange
@@ -125,10 +125,10 @@ private:
     string exchange_id;
 
     /// map between asset id and asset pointer
-    tsl::robin_map<string, asset_sp_t> market;
+    std::unordered_map<string, asset_sp_t> market;
 
     /// mapping for asset's available at the current moment;
-    tsl::robin_map<string, Asset *> market_view;
+    std::unordered_map<string, Asset *> market_view;
 
     /// container for storing asset_id's that have finished streaming
     vector<asset_sp_t> expired_assets;

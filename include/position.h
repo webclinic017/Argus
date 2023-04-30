@@ -6,7 +6,7 @@
 #define ARGUS_POSITION_H
 #include <optional>
 #include <string>
-#include <tsl/robin_map.h>
+#include <unordered_map>
 
 class Trade;
 class Order;
@@ -59,7 +59,7 @@ private:
     /// number of bars the positions has been held for
     unsigned int bars_held = 0;
 
-    tsl::robin_map<unsigned int, shared_ptr<Trade>> trades;
+    std::unordered_map<unsigned int, shared_ptr<Trade>> trades;
 
 public:
     /// smart pointer position typedef
@@ -138,7 +138,7 @@ public:
 
     /// get a reference to the hash map containing the underlying trades of the position
     /// \return reference to the hash map containing the underlying trades of the position
-    tsl::robin_map<unsigned int, trade_sp_t> &get_trades() { return this->trades; }
+    std::unordered_map<unsigned int, trade_sp_t> &get_trades() { return this->trades; }
 
     /// @brief generate the inverse orders needed to close out a position, (MARKET_ORDERS)
     /// @param ref to vector to hold inverse orders

@@ -8,7 +8,7 @@
 #include <functional>
 #include <string>
 #include <memory>
-#include <tsl/robin_map.h>
+#include <unordered_map>
 
 #include "asset.h"
 #include "exchange.h"
@@ -59,18 +59,18 @@ private:
     void log(const string& msg);
 
 public:
+    /// hydra constructor
+    Hydra(int logging_, double cash = 0.0);
+
+    /// hydra destructor
+    ~Hydra();
+
     /// mapping between exchange id and smart pointer to an exchange
     exchanges_sp_t exchanges{};
 
     /// mapping between broker id and smart pointer to a broker
     brokers_sp_t brokers{};
     
-    /// hydra constructor
-    explicit Hydra(int logging_);
-
-    /// hydra destructor
-    ~Hydra();
-
     /// build all members
     void build();
 
