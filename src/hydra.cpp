@@ -350,19 +350,27 @@ bool Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
     this->log("executing backward pass...");
     #endif
+    
+
+    // send any orders that were placed with lazy execution
+    for (auto &broker_pair : *this->brokers)
+    {
+        broker_pair.second->send_orders();
+    }
+
+    // allow exchanges to process orders placed at close
     for (auto &exchange_pair : this->exchange_map->exchanges)
-        {
-            // allow exchanges to process orders placed at close
-            exchange_pair.second->process_orders();
-        }
+    {
+        exchange_pair.second->process_orders();
+    }
 
-        // process any filled orders, or send orders placed at close with lazy execution
-        for (auto &broker_pair : *this->brokers)
-        {
-            broker_pair.second->process_orders();
-        }
+    // process any orders that have just been filled
+    for (auto &broker_pair : *this->brokers)
+    {
+        broker_pair.second->process_orders();
+    }
 
-
+        
     //update historicals values
     this->master_portfolio->update();
 

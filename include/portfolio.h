@@ -285,7 +285,7 @@ public:
     /// portfolio history constructor
     PortfolioHistory(Portfolio* parent_portfolio_): parent_portfolio(parent_portfolio_){};
     
-    // allocate memory
+    // @brief allocate memory for the portfolio evaluation
     void build(size_t portfolio_eval_length){
         this->cash_history.reserve(portfolio_eval_length); 
         this->nlv_history.reserve(portfolio_eval_length); 
@@ -300,6 +300,7 @@ public:
     /// historical net liquidation values of the portfolio
     vector<double> nlv_history;
 
+    /// @brief get the historical cash values of the portfolio
     py::array_t<double> get_cash_history(){
         return to_py_array(
         this->cash_history.data(),
@@ -307,6 +308,7 @@ public:
         true);
     }
 
+    /// @brief get the historical net liquidation values of the portfolio
     py::array_t<double> get_nlv_history(){
         return to_py_array(
         this->nlv_history.data(),

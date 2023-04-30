@@ -24,16 +24,7 @@ class MovingAverageStrategy:
                 
     def build(self) -> None:
         return
-        
-    def buy(self, asset_id : str, units : float) -> None:
-        self.portfolio1.place_market_order(
-            asset_id,
-            units,
-            "dummy",
-            OrderExecutionType.EAGER,
-            -1
-        )
-        
+            
     def on_open(self) -> None:
         return
     
@@ -49,7 +40,7 @@ class MovingAverageStrategy:
                 units = -1
             self.portfolio1.order_target_size(asset_id, units, "dummy", 
                                     OrderTargetType.UNITS,
-                                    OrderExecutionType.EAGER,
+                                    OrderExecutionType.LAZY,
                                     -1)
 
     
@@ -139,10 +130,12 @@ class HalTestMethods(unittest.TestCase):
         #print(f"HAL: exchange time: {strategy.exchange_time}")
         
         orders = hal.get_order_history()
-        print(orders)
-
+        print(orders[orders["asset_id"] == "EMR"])
         
-                
+        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
+        nlv_history = portfolio_history.get_nlv_history()
+        print(nlv_history[-1])
+        
         assert(True)
     
     
