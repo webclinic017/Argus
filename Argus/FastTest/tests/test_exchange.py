@@ -16,10 +16,12 @@ class ExchangeTestMethods(unittest.TestCase):
     def test_exchange_datetime_index(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
-            "asset1"
+            "asset1",
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id
         )
 
-        hydra = FastTest.Hydra(0)
+        hydra = FastTest.Hydra(0, 0.0)
         exchange = hydra.new_exchange("exchange1")
         exchange.register_asset(asset1)
         exchange.build()
@@ -29,14 +31,18 @@ class ExchangeTestMethods(unittest.TestCase):
     def test_exchange_multi_datetime_index(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
-            helpers.test1_asset_id
+            helpers.test1_asset_id,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id
         )
         asset2 = helpers.load_asset(
             helpers.test2_file_path,
             helpers.test2_asset_id,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id
         )
 
-        hydra = FastTest.Hydra(0)
+        hydra = FastTest.Hydra(0, 0.0)
         exchange = hydra.new_exchange("exchange1")
         exchange.register_asset(asset1)
         exchange.register_asset(asset2)

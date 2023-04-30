@@ -21,13 +21,14 @@ namespace py = pybind11;
 using namespace std;
 
 using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+using exchanges_sp_t = ExchangeMap::exchanges_sp_t; 
 
 Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
 {   
     this->logging = logging_;
     this->history = std::make_shared<History>();
     this->brokers = std::make_shared<Brokers>();
-    this->exchanges = std::make_shared<Exchanges>();
+    this->exchange_map = std::make_shared<ExchangeMap>();
 
     auto portfolio = new Portfolio(
             logging_, 
@@ -36,7 +37,7 @@ Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
             this->history,
             nullptr,
             this->brokers,
-            this->exchanges);   
+            this->exchange_map);   
     
     //wrap raw pointer in thread safe shared_ptr
     this->master_portfolio = ThreadSafeSharedPtr<Portfolio>(portfolio);
@@ -81,7 +82,7 @@ void Hydra::build()
     {
         delete[] this->datetime_index;
     }
-    if (this->exchanges->empty())
+    if (this->exchange_map->exchanges.empty())
     {
         throw std::runtime_error("no exchanges to build");
     }
@@ -91,21 +92,26 @@ void Hydra::build()
     this->candles = 0;
 
     // build the exchanges
-    for (auto it = this->exchanges->begin(); it != this->exchanges->end(); ++it)
+    for (auto it = this->exchange_map->exchanges.begin(); it != this->exchange_map->exchanges.end(); ++it)
     {
         it->second->build();
         this->candles += it->second->candles;
+
+        // build the asset map used to look up asset information
+        for(auto& asset_pair : it->second->market){
+            this->exchange_map->asset_map[asset_pair.first] = asset_pair.second.get();
+        }
     }
 
     // build the brokers
     for (auto it = this->brokers->begin(); it != this->brokers->end(); ++it)
     {
-        it->second->build(this->exchanges);
+        it->second->build(this->exchange_map);
     }
 
     // build the combined datetime index from all the exchanges
     auto datetime_index_ = container_sorted_union(
-        *this->exchanges,
+        this->exchange_map->exchanges,
         [](const shared_ptr<Exchange> &obj)
         { return obj->get_datetime_index(); },
         [](const shared_ptr<Exchange> &obj)
@@ -138,7 +144,7 @@ shared_ptr<Portfolio> Hydra::new_portfolio(const string & portfolio_id_, double 
         this->history,
         this->master_portfolio.get_shared_ptr().get(),
         this->brokers,
-        this->exchanges
+        this->exchange_map
     );
 
     auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
@@ -158,7 +164,7 @@ shared_ptr<Strategy> Hydra::new_strategy(){
 
 shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
 {
-    if (this->exchanges->count(exchange_id))
+    if (this->exchange_map->exchanges.count(exchange_id))
     {
         ARGUS_RUNTIME_ERROR("exchange already exists");
     }
@@ -167,7 +173,7 @@ shared_ptr<Exchange> Hydra::new_exchange(const string &exchange_id)
     auto exchange = make_shared<Exchange>(exchange_id, this->logging);
 
     // insert a clone of the smart pointer into the exchange
-    this->exchanges->emplace(exchange_id, exchange);
+    this->exchange_map->exchanges.emplace(exchange_id, exchange);
 
     #ifdef ARGUS_STRIP
     if (this->logging == 1)
@@ -221,7 +227,7 @@ shared_ptr<Exchange> Hydra::get_exchange(const std::string &exchange_id)
 {
     try
     {
-        return this->exchanges->at(exchange_id);
+        return this->exchange_map->exchanges.at(exchange_id);
     }
     catch (const std::out_of_range &e)
     {
@@ -274,7 +280,7 @@ void Hydra::forward_pass()
     #endif
 
     // build market views for exchanges
-    for (auto &exchange_pair : *this->exchanges)
+    for (auto &exchange_pair : this->exchange_map->exchanges)
     {
         auto exchange = exchange_pair.second;
         // set the exchange is_close
@@ -322,7 +328,7 @@ void Hydra::on_open(){
 
 
     // move exchanges to close
-    for (auto &exchange_pair : *this->exchanges)
+    for (auto &exchange_pair : this->exchange_map->exchanges)
     {
         exchange_pair.second->set_on_close(true);
     }
@@ -344,7 +350,7 @@ bool Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
     this->log("executing backward pass...");
     #endif
-    for (auto &exchange_pair : *this->exchanges)
+    for (auto &exchange_pair : this->exchange_map->exchanges)
         {
             // allow exchanges to process orders placed at close
             exchange_pair.second->process_orders();
@@ -363,7 +369,7 @@ bool Hydra::backward_pass(){
     // hanndle any assets done streaming
     if(this->current_index < datetime_index_length - 1)
     {
-        for (auto &exchange_pair : *this->exchanges)
+        for (auto &exchange_pair : this->exchange_map->exchanges)
         {
             //find expired assets and remove them from portfolio and appropriate exchange
             auto expired_assets =  exchange_pair.second->get_expired_assets();

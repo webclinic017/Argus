@@ -3,7 +3,9 @@ import os
 import time
 import unittest
 import cProfile
+
 import numpy as np
+from numba import jit
 sys.path.append(os.path.abspath('..'))
 
 import Asset
@@ -26,8 +28,6 @@ class MovingAverageStrategy:
         self.portfolio1.place_market_order(
             asset_id,
             units,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -81,8 +81,6 @@ class SimpleStrategy:
                 self.portfolio1.place_market_order(
                     helpers.test2_asset_id,
                     100.0,
-                    helpers.test1_exchange_id,
-                    helpers.test1_broker_id,
                     "dummy",
                     FastTest.OrderExecutionType.EAGER,
                     -1
@@ -91,8 +89,6 @@ class SimpleStrategy:
             self.portfolio1.place_market_order(
                     helpers.test2_asset_id,
                     -1 * position.get_units(),
-                    helpers.test1_exchange_id,
-                    helpers.test1_broker_id,
                     "dummy",
                     FastTest.OrderExecutionType.EAGER,
                     -1
@@ -153,8 +149,9 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         #print(f"HAL: exchange time: {strategy.exchange_time}")
         
-        orders = hal.get_order_history()
-        print(orders)
+        #orders = hal.get_order_history()
+
+        
                 
         assert(True)
     

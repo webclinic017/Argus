@@ -21,10 +21,6 @@ using namespace std;
 namespace py = pybind11;
 
 // forward exchange class definition for typedef
-class Exchange;
-
-typedef std::unordered_map<string, shared_ptr<Exchange>> Exchanges;
-typedef shared_ptr<Exchanges> exchanges_sp_t;
 
 class Exchange
 {
@@ -44,6 +40,9 @@ public:
 
     /// Disable move assignment operator
     Exchange &operator=(Exchange &&) = delete;
+
+    /// map between asset id and asset pointer
+    std::unordered_map<string, asset_sp_t> market;
 
     /// total number of rows in the exhange
     size_t candles;
@@ -72,7 +71,7 @@ public:
     void set_on_close(bool on_close_) { this->on_close = on_close_; }
 
     /// build a new asset on the exchange
-    asset_sp_t new_asset(const string &asset_id);
+    asset_sp_t new_asset(const string &asset_id, const string& broker_id);
 
     /// get smart pointer to existing asset on the exchange
     asset_sp_t get_asset(const string &asset_id);
@@ -124,9 +123,6 @@ private:
     /// unique id of the exchange
     string exchange_id;
 
-    /// map between asset id and asset pointer
-    std::unordered_map<string, asset_sp_t> market;
-
     /// mapping for asset's available at the current moment;
     std::unordered_map<string, Asset *> market_view;
 
@@ -163,6 +159,18 @@ private:
     /// process a take profit order currently open
     void process_take_profit_order(shared_ptr<Order> &open_order);
 };
+
+class ExchangeMap{
+public:
+    typedef std::unordered_map<string, shared_ptr<Exchange>> Exchanges;
+    typedef shared_ptr<ExchangeMap> exchanges_sp_t;
+
+    /// mapping between exchange id and exchange object
+    Exchanges exchanges;
+
+    /// mapping between asset id and asset pointer
+    std::unordered_map<string, Asset*> asset_map;
+};  
 
 /// function for creating a shared pointer to a asset
 shared_ptr<Exchange> new_exchange(const string &exchange_id);

@@ -49,8 +49,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             100.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -92,8 +90,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             100.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -101,8 +97,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio1.place_market_order(
             helpers.test2_asset_id,
             50.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -119,8 +113,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             -100.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -144,8 +136,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio2.place_market_order(
             helpers.test2_asset_id,
             -100.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1
@@ -153,8 +143,6 @@ class PortfolioTestMethods(unittest.TestCase):
         portfolio1.place_market_order( 
             helpers.test2_asset_id,
             50.0,
-            helpers.test1_exchange_id,
-            helpers.test1_broker_id,
             "dummy",
             FastTest.OrderExecutionType.EAGER,
             -1

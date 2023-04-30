@@ -18,7 +18,9 @@ class AssetTestMethods(unittest.TestCase):
     def test_asset_load(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
-            "asset1"
+            "asset1",
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id
         )
         assert (True)
 
@@ -29,7 +31,11 @@ class AssetTestMethods(unittest.TestCase):
         epoch_index = df.index.values.astype(np.int64)
         columns = df.columns
         
-        asset = Asset.asset_from_view(values, epoch_index, helpers.test1_asset_id, columns)
+        asset = Asset.asset_from_view(values, epoch_index, 
+                                    helpers.test1_asset_id, 
+                                    helpers.test1_exchange_id,
+                                    helpers.test1_broker_id,
+                                    columns)
 
         assert (asset.get("CLOSE", 0) == 101)
         assert (asset.get("OPEN", 3) == 105)
@@ -41,6 +47,8 @@ class AssetTestMethods(unittest.TestCase):
     def test_asset_get(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id,
             "asset1"
         )
         assert (asset1.get("CLOSE", 0) == 101)
@@ -49,7 +57,9 @@ class AssetTestMethods(unittest.TestCase):
     def test_asset_memory_address(self):
         asset1 = helpers.load_asset(
             helpers.test1_file_path,
-            "asset1"
+            "asset1",
+            helpers.test1_exchange_id,
+            helpers.test1_broker_id
         )
 
         hydra = FastTest.new_hydra(0)

@@ -3,6 +3,7 @@
 #include <memory>
 #include <pybind11/stl.h>
 #include <stdexcept>
+#include <utility>
 
 #include "../include/asset.h"
 #include "../include/settings.h"
@@ -11,6 +12,45 @@
 
 namespace py = pybind11;
 using namespace std;
+
+
+Asset::Asset(string asset_id, string exchange_id, string broker_id) 
+                            :   asset_id(std::move(asset_id)),
+                                exchange_id(std::move(exchange_id)),
+                                broker_id(std::move(broker_id)),
+                                is_built(false),
+                                rows(0),
+                                cols(0),
+                                current_index(0)
+{
+}
+
+Asset::~Asset()
+{
+
+#ifdef DEBUGGING
+    printf("MEMORY:   CALLING ASSET %s DESTRUCTOR ON: %p \n", this->asset_id.c_str(), this);
+#endif
+
+    if (!this->is_built)
+    {
+        return;
+    }
+    if(this->is_view)
+    {
+        return;
+    }
+
+    // delete the underlying data
+    delete[] this->data;
+
+    // delete the datetime index
+    delete[] this->datetime_index;
+
+#ifdef DEBUGGING
+    printf("MEMORY:   DESTRUCTOR ON: %p COMPLETE \n", this);
+#endif
+}
 
 string Asset::get_asset_id() const
 {
@@ -246,41 +286,6 @@ void Asset::step(){
     this->current_index++; 
 }
 
-Asset::Asset(string asset_id) : asset_id(std::move(asset_id)),
-                                is_built(false),
-                                rows(0),
-                                cols(0),
-                                current_index(0)
-{
-}
-
-Asset::~Asset()
-{
-
-#ifdef DEBUGGING
-    printf("MEMORY:   CALLING ASSET %s DESTRUCTOR ON: %p \n", this->asset_id.c_str(), this);
-#endif
-
-    if (!this->is_built)
-    {
-        return;
-    }
-    if(this->is_view)
-    {
-        return;
-    }
-
-    // delete the underlying data
-    delete[] this->data;
-
-    // delete the datetime index
-    delete[] this->datetime_index;
-
-#ifdef DEBUGGING
-    printf("MEMORY:   DESTRUCTOR ON: %p COMPLETE \n", this);
-#endif
-}
-
 long long *Asset::get_asset_time() const
 {
     if (this->current_index == this->rows)
@@ -293,7 +298,7 @@ long long *Asset::get_asset_time() const
     }
 }
 
-std::shared_ptr<Asset> new_asset(const string &asset_id)
+std::shared_ptr<Asset> new_asset(const string &asset_id, const string& exchange_id, const string& broker_id)
 {
-    return std::make_shared<Asset>(asset_id);
+    return std::make_shared<Asset>(asset_id, exchange_id, broker_id);
 }

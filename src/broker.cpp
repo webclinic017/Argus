@@ -34,9 +34,9 @@ Broker::Broker(string broker_id_,
 }
 
 void Broker::build(
-    exchanges_sp_t exchanges_)
+    exchanges_sp_t exchange_map_)
 {
-    this->exchanges = exchanges_;
+    this->exchange_map = exchange_map_;
 }
 
 void Broker::cancel_order(unsigned int order_id)
@@ -96,7 +96,7 @@ void Broker::place_order_buffer(shared_ptr<Order> order)
 void Broker::place_order(shared_ptr<Order> order, bool process_fill)
 {
     // get smart pointer to the right exchange
-    auto exchange = this->exchanges->at(order->get_exchange_id());
+    auto exchange = this->exchange_map->exchanges.at(order->get_exchange_id());
 
     // set the order id
     order->set_order_id(this->order_counter);
@@ -126,7 +126,7 @@ void Broker::send_orders()
     for (auto &order : this->open_orders_buffer)
     {
         // get the exchange the order was placed to
-        auto exchange = exchanges->at(order->get_exchange_id());
+        auto exchange = exchange_map->exchanges.at(order->get_exchange_id());
 
         // send order to rest on the exchange
         exchange->place_order(order);

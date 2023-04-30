@@ -24,6 +24,7 @@ class Hydra
 {
 private:
     using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+    using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
     
     typedef shared_ptr<Brokers> brokers_sp_t;
 
@@ -66,7 +67,7 @@ public:
     ~Hydra();
 
     /// mapping between exchange id and smart pointer to an exchange
-    exchanges_sp_t exchanges{};
+    exchanges_sp_t exchange_map;
 
     /// mapping between broker id and smart pointer to a broker
     brokers_sp_t brokers{};

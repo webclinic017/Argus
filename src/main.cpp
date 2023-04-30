@@ -24,16 +24,15 @@ using namespace std;
 void init_asset_ext(py::module &m)
 {
     py::class_<Asset, std::shared_ptr<Asset>>(m, "Asset")
-        .def("get_asset_id", &Asset::get_asset_id, "get the asset's id")
-        .def("load_headers", &Asset::load_headers, "load asset headers")
-        .def("load_data", &Asset::py_load_data, "load asset data")
-        .def("get", &Asset::get, "get asset data")
-        .def("get_mem_address", &Asset::get_mem_address, "get memory address")
+        .def("get_asset_id", &Asset::get_asset_id)
+        .def("load_headers", &Asset::load_headers)
+        .def("load_data", &Asset::py_load_data)
+        .def("get", &Asset::get)
+        .def("get_mem_address", &Asset::get_mem_address)
 
         //.def("mem_address", []()
         .def("get_datetime_index_view",
              &Asset::get_datetime_index_view,
-             "get view of asset datetime index",
              py::return_value_policy::reference);
 
     m.def("new_asset", &new_asset, py::return_value_policy::reference);
@@ -46,20 +45,19 @@ void init_asset_ext(py::module &m)
 void init_exchange_ext(py::module &m)
 {
     py::class_<Exchange, std::shared_ptr<Exchange>>(m, "Exchange")
-        .def("build", &Exchange::build, "builds the exchange")
-        .def("new_asset", &Exchange::new_asset, "builds a new asset to the exchange")
-        .def("register_asset", &Exchange::register_asset, "register a new asset to the exchange")
+        .def("build", &Exchange::build)
+        .def("new_asset", &Exchange::new_asset)
+        .def("register_asset", &Exchange::register_asset)
         
-        .def("get_asset", &Exchange::get_asset, "get pointer to existing asset on the exchange", py::return_value_policy::reference)
-        .def("get_exchange_feature", &Exchange::get_exchange_feature, "get asset feature for all assets in exchange")
+        .def("get_asset", &Exchange::get_asset, py::return_value_policy::reference)
+        .def("get_exchange_feature", &Exchange::get_exchange_feature)
         .def("get_asset_feature", 
             &Exchange::get_asset_feature, 
-            "get asset feature",
             py::arg("asset_id"),
             py::arg("column_name"),
             py::arg("index") = 0)
 
-        .def("get_datetime_index_view", &Exchange::get_datetime_index_view, "get view of exchange datetime index");
+        .def("get_datetime_index_view", &Exchange::get_datetime_index_view);
 }
 
 void init_hydra_ext(py::module &m)
@@ -70,25 +68,25 @@ void init_hydra_ext(py::module &m)
                     void* ptr = self.void_ptr();
                     return py::capsule(ptr, "void*");
                 })
-        .def("build", &Hydra::build, "build hydra class")
-        .def("run", &Hydra::run, "run simulation")
+        .def("build", &Hydra::build)
+        .def("run", &Hydra::run)
 
         #ifdef ARGUS_STRIP
-        .def("forward_pass", &Hydra::forward_pass, "forward pass")
-        .def("on_open", &Hydra::on_open, "on open")
-        .def("backward_pass", &Hydra::backward_pass, "backwards pass")
+        .def("forward_pass", &Hydra::forward_pass)
+        .def("on_open", &Hydra::on_open)
+        .def("backward_pass", &Hydra::backward_pass)
         #endif
 
-        .def("new_strategy", &Hydra::new_strategy, "adds new strategy")
-        .def("new_exchange", &Hydra::new_exchange, "builds a new asset to the exchange", py::return_value_policy::reference)
-        .def("new_broker", &Hydra::new_broker, "builds a new broker object", py::return_value_policy::reference)
-        .def("new_portfolio", &Hydra::new_portfolio, "adds new portfolio to master portfolio", py::return_value_policy::reference)
+        .def("new_strategy", &Hydra::new_strategy)
+        .def("new_exchange", &Hydra::new_exchange, py::return_value_policy::reference)
+        .def("new_broker", &Hydra::new_broker, py::return_value_policy::reference)
+        .def("new_portfolio", &Hydra::new_portfolio, py::return_value_policy::reference)
         
-        .def("get_candles", &Hydra::get_candles, "get number of rows loaded")
-        .def("get_broker", &Hydra::get_broker, "gets existing broker object")
-        .def("get_master_portfolio", &Hydra::get_master_portflio, "get smart pointer to master portfolio")
-        .def("get_portfolio", &Hydra::get_portfolio, "search through portfolio tree to find portfolio")
-        .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange")
+        .def("get_candles", &Hydra::get_candles)
+        .def("get_broker", &Hydra::get_broker)
+        .def("get_master_portfolio", &Hydra::get_master_portflio)
+        .def("get_portfolio", &Hydra::get_portfolio)
+        .def("get_exchange", &Hydra::get_exchange)
 
         .def("get_order_history", [](Hydra& self) {
             return self.get_history()->get_order_history();},
@@ -122,43 +120,43 @@ void init_account_ext(py::module &m)
 void init_portfolio_ext(py::module &m)
 {
     py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
-        .def("get_mem_address", &Portfolio::get_mem_address, "get memory address")
-        .def("get_portfolio_id", &Portfolio::get_portfolio_id, "get portfolio id")
-        .def("get_position", &Portfolio::get_position, "get position from portfolio")
-        .def("get_portfolio_history", &Portfolio::get_portfolio_history, "get portfolio history object")
+        .def("get_mem_address", &Portfolio::get_mem_address)
+        .def("get_portfolio_id", &Portfolio::get_portfolio_id)
+        .def("get_position", &Portfolio::get_position)
+        .def("get_portfolio_history", &Portfolio::get_portfolio_history)
 
-        .def("get_nlv", &Portfolio::get_nlv, "get net liquidation value")
-        .def("get_cash", &Portfolio::get_cash, "get cash held in the portfolio")
-        .def("get_unrealized_pl", &Portfolio::get_unrealized_pl, "get unrealized pl")
+        .def("get_nlv", &Portfolio::get_nlv)
+        .def("get_cash", &Portfolio::get_cash)
+        .def("get_unrealized_pl", &Portfolio::get_unrealized_pl)
         
-        .def("place_market_order", &Portfolio::place_market_order, "place market order")
+        .def("place_market_order", &Portfolio::place_market_order)
         
-        .def("create_sub_portfolio", &Portfolio::create_sub_portfolio, "create new child portfolio")
-        .def("find_portfolio", &Portfolio::find_portfolio, "find a child portfolio");
+        .def("create_sub_portfolio", &Portfolio::create_sub_portfolio)
+        .def("find_portfolio", &Portfolio::find_portfolio);
 
     py::class_<PortfolioHistory, std::shared_ptr<PortfolioHistory>>(m, "PortfolioHistory")
-        .def("get_cash_history", &PortfolioHistory::get_cash_history, "get cash history",py::return_value_policy::reference)
-        .def("get_nlv_history", &PortfolioHistory::get_nlv_history, "get cash history",py::return_value_policy::reference);
+        .def("get_cash_history", &PortfolioHistory::get_cash_history,py::return_value_policy::reference)
+        .def("get_nlv_history", &PortfolioHistory::get_nlv_history,py::return_value_policy::reference);
 
 }
 
 void init_position_ext(py::module &m)
 {
     py::class_<Position, std::shared_ptr<Position>>(m, "Position")
-        .def("get_trade", &Position::get_trade, "get child trade from position")
+        .def("get_trade", &Position::get_trade)
         
-        .def("get_average_price", &Position::get_average_price, "get position average price")
+        .def("get_average_price", &Position::get_average_price)
         .def("get_units", &Position::get_units)
-        .def("get_nlv", &Position::get_nlv, "get net liquidation value")
-        .def("get_unrealized_pl", &Position::get_unrealized_pl, "get unrealized pl")
+        .def("get_nlv", &Position::get_nlv)
+        .def("get_unrealized_pl", &Position::get_unrealized_pl)
         
-        .def("is_open", &Position::get_is_open, "is position open")
+        .def("is_open", &Position::get_is_open)
         .def_readonly("units", &Position::units);
 
     py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")
-        .def("get_mem_address", &Trade::get_mem_address, "get memory address of trade object")
-        .def("get_average_price", &Trade::get_average_price, "get trade average price")
-        .def("get_units", &Trade::get_units, "get trade units");
+        .def("get_mem_address", &Trade::get_mem_address)
+        .def("get_average_price", &Trade::get_average_price)
+        .def("get_units", &Trade::get_units);
 }
 
 void init_broker_ext(py::module &m)
@@ -203,6 +201,12 @@ void init_enum(py::module &m){
         .value("OPEN", OrderState::OPEN)
         .value("FILLED", OrderState::FILLED)
         .value("CANCELED", OrderState::CANCELED)
+        .export_values();
+
+    py::enum_<OrderTargetType>(m, "OrderTargetType")
+        .value("UNITS", OrderTargetType::UNITS)
+        .value("DOLLARS", OrderTargetType::DOLLARS)
+        .value("PCT", OrderTargetType::PCT)
         .export_values();
 }
 

@@ -38,6 +38,13 @@ enum OrderExecutionType
     LAZY   // order will be placed in broker send orders sweep
 };
 
+enum OrderTargetType
+{
+    UNITS,   // order target size will be processed as units
+    DOLLARS, // order target size will be processed as dollars
+    PCT      // order target size will be processed as pct of total pct of the source portfolio
+};
+
 enum OrderParentType
 {
     TRADE, /// parent of the order is a smart pointer to a trade

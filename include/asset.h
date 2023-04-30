@@ -24,14 +24,24 @@ public:
     typedef shared_ptr<Asset> asset_sp_t;
 
     /// asset constructor
-    explicit Asset(string asset_id);
+    Asset(string asset_id, string exchange_id, string broker_id);
 
     /// asset destructor
     ~Asset();
 
+    /// unique id of the asset
+    string asset_id;
+
+    /// unique id of the exchange the asset is on
+    string exchange_id;
+
+    /// unique id of the broker the asset is listed on 
+    string broker_id;
+
     /// is the asset's datetime index alligend with it's exchange
     bool is_alligned;
 
+    /// is the the last row in the asset
     bool is_last_view() {return this->current_index == this->rows;};
 
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
@@ -93,9 +103,6 @@ private:
     /// does the asset own the underlying data pointer
     bool is_view = false;
 
-    /// unique id of the asset
-    string asset_id;
-
     /// map between column name and column index
     std::unordered_map<string, size_t> headers;
 
@@ -126,7 +133,7 @@ private:
 };
 
 /// function for creating a shared pointer to a asset
-shared_ptr<Asset> new_asset(const string &asset_id);
+std::shared_ptr<Asset> new_asset(const string &asset_id, const string& exchange_id, const string& broker_id);
 
 /// function for identifying index locations of open and close column
 tuple<::size_t, size_t> parse_headers(const vector<std::string> &columns);

@@ -20,6 +20,7 @@
 
 
 using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
 using position_sp_t = Position::position_sp_t;
 using order_sp_t = Order::order_sp_t;
 
@@ -32,12 +33,12 @@ Portfolio::Portfolio(
     shared_ptr<History> history,
     Portfolio* parent_portfolio_,
     brokers_sp_t brokers_,
-    shared_ptr<Exchanges> exchanges_) : positions_map()
+    exchanges_sp_t exchange_map_) : positions_map()
 {
     this->brokers = brokers_;
     this->parent_portfolio = parent_portfolio_;
     this->history = history;
-    this->exchanges_sp = exchanges_;
+    this->exchange_map = exchange_map_;
 
     this->portfolio_history = make_shared<PortfolioHistory>(this);
 
@@ -94,23 +95,24 @@ void Portfolio::add_position(const string &asset_id, Portfolio::position_sp_t po
 }
 
 void Portfolio::place_market_order(const string &asset_id_, double units_,
-                                const string &exchange_id_,
-                                const string &broker_id_,
                                 const string &strategy_id_,
                                 OrderExecutionType order_execution_type,
                                 int trade_id)
 {   
+    auto asset_rp = this->exchange_map->asset_map.at(asset_id_);
+
+
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
                                            asset_id_,
                                            units_,
-                                           exchange_id_,
-                                           broker_id_,
+                                           asset_rp->exchange_id,
+                                           asset_rp->broker_id,
                                            this,
                                            strategy_id_,
                                            trade_id);
 
-    auto broker = this->brokers->at(broker_id_);
+    auto broker = this->brokers->at(asset_rp->broker_id);
 
     #ifdef ARGUS_STRIP
     if(this->logging){
@@ -131,18 +133,19 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
 }
 
 void Portfolio::place_limit_order(const string &asset_id_, double units_, double limit_,
-                               const string &exchange_id_,
-                               const string &broker_id_,
                                const string &strategy_id_,
                                OrderExecutionType order_execution_type,
                                int trade_id)
 {       
+
+    auto asset_rp = this->exchange_map->asset_map.at(asset_id_);
+
     // build new smart pointer to shared order
     auto limit_order = make_shared<Order>(LIMIT_ORDER,
                                           asset_id_,
                                           units_,
-                                          exchange_id_,
-                                          broker_id_,
+                                          asset_rp->exchange_id,
+                                          asset_rp->broker_id,
                                           this,
                                           strategy_id_,
                                           trade_id);
@@ -150,7 +153,7 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
     // set the limit of the order
     limit_order->set_limit(limit_);
 
-    auto broker = this->brokers->at(broker_id_);
+    auto broker = this->brokers->at(asset_rp->broker_id);
 
 
     if (order_execution_type == EAGER)
@@ -448,7 +451,7 @@ shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id
         this->history,
         this,
         this->brokers,
-        this->exchanges_sp
+        this->exchange_map
         );
     
     auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
@@ -531,7 +534,7 @@ void Portfolio::evaluate(bool on_close)
 
         // get the exchange the asset is listed on
         auto exchange_id = position->get_exchange_id();
-        auto exchange = this->exchanges_sp->at(exchange_id);
+        auto exchange = this->exchange_map->exchanges.at(exchange_id);
         auto market_price = exchange->get_market_price(it->first);
 
         // asset is not in market view

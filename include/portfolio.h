@@ -26,6 +26,7 @@ class Portfolio : public std::enable_shared_from_this<Portfolio>
 public:
 
     using position_sp_t = Position::position_sp_t;
+    using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
@@ -45,7 +46,7 @@ public:
         shared_ptr<History> history_,
         Portfolio* parent_portfolio_,
         brokers_sp_t brokers_,
-        shared_ptr<Exchanges> exchanges_
+        exchanges_sp_t exchanges_
         );
 
     void build(size_t portfolio_eval_length);
@@ -128,18 +129,22 @@ public:
         const string & asset_id,
         bool send_orders,
         bool send_collapse);
+    
+    /// place an to target a certain size held be the portfolio it was placed to
+    void order_target_size(const string &asset_id, double size,
+                           const string &exchange_id,
+                           const string &broker_id,
+                           const string &strategy_id,
+                           OrderTargetType order_target_type
+                    );
 
     /// order placement wrappers exposed to python
     void place_market_order(const string &asset_id, double units,
-                            const string &exchange_id,
-                            const string &broker_id,
                             const string &strategy_id,
                             OrderExecutionType order_execution_type = LAZY,
                             int trade_id = -1);
 
     void place_limit_order(const string &asset_id, double units, double limit,
-                           const string &exchange_id,
-                           const string &broker_id,
                            const string &strategy_id,
                            OrderExecutionType order_execution_type = LAZY,
                            int tade_id = -1);
@@ -164,7 +169,7 @@ private:
     positions_map_t positions_map;
 
     /// smart pointer to exchanges map
-    exchanges_sp_t exchanges_sp;
+    exchanges_sp_t exchange_map;
 
     /// smart pointer to broker map
     brokers_sp_t brokers;

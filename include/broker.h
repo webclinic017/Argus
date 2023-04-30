@@ -29,6 +29,7 @@ class Broker
 public:
     using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
     using position_sp_t = Position::position_sp_t;
+    using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
@@ -47,7 +48,7 @@ public:
 
     /// build the broker, set member pointers
     /// \param exchanges    container for master exchange map
-    void build(exchanges_sp_t exchanges);
+    void build(exchanges_sp_t exchange_map);
 
     /// cancel orders by order_id
     void cancel_order(unsigned int order_id);
@@ -92,7 +93,7 @@ private:
     vector<order_sp_t> open_orders_buffer;
 
     /// pointer to exchange map for routing incoming orders
-    exchanges_sp_t exchanges;
+    exchanges_sp_t exchange_map;
 
     /// broker's account
     Account broker_account;

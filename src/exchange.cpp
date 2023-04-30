@@ -106,13 +106,13 @@ shared_ptr<Asset> Exchange::get_asset(const std::string &asset_id_)
     }
 }
 
-shared_ptr<Asset> Exchange::new_asset(const string &asset_id_)
+shared_ptr<Asset> Exchange::new_asset(const string &asset_id_, const string &broker_id)
 {
     if (this->market.count(asset_id_))
     {
         throw runtime_error("asset already exists");
     }
-    auto asset = make_shared<Asset>(asset_id_);
+    auto asset = make_shared<Asset>(asset_id_, this->exchange_id, broker_id);
     this->market.emplace(asset_id_, make_shared<Asset>(*asset));
     this->market_view.emplace(asset_id_, nullptr);
     return asset;
@@ -329,6 +329,7 @@ bool Exchange::get_market_view()
             }
             return;
         }
+        
 
         // get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
