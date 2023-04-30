@@ -132,10 +132,10 @@ public:
     
     /// place an to target a certain size held be the portfolio it was placed to
     void order_target_size(const string &asset_id, double size,
-                           const string &exchange_id,
-                           const string &broker_id,
                            const string &strategy_id,
-                           OrderTargetType order_target_type
+                           OrderTargetType order_target_type,
+                           OrderExecutionType order_execution_type = LAZY,
+                           int trade_id = -1
                     );
 
     /// order placement wrappers exposed to python

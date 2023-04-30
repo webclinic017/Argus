@@ -12,6 +12,7 @@ import Asset
 import FastTest
 from Hal import Hal
 from FastTest import Portfolio, Exchange, Broker
+from FastTest import OrderExecutionType, OrderTargetType
 
 import helpers
 
@@ -29,7 +30,7 @@ class MovingAverageStrategy:
             asset_id,
             units,
             "dummy",
-            FastTest.OrderExecutionType.EAGER,
+            OrderExecutionType.EAGER,
             -1
         )
         
@@ -38,32 +39,20 @@ class MovingAverageStrategy:
     
     def on_close(self) -> None:
         cross_dict = {}
-        close_dict = {}
         
         self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
-        #self.exchange.get_exchange_feature(close_dict, "Close")
 
         for asset_id, cross_value in cross_dict.items():
-            
-            #close_price = close_dict[asset_id]
-            position = self.portfolio1.get_position(asset_id)
-            
-            if position is None:
-                if cross_value == 1:
-                    self.buy(asset_id, 1 )
-                elif cross_value == 0: 
-                    self.buy(asset_id, -1 )
-            else:
-                position_units = position.units
-                if cross_value == 1 and position_units > 0:
-                    continue
-                elif cross_value == 0 and position_units < 0: 
-                    continue
-                elif cross_value == 1 and position_units < 0:
-                    self.buy(asset_id, -2 * position.units)
-                elif cross_value == 0 and position_units > 0:
-                    self.buy(asset_id, -2 * position.units)
-            
+            if cross_value == 1:    
+                units = 1
+            elif cross_value == 0: 
+                units = -1
+            self.portfolio1.order_target_size(asset_id, units, "dummy", 
+                                    OrderTargetType.UNITS,
+                                    OrderExecutionType.EAGER,
+                                    -1)
+
+    
 class SimpleStrategy:
     def __init__(self, hal : Hal) -> None:        
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
@@ -149,7 +138,8 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         #print(f"HAL: exchange time: {strategy.exchange_time}")
         
-        #orders = hal.get_order_history()
+        orders = hal.get_order_history()
+        print(orders)
 
         
                 

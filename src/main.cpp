@@ -130,6 +130,7 @@ void init_portfolio_ext(py::module &m)
         .def("get_unrealized_pl", &Portfolio::get_unrealized_pl)
         
         .def("place_market_order", &Portfolio::place_market_order)
+        .def("order_target_size", &Portfolio::order_target_size)
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio)
         .def("find_portfolio", &Portfolio::find_portfolio);

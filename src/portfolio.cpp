@@ -94,6 +94,44 @@ void Portfolio::add_position(const string &asset_id, Portfolio::position_sp_t po
     this->positions_map.insert({asset_id, position});
 }
 
+void Portfolio::order_target_size(const string &asset_id_, double size,
+                                const string &strategy_id,
+                                OrderTargetType order_target_type,
+                                OrderExecutionType order_execution_type,
+                                int trade_id)
+{
+    //auto asset_rp = this->exchange_map->asset_map.at(asset_id_);
+    double units;
+
+    switch (order_target_type) {
+        case UNITS:
+            units = size;
+            break;
+        default:
+            throw std::runtime_error("not implemented");
+    }
+
+    auto position = this->get_position(asset_id_);
+
+    // if position exists adjust order units
+    // i.e. if currently long 10 units but target is -10, then have to subtract the 10 units.
+    if(position.has_value())
+    {
+        units -= position.value()->get_units();
+    }
+
+    // position is already at target size
+    if(units == 0.0f)
+    {
+        return;
+    }
+    // position needs to be altered
+    else
+    {
+        this->place_market_order(asset_id_, units, strategy_id, order_execution_type, trade_id);
+    }
+}
+
 void Portfolio::place_market_order(const string &asset_id_, double units_,
                                 const string &strategy_id_,
                                 OrderExecutionType order_execution_type,
