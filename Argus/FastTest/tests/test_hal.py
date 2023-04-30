@@ -18,9 +18,7 @@ class MovingAverageStrategy:
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
         self.broker = hal.get_broker(helpers.test1_broker_id)
         self.portfolio1 = hal.new_portfolio("test_portfolio1",100000.0);
-        
-        self.exchange_time = 0
-        
+                
     def build(self) -> None:
         return
         
@@ -31,7 +29,7 @@ class MovingAverageStrategy:
             helpers.test1_exchange_id,
             helpers.test1_broker_id,
             "dummy",
-            FastTest.OrderExecutionType.LAZY,
+            FastTest.OrderExecutionType.EAGER,
             -1
         )
         
@@ -42,11 +40,8 @@ class MovingAverageStrategy:
         cross_dict = {}
         close_dict = {}
         
-        st = time.time()
         self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
         self.exchange.get_exchange_feature(close_dict, "Close")
-        et = time.time()
-        self.exchange_time += (et - st)
 
         for asset_id, cross_value in cross_dict.items():
             
@@ -59,15 +54,15 @@ class MovingAverageStrategy:
                 elif cross_value == 0: 
                     self.buy(asset_id, -1 / close_price)
             else:
-                position_units = position.get_units()
+                position_units = position.units
                 if cross_value == 1 and position_units > 0:
                     continue
                 elif cross_value == 0 and position_units < 0: 
                     continue
                 elif cross_value == 1 and position_units < 0:
-                    self.buy(asset_id, 2*abs(position.get_units()))
+                    self.buy(asset_id, -2 * position.units)
                 elif cross_value == 0 and position_units > 0:
-                    self.buy(asset_id, -2*abs(position.get_units()))
+                    self.buy(asset_id, -2 * position.units)
             
 class SimpleStrategy:
     def __init__(self, hal : Hal) -> None:        
@@ -135,7 +130,7 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(nlv_actual, nlv_history))
 
     def test_hal_big(self):
-        hal = helpers.create_big_hal(logging = 0)
+        hal = helpers.create_big_hal(logging = 2)
         
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         
@@ -144,8 +139,7 @@ class HalTestMethods(unittest.TestCase):
                
         #strategy = MovingAverageStrategy(hal)
         #hal.register_strategy(strategy) 
-               
-               
+                  
         hal.build()
 
         st = time.time()
@@ -155,9 +149,12 @@ class HalTestMethods(unittest.TestCase):
         execution_time = et - st
         candles = hal.get_candles()
         
-        ##print(f"HAL: execution time: {execution_time:.4f} seconds")
-        #print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
+        print(f"HAL: execution time: {execution_time:.4f} seconds")
+        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         #print(f"HAL: exchange time: {strategy.exchange_time}")
+        
+        orders = hal.get_order_history()
+        print(orders)
         
         assert(True)
     

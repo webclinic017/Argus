@@ -1,6 +1,7 @@
 //
 // Created by Nathan Tormaschy on 4/18/23.
 //
+#include <cstddef>
 #include <fmt/core.h>
 #include <string>
 #include <memory>
@@ -87,7 +88,20 @@ void init_hydra_ext(py::module &m)
         .def("get_broker", &Hydra::get_broker, "gets existing broker object")
         .def("get_master_portfolio", &Hydra::get_master_portflio, "get smart pointer to master portfolio")
         .def("get_portfolio", &Hydra::get_portfolio, "search through portfolio tree to find portfolio")
-        .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange");
+        .def("get_exchange", &Hydra::get_exchange, "builds a new asset to the exchange")
+
+        .def("get_order_history", [](Hydra& self) {
+            return self.get_history()->get_order_history();},
+            py::return_value_policy::reference_internal
+        )
+        .def("get_trade_history", [](Hydra& self) {
+            return self.get_history()->get_trade_history();},
+            py::return_value_policy::reference_internal
+        )
+        .def("get_position_history", [](Hydra& self) {
+            return self.get_history()->get_position_history();},
+            py::return_value_policy::reference_internal
+        );
 
     m.def("new_hydra", &new_hydra, py::return_value_policy::reference);
 }
@@ -134,11 +148,12 @@ void init_position_ext(py::module &m)
         .def("get_trade", &Position::get_trade, "get child trade from position")
         
         .def("get_average_price", &Position::get_average_price, "get position average price")
-        .def("get_units", &Position::get_units, "get position units")
+        .def("get_units", &Position::get_units)
         .def("get_nlv", &Position::get_nlv, "get net liquidation value")
         .def("get_unrealized_pl", &Position::get_unrealized_pl, "get unrealized pl")
         
-        .def("is_open", &Position::get_is_open, "is position open");
+        .def("is_open", &Position::get_is_open, "is position open")
+        .def_readonly("units", &Position::units);
 
     py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")
         .def("get_mem_address", &Trade::get_mem_address, "get memory address of trade object")
@@ -150,12 +165,44 @@ void init_broker_ext(py::module &m)
 {
     py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker");
 
+    py::class_<Order, std::shared_ptr<Order>>(m, "Order")
+        .def("get_order_type", &Order::get_order_type)
+        .def("get_order_state", &Order::get_order_state)
+        .def("get_order_id", &Order::get_order_id)
+        .def("get_trade_id", &Order::get_trade_id)
+        .def("get_units", &Order::get_units)
+        .def("get_average_price", &Order::get_average_price)
+        .def("get_fill_time", &Order::get_fill_time)
+        .def("get_limit", &Order::get_limit)
+        .def("get_asset_id", &Order::get_asset_id)
+        .def("get_exchange_id", &Order::get_exchange_id)
+        .def("get_broker_id", &Order::get_broker_id)
+        .def("get_strategy_id", &Order::get_strategy_id)
+        .def("get_portfolio_id", [](Order& self) {
+            return self.get_source_portfolio()->get_portfolio_id();
+        }
+        );
+
 }
 
 void init_enum(py::module &m){
      py::enum_<OrderExecutionType>(m, "OrderExecutionType")
         .value("EAGER", OrderExecutionType::EAGER)
         .value("LAZY", OrderExecutionType::LAZY)
+        .export_values();
+
+    py::enum_<OrderType>(m, "OrderType")
+        .value("MARKET_ORDER", OrderType::MARKET_ORDER)
+        .value("LIMIT_ORDER", OrderType::LIMIT_ORDER)
+        .value("STOP_LOSS_ORDER", OrderType::STOP_LOSS_ORDER)
+        .value("TAKE_PROFIT_ORDER", OrderType::TAKE_PROFIT_ORDER)
+        .export_values();
+
+    py::enum_<OrderState>(m, "OrderState")
+        .value("PENDING", OrderState::PENDING)
+        .value("OPEN", OrderState::OPEN)
+        .value("FILLED", OrderState::FILLED)
+        .value("CANCELED", OrderState::CANCELED)
         .export_values();
 }
 

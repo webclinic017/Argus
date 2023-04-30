@@ -119,6 +119,8 @@ public:
     /// handle a asset id that has finished streaming (remove from portfolio and exchange)
     void cleanup_asset(const string& asset_id);
 
+    shared_ptr<History> get_history(){return this->history;}
+
     //cast self to void ptr and return
     void* void_ptr() { return static_cast<void*>(this);};
 

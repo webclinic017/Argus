@@ -170,7 +170,7 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
 {
     // log the order if needed
     #ifdef ARGUS_STRIP
-    if (this->logging == 1)
+    if (this->logging > 0)
     {
         this->log_order_fill(filled_order);
     }
@@ -190,8 +190,8 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
         // changing position sides
         if(position_units * order_units < 0 && abs(order_units) > abs(position_units))
         {
-            // new order created to close out existing position, filled order now holds units 
-            // to open the position in the other direction
+            // new order created to close out existing position, adjust the filled order so that it 
+            // hold units need to open the position in the other direction
             auto new_order = split_order(
                 filled_order,  
                 -1 * position_units);
@@ -199,9 +199,9 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
             // process adjusted orders, first closes out, second creates new position
             this->on_order_fill(new_order);
             this->on_order_fill(filled_order);
+
             return;
         }
-        
         // filled order is not closing existing position
         else if (position_units + filled_order->get_units() > 1e-7)
         {
@@ -294,7 +294,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
         filled_order->get_fill_time());
 
     #ifdef ARGUS_STRIP
-    if(this->logging == 1){
+    if(this->logging  > 0){
         this->log_position_close(position);
     }
     #endif
@@ -331,7 +331,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
         }
 
         #ifdef ARGUS_STRIP
-        if(this->logging == 1){
+        if(this->logging > 0){
             this->log_trade_close(trade);
         }
         #endif
@@ -376,7 +376,7 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
     {   
         // log position closed by trade propogating up
         #ifdef ARGUS_STRIP
-        if(this->logging == 1)
+        if(this->logging > 0)
         {
             parent->log_position_close(position);
             
@@ -424,7 +424,7 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
 
         //log the new trade open for the parent
         #ifdef ARGUS_STRIP
-        if(this->logging == 1)
+        if(this->logging > 0)
         {
             parent->log_trade_open(trade_sp);
         }
@@ -653,7 +653,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
 {
     #ifdef ARGUS_STRIP
-    if(this->logging == 1){
+    if(this->logging > 0){
         fmt::print("PORTFOLIO: {} canceling orders for trade: {} \n",
             this->portfolio_id, 
             trade_sp->get_trade_id()
@@ -669,7 +669,7 @@ void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
     }
 
     #ifdef ARGUS_STRIP
-    if(this->logging == 1){
+    if(this->logging > 0){
         fmt::print("PORTFOLIO: {} order canceled for trade: {} \n",
             this->portfolio_id, 
             trade_sp->get_trade_id()
@@ -698,29 +698,31 @@ shared_ptr<Portfolio> Portfolio::find_portfolio(const string &portfolio_id_){
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_open_time());
-    fmt::print("{}:  PORTFOLIO {} NEW POSITION: POSITION {} AVERAGE PRICE AT {}, ASSET_ID: {}\n",
-               datetime_str,
-               this->portfolio_id,
-               new_position->get_position_id(),
-               new_position->get_average_price(),
-               new_position->get_asset_id());
+    fmt::print("{}:  PORTFOLIO {} NEW POSITION: POSITION {}, ASSET_ID: {}, AVG PRICE AT {:.3f}, UNITS: {:.3f}\n",
+                datetime_str,
+                this->portfolio_id,
+                new_position->get_position_id(),
+                new_position->get_asset_id(),
+                new_position->get_average_price(),
+                new_position->get_units());
 }
 
 void Portfolio::log_position_close(shared_ptr<Position> &new_position)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(new_position->get_position_close_time());
-    fmt::print("{}:  PORTFOLIO {} CLOSED POSITION: POSITION {} CLOSE PRICE AT {}, ASSET_ID: {}\n",
-               datetime_str,
-               this->portfolio_id,
-               new_position->get_position_id(),
-               new_position->get_close_price(),
-               new_position->get_asset_id());
+    fmt::print("{}:  PORTFOLIO {} CLOSED POSITION: POSITION {}, ASSET_ID: {}, CLOSE PRICE AT {:.3f}, UNITS: {:.3f}\n",
+                datetime_str,
+                this->portfolio_id,
+                new_position->get_position_id(),
+                new_position->get_asset_id(),
+                new_position->get_close_price(),
+                new_position->get_units());
 }
 
 void Portfolio::log_trade_close(shared_ptr<Trade> &closed_trade)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(closed_trade->get_trade_close_time());
-    fmt::print("{}:  PORTFOLIO {} CLOSED TRADE: TRADE {} CLOSE PRICE AT {}, ASSET_ID: {}\n",
+    fmt::print("{}:  PORTFOLIO {} CLOSED TRADE: TRADE {} CLOSE PRICE AT {:.3f}, ASSET_ID: {}\n",
                datetime_str,
                this->portfolio_id,
                closed_trade->get_trade_id(),
@@ -731,7 +733,7 @@ void Portfolio::log_trade_close(shared_ptr<Trade> &closed_trade)
 void Portfolio::log_trade_open(trade_sp_t &new_trade)
 {   
     auto datetime_str = nanosecond_epoch_time_to_string(new_trade->get_trade_open_time());
-    fmt::print("{}:  PORTFOLIO {} TRADE OPENED: source portfolio id: {}, trade id: {}, asset id: {}, avg price: {}\n",
+    fmt::print("{}:  PORTFOLIO {} TRADE OPENED: source portfolio id: {}, trade id: {}, asset id: {}, avg price: {:.3f}\n",
                datetime_str,
                this->portfolio_id,
                new_trade->get_source_portfolio()->get_portfolio_id(),
@@ -742,7 +744,9 @@ void Portfolio::log_trade_open(trade_sp_t &new_trade)
 
 void Portfolio::log_order_create(order_sp_t &filled_order)
 {
-    fmt::print("PORTFOLIO {} ORDER CREATED: order id:  {}, asset id: {}, units: {}, trade id: {}\n",
+    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
+    fmt::print("{}:  PORTFOLIO {} ORDER CREATED: order id:  {}, asset id: {}, units: {:.3f}, trade id: {}\n",
+               datetime_str,
                this->portfolio_id,
                filled_order->get_order_id(),
                filled_order->get_asset_id(),
@@ -753,12 +757,12 @@ void Portfolio::log_order_create(order_sp_t &filled_order)
 void Portfolio::log_order_fill(order_sp_t &filled_order)
 {
     auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
-    fmt::print("{}:  PORTFOLIO {} ORDER FILLED: order id: {}, asset id: {}, trade id: {}, avg price: {}\n",
+    fmt::print("{}:  PORTFOLIO {} ORDER FILLED: order id: {}, asset id: {}, avg price: {:.3f}, units: {:.3f}\n",
                 datetime_str,
                 this->portfolio_id,
                 filled_order->get_order_id(),
                 filled_order->get_asset_id(),
-                filled_order->get_trade_id(),
-                filled_order->get_average_price());
+                filled_order->get_average_price(),
+                filled_order->get_units());
 };
 #endif

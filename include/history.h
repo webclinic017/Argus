@@ -9,10 +9,16 @@
 #include <unordered_map>
 #include <memory>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
+namespace py = pybind11;
+
 #include "settings.h"
 #include "trade.h"
 #include "order.h"
 #include "position.h"
+#include "utils_array.h"
 
 using namespace std;
 
@@ -25,11 +31,14 @@ private:
     vector<shared_ptr<Trade>> trades;
 
     /// history of all positions
-    unordered_map<unsigned int, shared_ptr<Position>> positions;
-
+    vector<shared_ptr<Position>> positions;
 
 public:
     vector<shared_ptr<Position>> test;
+
+    vector<shared_ptr<Order>>& get_order_history(){       return this->orders;   }
+    vector<shared_ptr<Trade>>& get_trade_history(){       return this->trades;   }
+    vector<shared_ptr<Position>>& get_position_history(){ return this->positions;}
 
     void remember_order(shared_ptr<Order> order){
 #ifdef ARGUS_RUNTIME_ASSERT
@@ -50,7 +59,7 @@ public:
 #ifdef ARGUS_RUNTIME_ASSERT
         assert(position);
 #endif
-        this->positions.insert({position->get_position_id(), position});
+        this->positions.emplace_back(position);
     };
 };
 

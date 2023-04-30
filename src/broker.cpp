@@ -152,9 +152,13 @@ void Broker::process_filled_order(order_sp_t filled_order)
     printf("broker processing filled order...\n");
     #endif
 
-    // adjust the account held at the broker
     assert(filled_order->get_source_portfolio());
-    this->broker_account.on_order_fill(filled_order);
+    
+    // adjust the account held at the broker
+    #ifdef ARGUS_BROKER_ACCOUNT_TRACKING
+    auto new_order = std::make_shared<Order>(*filled_order);
+    this->broker_account.on_order_fill(new_order);
+    #endif
 
     // get the portfolio the order was placed for, adjust the sub portfolio accorindly
     filled_order->get_source_portfolio()->on_order_fill(filled_order);

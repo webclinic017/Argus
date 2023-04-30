@@ -1,7 +1,9 @@
 from typing import Type
 import multiprocessing
 import cProfile
+import pickle
 
+import pandas as pd
 import numpy as np
 
 import FastTest
@@ -38,6 +40,34 @@ class Hal:
     
     def get_candles(self) -> int:
         return self.hydra.get_candles()
+    
+    def get_order_history(self):
+        orders = self.hydra.get_order_history()
+        orders_list = []
+        for order in orders:
+            orders_list.append({
+                "fill_time" : order.get_fill_time(),
+                "asset_id":  order.get_asset_id(),
+                "portfolio_id" : order.get_portfolio_id(),
+                "units" : order.get_units(),
+                "strategy_id" : order.get_strategy_id(),
+                "order_type": order.get_order_type(), 
+                "order_state": order.get_order_state(),
+                "average_price": order.get_average_price(),
+                "order_id" : order.get_order_id(),
+                "trade_id" : order.get_trade_id(),
+                "exchange_id" : order.get_exchange_id(),
+                "broker_id" : order.get_broker_id()         
+            })
+        df = pd.DataFrame.from_records(orders_list)
+        df["fill_time"] = pd.to_datetime(df["fill_time"])
+        return df
+
+    def get_trade_history(self):
+        return self.hydra.get_trade_history()
+    
+    def get_position_history(self):
+        return self.hydra.get_position_history()
     
     def new_portfolio(self, portfolio_id : str, cash : float, parent_portfolio_id : str = "master") -> Portfolio:
         parent_portfolio = self.hydra.get_portfolio(parent_portfolio_id)

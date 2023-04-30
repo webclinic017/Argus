@@ -38,6 +38,8 @@ inline T unsorted_vector_remove(vector<T> &vec, Func func, unsigned int id){
     return order;
 }
 
+
+
 template<typename T>
 inline py::array_t<T> to_py_array(T const * data, long length, bool read_only)
 {

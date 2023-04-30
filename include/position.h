@@ -35,9 +35,6 @@ private:
     /// net liquidation value of the position
     double nlv; 
 
-    /// how many units in the position
-    double units;
-
     /// average price of the position
     double average_price = 0;
 
@@ -84,6 +81,9 @@ public:
 
     trade_sp_t adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
     trade_sp_t adjust_trade(trade_sp_t new_trade);
+
+    /// how many units in the position
+    double units;
 
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}

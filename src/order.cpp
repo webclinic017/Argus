@@ -12,11 +12,11 @@
 using order_sp_t = Order::order_sp_t;
 
 order_sp_t split_order(order_sp_t existing_order, double new_order_units){
-    // subtract new order units from existing order
-    auto existing_units = existing_order->get_units() - new_order_units;
-
     // make deep copy of existing order
     auto new_order = std::make_shared<Order>(*existing_order);
+
+    // subtract new order units from existing order
+    auto existing_units = existing_order->get_units() - new_order_units;
 
     // update order units for both new and existing order
     new_order->set_units(new_order_units);

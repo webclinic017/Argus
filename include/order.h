@@ -141,13 +141,13 @@ public:
     [[nodiscard]] unsigned int get_order_id() const { return this->order_id; }
 
     /// get the unique id of the exchange the order was placed to
-    [[nodiscard]] string get_exchange_id() { return this->exchange_id; }
+    [[nodiscard]] string get_exchange_id() const { return this->exchange_id; }
 
     /// get the unique asset id of the order
-    [[nodiscard]] string const & get_asset_id() { return this->asset_id; }
+    [[nodiscard]] string const & get_asset_id() const { return this->asset_id; }
 
-    /// get the unique trade id of the broker the order was placed to
-    [[nodiscard]] string const & get_broker_id() { return this->broker_id; }
+    /// get the unique broker id of the broker the order was placed to
+    [[nodiscard]] string const & get_broker_id() const { return this->broker_id; }
 
     /// get the unique strategy id of the strategy that placed the order
     [[nodiscard]] string const & get_strategy_id() const { return this->strategy_id; }
