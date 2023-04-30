@@ -379,7 +379,8 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
     return asset_sp->get_asset_feature(column_name, index);
 }
 
-void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column){
+void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column)
+{
     for(auto it = this->market_view.begin(); it != this->market_view.end(); it++){
         //check if asset is streaming
         auto asset_sp = it->second;
@@ -392,6 +393,13 @@ void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column
             continue;        
         }
     }
+}
+
+double ExchangeMap::get_market_price(const string& asset_id)
+{
+    auto& asset = this->asset_map.at(asset_id);
+    auto exchange = this->exchanges.at(asset->exchange_id);
+    return asset->get_market_price(exchange->on_close);
 }
 
 shared_ptr<Exchange> new_exchange(const string &exchange_id, int logging_)

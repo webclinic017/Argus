@@ -5,7 +5,6 @@ import unittest
 import cProfile
 
 import numpy as np
-from numba import jit
 sys.path.append(os.path.abspath('..'))
 
 import Asset
@@ -39,7 +38,8 @@ class MovingAverageStrategy:
             elif cross_value == 0: 
                 units = -1
             self.portfolio1.order_target_size(asset_id, units, "dummy", 
-                                    OrderTargetType.UNITS,
+                                    .01,
+                                    OrderTargetType.DOLLARS,
                                     OrderExecutionType.LAZY,
                                     -1)
 
@@ -112,9 +112,6 @@ class HalTestMethods(unittest.TestCase):
         strategy = MovingAverageStrategy(hal)
         hal.register_strategy(strategy) 
                
-        #strategy = MovingAverageStrategy(hal)
-        #hal.register_strategy(strategy) 
-                  
         hal.build()
 
         st = time.time()
@@ -127,10 +124,9 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles: {candles:.4f} candles")
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
-        #print(f"HAL: exchange time: {strategy.exchange_time}")
         
         orders = hal.get_order_history()
-        #print(orders)
+        print(orders)
         
         portfolio_history = hal.get_portfolio("master").get_portfolio_history()
         nlv_history = portfolio_history.get_nlv_history()

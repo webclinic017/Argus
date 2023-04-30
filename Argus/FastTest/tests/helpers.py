@@ -91,18 +91,18 @@ def create_big_hal(logging: int = 0, cash: float = 0) -> Hal:
     data_path = os.path.join(dir_path, "SP500_D")
     file_list = [os.path.join(data_path, f) for f in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, f))]
     
-    for suffix in ["_x","_y"]:
-        for _file in file_list:
-            _file_base = os.path.basename(_file)
-            asset_id = os.path.splitext(_file_base)[0] + suffix
-            
-            df = pd.read_feather(_file)
-            df["Date"] = df["Date"] * 1e9
-            df.set_index("Date", inplace=True)
-            
-            df["FAST_ABOVE_SLOW"] = df["Close"].rolling(50).mean() >  df["Close"].rolling(200).mean()
-            df.dropna(inplace = True)
-            
-            asset = Asset.asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id)
-            exchange.register_asset(asset)    
+
+    for _file in file_list:
+        _file_base = os.path.basename(_file)
+        asset_id = os.path.splitext(_file_base)[0]
+        
+        df = pd.read_feather(_file)
+        df["Date"] = df["Date"] * 1e9
+        df.set_index("Date", inplace=True)
+        
+        df["FAST_ABOVE_SLOW"] = df["Close"].rolling(50).mean() >  df["Close"].rolling(200).mean()
+        df.dropna(inplace = True)
+        
+        asset = Asset.asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id)
+        exchange.register_asset(asset)    
     return hal

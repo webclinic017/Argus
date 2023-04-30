@@ -133,6 +133,7 @@ public:
     /// place an to target a certain size held be the portfolio it was placed to
     void order_target_size(const string &asset_id, double size,
                            const string &strategy_id,
+                           double epsilon,
                            OrderTargetType order_target_type,
                            OrderExecutionType order_execution_type = LAZY,
                            int trade_id = -1

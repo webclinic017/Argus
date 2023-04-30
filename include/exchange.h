@@ -47,6 +47,9 @@ public:
     /// total number of rows in the exhange
     size_t candles;
 
+    /// is the close of a candle
+    bool on_close;
+
     /// build the exchange
     void build();
 
@@ -117,9 +120,6 @@ private:
     /// is the exchange built
     bool is_built;
 
-    /// is the close of a candle
-    bool on_close;
-
     /// unique id of the exchange
     string exchange_id;
 
@@ -170,6 +170,9 @@ public:
 
     /// mapping between asset id and asset pointer
     std::unordered_map<string, Asset*> asset_map;
+
+    // get market price of asset
+    double get_market_price(const string& asset_id);
 };  
 
 /// function for creating a shared pointer to a asset

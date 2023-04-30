@@ -99,7 +99,7 @@ private:
     /// or to link stop losses and take profits to existing trades
     OrderParent *order_parent;
 
-    /// unique id of the portfolio that the order was placed to
+    /// pointer to the portfolio that the order was placed to
     Portfolio* source_portfolio;
 
     /// child orders of the order to be placed on fill
