@@ -35,7 +35,11 @@ void init_asset_ext(py::module &m)
              &Asset::get_datetime_index_view,
              py::return_value_policy::reference);
 
-    m.def("new_asset", &new_asset, py::return_value_policy::reference);
+    m.def("new_asset", &new_asset, py::return_value_policy::reference,
+        R"pbdoc(
+            Generate new Asset class instance
+        )pbdoc"
+    );
 
     // Define a function that returns the memory address of a MyClass instance
     m.def("mem_address", [](Asset &instance)
@@ -152,7 +156,8 @@ void init_position_ext(py::module &m)
         .def("get_unrealized_pl", &Position::get_unrealized_pl)
         
         .def("is_open", &Position::get_is_open)
-        .def_readonly("units", &Position::units);
+        .def_readonly("units", &Position::units)
+        .def_readonly("average_price", &Position::average_price);
 
     py::class_<Trade, std::shared_ptr<Trade>>(m, "Trade")
         .def("get_mem_address", &Trade::get_mem_address)

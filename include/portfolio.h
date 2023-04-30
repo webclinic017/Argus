@@ -58,6 +58,7 @@ public:
     double get_cash() const {return this->cash;}
 
     /// @brief get the net liquidation as last calculated
+    /// @return the net liquidation value of the portfolio
     double get_nlv() const {return this->nlv;}
 
     /// @brief get the net liquidation as last calculated

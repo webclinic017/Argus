@@ -35,9 +35,6 @@ private:
     /// net liquidation value of the position
     double nlv; 
 
-    /// average price of the position
-    double average_price = 0;
-
     /// closing price of the position
     double close_price = 0;
 
@@ -84,6 +81,9 @@ public:
 
     /// how many units in the position
     double units;
+
+    /// average price of the position
+    double average_price = 0;
 
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}

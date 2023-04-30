@@ -9,7 +9,7 @@ from ctypes import *
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-def asset_from_df(df: Type[pd.DataFrame], asset_id: str, exchange_id : str, broker_id : str) -> FastTest.Asset:
+def asset_from_df(df: Type[pd.DataFrame], asset_id: str, exchange_id : str, broker_id : str):
     # extract underlying numpy arrays
     values = df.values.astype(np.float64)
     epoch_index = df.index.values.astype(np.int64)

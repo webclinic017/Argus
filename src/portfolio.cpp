@@ -117,7 +117,7 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
         case DOLLARS:
             units /= market_price;
             break;
-        default:
+        case PCT:
             units = (size * this->nlv) / market_price;
             break;
     }

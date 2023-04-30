@@ -172,6 +172,40 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(portfolio1.get_nlv() == (10000 + (50 * .5)))
         assert(portfolio2.get_nlv() == (10000 + (-100 * .5)))
         assert(mp.get_nlv() == portfolio1.get_nlv() + portfolio2.get_nlv())
-    
+        
+            
+    def test_portfolio_order_traget_size(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",10000.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",10000.0);  
+        
+        hydra.build()
+        hydra.forward_pass()
+        
+        portfolio2.order_target_size(helpers.test2_asset_id, .01, "dummy", 
+                .01,
+                FastTest.OrderTargetType.PCT,
+                FastTest.OrderExecutionType.EAGER,
+                -1)
+        p2 = portfolio2.get_position(helpers.test2_asset_id)     
+        assert(p2 is not None)
+        assert(p2.units == (10000 * .01)/ 101)
+        
+        portfolio1.order_target_size(helpers.test2_asset_id, 10, "dummy", 
+                .01,
+                FastTest.OrderTargetType.DOLLARS,
+                FastTest.OrderExecutionType.LAZY,
+                -1)
+        
+        p1 = portfolio1.get_position(helpers.test2_asset_id)        
+        assert(p1 is None) # lazy exeution
+        hydra.on_open()
+        p1 = portfolio1.get_position(helpers.test2_asset_id)     
+        assert(p1 is not None)
+        assert(p1.units == 10 / 101)
+                
+
 if __name__ == '__main__':
     unittest.main()

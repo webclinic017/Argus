@@ -1,3 +1,5 @@
+import sys
+import os
 from typing import Type
 import multiprocessing
 import cProfile
@@ -5,6 +7,8 @@ import pickle
 
 import pandas as pd
 import numpy as np
+
+sys.path.append(os.path.abspath('..'))
 
 import FastTest
 from FastTest import Broker, Exchange, Asset, Portfolio, Hydra
@@ -20,22 +24,22 @@ class Hal:
         self.hydra.build()
         self.is_built = True
         
-    def get_hydra(self) -> Hydra:
+    def get_hydra(self) -> FastTest.Hydra:
         return self.hydra
         
-    def new_broker(self, broker_id : str, cash : float) -> Broker:
+    def new_broker(self, broker_id : str, cash : float) -> FastTest.Broker:
         return self.hydra.new_broker(broker_id, cash)
     
-    def new_exchange(self, exchange_id : str) -> Exchange:
+    def new_exchange(self, exchange_id : str) -> FastTest.Exchange:
         return self.hydra.new_exchange(exchange_id)
     
-    def get_broker(self, broker_id : str) -> Broker:
+    def get_broker(self, broker_id : str) -> FastTest.Broker:
         return self.hydra.get_broker(broker_id)
     
-    def get_exchange(self, exchange_id : str) -> Exchange:
+    def get_exchange(self, exchange_id : str) -> FastTest.Exchange:
         return self.hydra.get_exchange(exchange_id)
     
-    def get_portfolio(self, portfolio_id : str) -> Portfolio:
+    def get_portfolio(self, portfolio_id : str) -> FastTest.Portfolio:
         return self.hydra.get_portfolio(portfolio_id)
     
     def get_candles(self) -> int:
