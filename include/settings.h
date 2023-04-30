@@ -17,6 +17,13 @@ static double constexpr ARGUS_MP_PORTFOLIO_MAX_LEVERAGE = 1.75;
 #include <stdexcept>
 #include <string>
 
+enum class ErrorCode {
+  Success = 0,
+  FileNotFound = 1,
+  InvalidParameter = 2,
+  AccessDenied = 3
+};
+
 class RuntimeError : public std::runtime_error {
 public:
     RuntimeError(const std::string& message, const char* file, int line)

@@ -7,6 +7,10 @@
 #include <fmt/core.h>
 #include <vector>
 
+#include "pybind11/gil.h"
+
+namespace py = pybind11;
+
 
 #include "asset.h"
 #include "exchange.h"

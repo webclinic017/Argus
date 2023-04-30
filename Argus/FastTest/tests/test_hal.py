@@ -43,7 +43,6 @@ class MovingAverageStrategy:
                                     OrderExecutionType.LAZY,
                                     -1)
 
-    
 class SimpleStrategy:
     def __init__(self, hal : Hal) -> None:        
         self.exchange = hal.get_exchange(helpers.test1_exchange_id)
@@ -125,12 +124,13 @@ class HalTestMethods(unittest.TestCase):
         execution_time = et - st
         candles = hal.get_candles()
         
+        print(f"HAL: candles: {candles:.4f} candles")
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         #print(f"HAL: exchange time: {strategy.exchange_time}")
         
         orders = hal.get_order_history()
-        print(orders[orders["asset_id"] == "EMR"])
+        #print(orders)
         
         portfolio_history = hal.get_portfolio("master").get_portfolio_history()
         nlv_history = portfolio_history.get_nlv_history()

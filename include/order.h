@@ -120,6 +120,9 @@ private:
     /// time the order was filled
     long long order_fill_time;
 
+    /// time the order was created
+    long long order_create_time;
+
     /// limit use for stop loss and take profit orders
     double limit;
 
@@ -195,6 +198,7 @@ public:
     /// set the limit of the order
     inline void set_limit(double limit_) { this->limit = limit_; }
 
+    /// set the number of units in the order (used for adjustments)
     inline void set_units(double units_) { this->units = units_;}
 
     // set the unique id of the order (broker sets when it is placed)
@@ -206,8 +210,12 @@ public:
     /// set the order state of the order
     inline void set_order_state(OrderState order_state_) { this->order_state = order_state_; };
     
+    /// set the time the order was created (place on the exchange)
+    void set_order_creat_time(long long order_create_time_){this->order_create_time = order_create_time_;}
+    
     /// fill the order at a given price and time
     void fill(double market_price, long long fill_time);
+
 };
 
 /// split a order into multiple sub orders based on number of units

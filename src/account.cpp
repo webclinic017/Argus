@@ -60,7 +60,7 @@ void Account::on_order_fill(order_sp_t filled_order)
         if(!trade->get_is_open())
         {
             this->trades.erase(asset_id);
-            assert(!this->trades.contains(asset_id));
+            assert(!this->trades.count(asset_id));
         }
     }
 };

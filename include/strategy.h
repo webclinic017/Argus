@@ -23,8 +23,6 @@ public:
             // call python object's on_close() method to generate orders
             return python_handler_on_close(); 
 
-            //release gil 
-            py::gil_scoped_release release;
         };
     }
 };

@@ -150,7 +150,11 @@ py::array_t<long long> Exchange::get_datetime_index_view()
 }
 
 void Exchange::place_order(shared_ptr<Order> &order_)
-{
+{   
+    // set the time that the order was placed on the exchange
+    order_->set_order_creat_time(this->exchange_time);
+
+    // process order, either fill it or add it to the open order
     this->process_order(order_);
 }
 
