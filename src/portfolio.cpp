@@ -200,6 +200,8 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
             this->on_order_fill(new_order);
             this->on_order_fill(filled_order);
 
+            // reset filled order units to the original value
+            filled_order->set_units(order_units);
             return;
         }
         // filled order is not closing existing position

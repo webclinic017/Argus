@@ -150,8 +150,16 @@ class HalTestMethods(unittest.TestCase):
         candles = hal.get_candles()
         
         print(f"HAL: execution time: {execution_time:.4f} seconds")
-        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")                      
+        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
+        #print(f"HAL: exchange time: {strategy.exchange_time}")
+        
+        orders = hal.get_order_history()
+        print(orders)
+                
         assert(True)
+    
+    
+    
     
 if __name__ == '__main__':
     unittest.main()
