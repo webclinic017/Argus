@@ -119,7 +119,10 @@ private:
     double units;
 
     /// price the order was filled at
-    double averae_price;
+    double average_price;
+
+    /// was the order placed at the close of the candle
+    bool placed_at_closed;
 
     /// time the order was filled
     long long order_fill_time;
@@ -179,7 +182,7 @@ public:
     [[nodiscard]] double get_units() const { return this->units; }
 
     /// get the fill price in the order
-    [[nodiscard]] double get_average_price() const { return this->averae_price; }
+    [[nodiscard]] double get_average_price() const { return this->average_price; }
 
     /// get the limit of the order
     [[nodiscard]] double get_limit() const { return this->limit; }
@@ -219,6 +222,18 @@ public:
     
     /// fill the order at a given price and time
     void fill(double market_price, long long fill_time);
+
+    /// set the order's placed_at_closed state
+    void set_placed_on_close(bool is_on_close){this->placed_at_closed = is_on_close;};
+
+    /// get the order's placed_at_closed state
+    bool get_placed_on_close(){return this->placed_at_closed;};
+
+    /// get the time the order was created (place on the exchange)
+    long long get_order_create_time(){return this->order_create_time;}
+    
+    // unfill order, used for event replay
+    void unfill();
 
 };
 

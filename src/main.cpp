@@ -81,6 +81,7 @@ void init_hydra_ext(py::module &m)
         .def("build", &Hydra::build)
         .def("run", &Hydra::run)
         .def("reset", &Hydra::reset)
+        .def("replay", &Hydra::replay)
 
         #ifdef ARGUS_STRIP
         .def("forward_pass", &Hydra::forward_pass)

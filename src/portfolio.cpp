@@ -52,6 +52,7 @@ Portfolio::Portfolio(
 void Portfolio::build(size_t portfolio_eval_length)
 {
     this->portfolio_history->build(portfolio_eval_length);
+    this->is_built = true;
 
     //recursively build portfolios with given size
     for(auto& portfolio_pair : this->portfolio_map){
@@ -516,7 +517,7 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
 
 shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
     //create new portfolio
-    auto portfolio = new Portfolio(
+    auto portfolio_ = new Portfolio(
              this->logging, 
         cash_, 
         portfolio_id_,
@@ -526,13 +527,12 @@ shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id
         this->exchange_map
         );
     
-    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
-
+    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio_);
     //insert into child portfolio map
     this->portfolio_map.insert({portfolio_id, portfolio_threaded});
 
     //update parent portfolio's values
-    this->cash += cash_;
+    this->add_cash(portfolio_->get_cash());
 
     //return smart pointer to the new portfolio
     return portfolio_threaded.get_shared_ptr();
@@ -551,7 +551,7 @@ void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_thre
     assert(this == portfolio_->get_parent_portfolio());
 
     //update parent portfolio's values
-    this->cash += portfolio_->get_cash();
+    this->add_cash(portfolio_->get_cash());
 
     //propgate all open positions and trade up the portfolio tree
     //done adjust cash, all parent portfolios simply take on child trades, i.e. NLV increases
@@ -767,6 +767,20 @@ shared_ptr<Portfolio> Portfolio::find_portfolio(const string &portfolio_id_){
     }
     ARGUS_RUNTIME_ERROR("failed to find portfolio");
 };
+
+void Portfolio::add_cash(double cash_)
+{
+    this->cash += cash_;
+    if(!this->is_built)
+    {
+        this->starting_cash += cash_;
+    }
+    if(!this->parent_portfolio)
+    {
+        return;
+    }
+    this->parent_portfolio->add_cash(cash_);
+}
 
 #ifdef ARGUS_STRIP
 void Portfolio::log_position_open(shared_ptr<Position> &new_position)

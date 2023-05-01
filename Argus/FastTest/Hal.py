@@ -22,8 +22,11 @@ class Hal:
         self.hydra.build()
         self.is_built = True
         
-    def reset(self):
-        self.hydra.reset()
+    def reset(self, clear_history = True):
+        self.hydra.reset(clear_history)
+        
+    def replay(self):
+        self.hydra.replay()
         
     def get_hydra(self) -> FastTest.Hydra:
         return self.hydra

@@ -102,6 +102,20 @@ class HalTestMethods(unittest.TestCase):
             
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
+        
+        #test replay    
+        hal.replay()
+        
+        cash_actual = np.array([100000, 100000,  90300, 100450, 100450,  90850.0,])
+        nlv_actual = np.array([100000, 100000, 100000, 100450, 100450, 100450.0,])
+        
+        for portfolio in ["master", "test_portfolio1"]:
+            portfolio_history = hal.get_portfolio(portfolio).get_portfolio_history()
+            cash_history = portfolio_history.get_cash_history()
+            nlv_history = portfolio_history.get_nlv_history()
+            
+            assert(np.array_equal(nlv_actual, nlv_history))
+            assert(np.array_equal(cash_actual, cash_history))
 
     def test_hal_reset(self):
         hal = helpers.create_simple_hal(logging=0)
@@ -168,18 +182,26 @@ class HalTestMethods(unittest.TestCase):
         
         print(f"HAL: candles: {candles:.4f} candles")
         print(f"HAL: execution time: {execution_time:.4f} seconds")
-        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
+        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")     
+        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
+        nlv1 = portfolio_history.get_nlv_history()[-1]
+
+        st = time.time()
+        hal.replay()
+        et = time.time()
         
-        #orders = hal.get_order_history()
-        #print(orders)
+        execution_time = et - st
+        candles = hal.get_candles()
+        print("")
+        print(f"HAL: candles: {candles:.4f} candles")
+        print(f"HAL: execution time: {execution_time:.4f} seconds")
+        print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")   
         
-        #portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-        #nlv_history = portfolio_history.get_nlv_history()
-        #print(nlv_history[-1])
+        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
+        nlv2 = portfolio_history.get_nlv_history()[-1]
+        assert(nlv1==nlv2)
         
-        assert(True)
-    
-    
+        
 if __name__ == '__main__':
     unittest.main()
     #tests % python -m cProfile -s cumtime test_hal.py

@@ -118,6 +118,11 @@ void Broker::place_order(shared_ptr<Order> order, bool process_fill)
 
     // set the order id
     order->set_order_id(this->order_counter);
+
+    // set wether the ored was placed on the close or open
+    order->set_placed_on_close(exchange->on_close);
+
+    //increment the static global broker order counter
     this->order_counter++;
 
     // send the order

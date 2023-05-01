@@ -12,6 +12,7 @@
 
 #include "asset.h"
 #include "exchange.h"
+#include "history.h"
 #include "hydra.h"
 #include "order.h"
 #include "settings.h"
@@ -73,7 +74,7 @@ shared_ptr<Hydra> new_hydra(int logging_)
     return hydra;
 }
 
-void Hydra::reset()
+void Hydra::reset(bool clear_history)
 {
     if(this->logging)
     {
@@ -92,6 +93,12 @@ void Hydra::reset()
 
     //reset all portfolios
     this->master_portfolio->reset();
+
+    if(clear_history)
+    {
+        auto history = this->history;
+        history->reset();
+    }
 
     if(this->logging)
     {
@@ -170,6 +177,8 @@ shared_ptr<Portfolio> Hydra::new_portfolio(const string & portfolio_id_, double 
         this->brokers,
         this->exchange_map
     );
+    //this->master_portfolio
+    //need to adjust all portfolios starting cash
 
     auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
     
@@ -452,6 +461,94 @@ void Hydra::backward_pass(){
     #endif
 }
 
+void Hydra::process_order_history(
+    vector<shared_ptr<Order>>& order_history,
+    bool on_close, 
+    size_t& current_order_index)
+{
+    auto history_size = order_history.size();
+    while(true)
+    {
+        if(current_order_index == history_size)
+        {
+            return;
+        }
+        auto order = order_history[current_order_index];
+        if(order->get_order_create_time() == this->hydra_time)
+        {
+            if(order->get_placed_on_close() == on_close)
+            {
+                // find the broker the order was placed to
+                auto broker= this->brokers->at(order->get_broker_id());
+                
+                //unfill the order, and replace it at the broker
+                order->unfill();
+                broker->place_order(order);
+
+                //move forward to next order
+                current_order_index++;
+            }
+            else{
+                // found an order that was placed at close of the current time, move forward
+                return;
+            }
+        }
+        else{
+            //found an order that is not at the current time stamp, move forward
+            return;
+        }
+    }
+}
+
+void Hydra::replay()
+{
+    //reset the hydra to it's original state, but don't clear the history buffer
+    this->reset(false);
+
+    //build a new smart pointer to histroy object
+    auto new_history = std::make_shared<History>();
+
+    //swap it with the full histroy, now the hydra's history is empty
+    std::swap(this->history,new_history);   
+
+    //get the old order history ovject to feed to the hydra
+    auto order_history = new_history->get_order_history(); 
+    
+    if(order_history.size() == 0)
+    {
+        return;
+    }
+    
+    if(this->logging)
+    {
+        this->log("\033[1;32mstarting hydra replay\033[0m");
+    }
+
+    size_t current_order_index = 0;
+    //core event loop
+    for(int i = 0; i < this->datetime_index_length; i++)
+    {
+        //generate market view and handle broker,exchange objects on open
+        this->forward_pass();
+
+        //allow strategies to place orders at open
+        this->process_order_history(order_history, false, current_order_index);
+
+        // process orders on open
+        this->on_open();
+
+        //allow strategies to place orders at close
+        this->process_order_history(order_history, true, current_order_index);
+
+        //cleanup and move forward in time
+        this->backward_pass();
+    }
+    if(this->logging)
+    {
+        this->log("hydra replay complete");
+    }
+;}
+
 void Hydra::run(){
     if(!this->is_built)
     {
@@ -459,12 +556,13 @@ void Hydra::run(){
     }
     if(this->logging)
     {
-        this->log("starting hydra run");
+        this->log("\033[1;32mstarting hydra run\033[0m");
     }
 
     //core event loop
     for(int i = 0; i < this->datetime_index_length; i++)
     {
+        //generate market view and handle broker,exchange objects on open
         this->forward_pass();
 
         //allow strategies to place orders at open
@@ -473,6 +571,7 @@ void Hydra::run(){
             strategy->cxx_handler_on_open();    
         };
 
+        // process orders on open
         this->on_open();
 
         //allow strategies to place orders at close
@@ -481,6 +580,7 @@ void Hydra::run(){
             strategy->cxx_handler_on_close();    
         };
 
+        //cleanup and move forward in time
         this->backward_pass();
     }
     if(this->logging)

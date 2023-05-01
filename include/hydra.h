@@ -76,7 +76,7 @@ public:
     void build();
 
     /// reset all members
-    void reset();
+    void reset(bool clear_history = true);
 
     // process orders that were placed at the open
     void on_open();
@@ -89,6 +89,11 @@ public:
 
     // execute simulation
     void run();
+
+    // replay the simulation using the historical order buffer
+    void replay();
+
+    void process_order_history(vector<shared_ptr<Order>>& order_history, bool on_close, size_t& current_order_index);
 
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);

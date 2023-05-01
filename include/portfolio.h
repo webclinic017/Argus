@@ -191,8 +191,17 @@ public:
                            OrderExecutionType order_execution_type = LAZY,
                            int tade_id = -1);
 
+    /**
+     * @brief add cash to the portfolio, adding cash propogates up portfolio tree
+     *  cash added before the simulation begins will affect starting cash set point. 
+     *
+     * @param cash amount of cash to add
+     */
+    void add_cash(double cash);
+
     const string & get_portfolio_id() const {return this->portfolio_id;}
     bool is_empty() const {return this->positions_map.size() > 0;}
+
 
 private:
     /// unique id of the portfolio
@@ -200,6 +209,9 @@ private:
 
     /// logging level
     int logging;
+
+    /// is the portfolio built
+    bool is_built = false;
 
     /// smart pointer to parent_portfolio
     Portfolio* parent_portfolio = nullptr;
@@ -227,6 +239,8 @@ private:
 
     /// cash held by the portfolio
     double cash;
+
+    /// starting cash of the portfolio
     double starting_cash;
 
     /// net liquidation value of the portfolio

@@ -84,7 +84,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
 {
     this->order_type = order_type_;
     this->units = units_;
-    this->averae_price = 0.0;
+    this->average_price = 0.0;
     this->order_fill_time = 0;
 
     // populate the ids of the order
@@ -93,6 +93,7 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
     this->broker_id = broker_id_;
     this->strategy_id = strategy_id_;
 
+    // verify we have a valid source portfolio
     assert(source_portfolio);    
     this->source_portfolio = source_portfolio;
 
@@ -114,9 +115,16 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
 
 void Order::fill(double market_price, long long fill_time)
 {
-    this->averae_price = market_price;
+    this->average_price = market_price;
     this->order_fill_time = fill_time;
     this->order_state = FILLED;
+}
+
+void Order::unfill()
+{
+    this->average_price = 0.0;
+    this->order_fill_time = 0;
+    this->order_state = PENDING;
 }
 
 void Order::cancel_child_order(unsigned int order_id_)
