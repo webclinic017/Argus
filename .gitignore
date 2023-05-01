@@ -8,3 +8,6 @@ __pycache__/
 Argus/FastTest/FastTest.cpython-39-darwin.so
 Argus/FastTest/tests/SP500_D
 Argus/Cipher
+Doxyfile
+docs/
+external/

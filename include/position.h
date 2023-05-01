@@ -20,9 +20,6 @@ using namespace std;
 class Position
 {
 private:
-    /// is the position currently open
-    bool is_open;
-
     /// unique id of the position
     unsigned int position_id;
 
@@ -77,6 +74,7 @@ public:
 
 
     trade_sp_t adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
+    
     trade_sp_t adjust_trade(trade_sp_t new_trade);
 
     /// how many units in the position
@@ -85,16 +83,23 @@ public:
     /// average price of the position
     double average_price = 0;
 
+     /// is the position currently open
+    bool is_open;
+
     /// @brief set the id of a position
     void set_position_id(unsigned int position_id_){this->position_id = position_id_;}
 
+    /// @private
     /// @brief is the position currently open
+    /// @brief set the wether the position is open
     void set_is_open(bool is_open_) {this->is_open = is_open_;}
 
     /// @brief set the position open status
+    /// @return is the position currently open
     bool get_is_open() const {return this->is_open;}
 
     /// @brief get the positions net liquidation value as last calculated
+    /// @return net liquidation value of the position
     double get_nlv() const {return this->nlv;}
 
     /// @brief get the positions unrealized pl
@@ -105,21 +110,24 @@ public:
     unsigned int get_trade_count() const {return this->trades.size();}
 
     /// get the id of the position
-    /// \return position id
+    /// @return position id
     [[nodiscard]] unsigned int get_position_id() const { return this->position_id; };
 
-    /// get the id of the position's underlying asset
-    /// \return position's asset id
-    [[nodiscard]] string get_asset_id() const { return this->asset_id; };
-
     /// get the average price of the position
-    /// \return position's average price
+    /// @return position's average price
     [[nodiscard]] double get_average_price() const { return this->average_price; };
+
+    /// get the closing price of the position 
+    /// @return the closing price of the position
     [[nodiscard]] double get_close_price() const { return this->close_price; };
 
     /// get the id of the exchange the position's underlying asset is on
     /// \return id of the exchange the position's underlying asset is on
     string const & get_exchange_id() { return this->exchange_id; }
+
+    /// get the id of the position's underlying asset
+    /// \return position's asset id
+    [[nodiscard]] string get_asset_id() const { return this->asset_id; };
 
     /// get total number of units in the position
     /// \return number of units in the position
@@ -136,6 +144,7 @@ public:
     /// get a smart pointer to child trade
     std::optional<trade_sp_t> get_trade(unsigned int trade_id);
 
+    /// @private
     /// get a reference to the hash map containing the underlying trades of the position
     /// \return reference to the hash map containing the underlying trades of the position
     std::unordered_map<unsigned int, trade_sp_t> &get_trades() { return this->trades; }
@@ -144,6 +153,7 @@ public:
     /// @param ref to vector to hold inverse orders
     void generate_order_inverse(std::vector<order_sp_t>& orders);
 
+    /// @private
     /// evaluate a position and it's child trades at the given market price
     inline void evaluate(double market_price, bool on_close)
     {

@@ -2,6 +2,7 @@
 // Created by Nathan Tormaschy on 4/18/23.
 //
 #include <algorithm>
+#include <cstdio>
 #include <execution>
 #include <iostream>
 #include <optional>
@@ -81,21 +82,39 @@ void Exchange::build()
 #endif
 }
 
-void Exchange::reset()
+void Exchange::reset_exchange()
 {
     this->current_index = 0;
     this->market_view.clear();
 
     // reset assets still in the market
     for(auto & asset_pair : this->market)
-    {
-        asset_pair.second.reset();
+    {   
+        auto asset_sp = asset_pair.second;
+        asset_sp->reset_asset();
+        if(asset_sp->is_alligned)
+        {
+            this->market_view[asset_sp->get_asset_id()] = asset_sp.get();
+        }
     }
     // reset assets that were expired and bring them back in to view
     for(auto & asset_sp : this->expired_assets)
     {   
-        asset_sp.reset();
+        asset_sp->reset_asset();
         this->market.insert({asset_sp->get_asset_id(), asset_sp});
+        if(asset_sp->is_alligned)
+        {
+            this->market_view[asset_sp->get_asset_id()] = asset_sp.get();
+        }
+    }
+    // reset market allignment
+    for(auto & asset_pair : this->market)
+    {   
+        auto asset = asset_pair.second;
+        if(asset->is_alligned)
+        {
+            this->market_view[asset->get_asset_id()] = asset.get();
+        }
     }
     this->expired_assets.clear();
     this->open_orders.clear();
@@ -343,6 +362,7 @@ bool Exchange::get_market_view()
 
     // Define a lambda function that processes each asset
     auto process_asset = [&](auto& _asset_pair) {
+        //access raw pointer
         auto asset_raw_pointer = _asset_pair.second.get();
 
         // if asset is alligned to exchange just step forward in time, clean up if needed 
@@ -353,16 +373,13 @@ bool Exchange::get_market_view()
             }
             return;
         }
-        
 
         // get the asset's current time and id
         auto asset_datetime = asset_raw_pointer->get_asset_time();
-        auto asset_id = asset_raw_pointer->get_asset_id();
-
+        auto asset_id = asset_raw_pointer->get_asset_id(); 
         if (asset_datetime && *asset_datetime == this->exchange_time)
-        {
+        {   
             // add asset to market view, step the asset forward in time
-            
             this->market_view[asset_id] = asset_raw_pointer;
             asset_raw_pointer->step();
 
@@ -370,12 +387,14 @@ bool Exchange::get_market_view()
             if(asset_raw_pointer->is_last_view()){
                 expired_assets.push_back(_asset_pair.second);
             }
+            
         }
         else
         {
             this->market_view[asset_id] = nullptr;
         }
     };
+
     std::for_each(
         this->market.begin(), 
         this->market.end(), 

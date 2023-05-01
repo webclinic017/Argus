@@ -119,7 +119,7 @@ class PortfolioTestMethods(unittest.TestCase):
         )
         
         assert(portfolio2.get_position(helpers.test2_asset_id) is None)
-        assert(not p2.is_open())
+        assert(not p2.is_open)
         assert(p_mp.get_units() == 50)
         assert(p1.get_units() == 50)
         

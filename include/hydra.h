@@ -85,7 +85,7 @@ public:
     void forward_pass();
 
     // backward pass of hydra
-    bool backward_pass();
+    void backward_pass();
 
     // execute simulation
     void run();

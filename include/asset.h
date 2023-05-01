@@ -31,7 +31,7 @@ public:
     ~Asset();
 
     /// reset asset to start of data
-    void reset();
+    void reset_asset();
 
     /// unique id of the asset
     string asset_id;
@@ -46,7 +46,7 @@ public:
     bool is_alligned;
 
     /// warmup period, i.e. number of rows to skip
-    size_t warmup;
+    size_t warmup = 0;
 
     /// is the the last row in the asset
     bool is_last_view() {return this->current_index == this->rows;};

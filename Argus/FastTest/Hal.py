@@ -14,16 +14,16 @@ from FastTest import Broker, Exchange, Asset, Portfolio, Hydra
 class Hal:
     def __init__(self, logging : int, cash : float = 0.0) -> None:
         self.hydra = FastTest.Hydra(logging, cash)
-        self.logging = logging
-        
-        self.strategies = np.array([], dtype="O")
-        self.views = []
+        self.logging = logging        
         
         self.is_built = False
         
     def build(self):
         self.hydra.build()
         self.is_built = True
+        
+    def reset(self):
+        self.hydra.reset()
         
     def get_hydra(self) -> FastTest.Hydra:
         return self.hydra
@@ -82,7 +82,7 @@ class Hal:
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
         
-        return self.hydra.run()
+        self.hydra.run()
         
     def register_asset_from_df(self, df: Type[pd.DataFrame], asset_id : str, exchange_id : str, broker_id : str):
         """register an load in a new asset from a pandas dataframe

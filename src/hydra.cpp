@@ -56,13 +56,11 @@ Hydra::~Hydra()
 
 #ifdef ARGUS_STRIP
 void Hydra::log(const string& msg){
-    if(this->logging == 1){
-            auto datetime_str = nanosecond_epoch_time_to_string(this->hydra_time);
+    auto datetime_str = nanosecond_epoch_time_to_string(this->hydra_time);
             fmt::print("{}:  HYDRA: {}\n", 
                 datetime_str,
                 msg
             );
-    }
 }
 #endif
 
@@ -77,19 +75,28 @@ shared_ptr<Hydra> new_hydra(int logging_)
 
 void Hydra::reset()
 {
+    if(this->logging)
+    {
+        this->log("reseting hydra");
+    }
     this->current_index = 0;
     
     //reset exchanges
-    this->exchange_map->reset();
+    this->exchange_map->reset_exchange_map();
 
     // reset brokers
     for (auto it = this->brokers->begin(); it != this->brokers->end(); ++it)
     {
-        it->second.reset();
+        it->second->reset_broker();
     }
 
-    //reset all portfolio
+    //reset all portfolios
     this->master_portfolio->reset();
+
+    if(this->logging)
+    {
+        this->log("hydra reset");
+    }
 }
 
 void Hydra::build()
@@ -293,7 +300,10 @@ void Hydra::forward_pass()
     this->hydra_time = this->datetime_index[this->current_index];
 
     #ifdef ARGUS_STRIP
-    this->log("executing forward pass...");
+    if(this->logging)
+    {
+        this->log("executing forward pass...");
+    }
     #endif
 
     // build market views for exchanges
@@ -313,7 +323,10 @@ void Hydra::forward_pass()
         exchange_pair.second->process_orders();
     }  
     #ifdef ARGUS_STRIP
-    this->log("forward pass complete");
+    if(this->logging)
+    {
+        this->log("forward pass complete");
+    }
     #endif 
 }
 
@@ -323,21 +336,27 @@ void Hydra::on_open(){
     for (auto &broker_pair : *this->brokers)
     {   
         #ifdef ARGUS_STRIP
-        this->log(
-          fmt::format("BROKER: {} sending orders...", 
-                broker_pair.first
-            )
-        );
+        if(this->logging)
+        {
+            this->log(
+            fmt::format("BROKER: {} sending orders...", 
+                    broker_pair.first
+                )
+            );
+        }
         #endif
 
         broker_pair.second->send_orders();
 
         #ifdef ARGUS_STRIP
-        this->log(
-          fmt::format("BROKER: {} processing orders...", 
-                broker_pair.first
-            )
-        );
+        if(this->logging)
+        {
+            this->log(
+            fmt::format("BROKER: {} processing orders...", 
+                    broker_pair.first
+                )
+            );
+        }
         #endif
     
         broker_pair.second->process_orders();
@@ -351,23 +370,31 @@ void Hydra::on_open(){
     }
 
     #ifdef ARGUS_STRIP
-    this->log("evaluating master portfolio...");
+    if(this->logging)
+    {
+        this->log("evaluating master portfolio...");
+    }
     #endif
 
     //evaluate master portfolio at close
     this->master_portfolio->evaluate(true);
 
     #ifdef ARGUS_STRIP
-    this->log("master portfolio evaluation complete");
+    if(this->logging)
+    {
+        this->log("master portfolio evaluation complete");
+    }
     #endif
 
 }
 
-bool Hydra::backward_pass(){
+void Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
-    this->log("executing backward pass...");
+    if(this->logging)
+    {
+        this->log("executing backward pass...");
+    }
     #endif
-    
 
     // send any orders that were placed with lazy execution
     for (auto &broker_pair : *this->brokers)
@@ -414,30 +441,29 @@ bool Hydra::backward_pass(){
         }
     }
 
-    // check to see if we have reached the end
-    if (this->current_index == datetime_index_length - 1)
-    {
-        return false;
-    }
-    else{
-        // increment the hydra's current index
-        this->current_index++;
-    }
-
+    // increment the hydra's current index
+    this->current_index++;
+    
     #ifdef ARGUS_STRIP
-    this->log("backward pass complete");
+    if(this->logging)
+    {
+        this->log("backward pass complete");
+    }
     #endif
-
-    return true;
 }
 
 void Hydra::run(){
-    if(!this->is_built){
+    if(!this->is_built)
+    {
         throw std::runtime_error("hydra not built");
+    }
+    if(this->logging)
+    {
+        this->log("starting hydra run");
     }
 
     //core event loop
-    while (true)
+    for(int i = 0; i < this->datetime_index_length; i++)
     {
         this->forward_pass();
 
@@ -455,10 +481,10 @@ void Hydra::run(){
             strategy->cxx_handler_on_close();    
         };
 
-
-        if(!this->backward_pass())
-        {
-            return;
-        }
+        this->backward_pass();
+    }
+    if(this->logging)
+    {
+        this->log("hydra run complete");
     }
 }

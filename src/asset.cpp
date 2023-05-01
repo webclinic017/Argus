@@ -23,6 +23,7 @@ Asset::Asset(string asset_id_, string exchange_id_, string broker_id_, size_t wa
     this->rows = 0,
     this->cols = 0,
     this->current_index = warmup_;
+    this->warmup = warmup_;
     this->is_built = false;
 }
 
@@ -53,11 +54,11 @@ Asset::~Asset()
 #endif
 }
 
-void Asset::reset()
+void Asset::reset_asset()
 {   
     // move datetime index and data pointer back to start
     this->current_index = this->warmup;
-    this->row = &this->data[0];
+    this->row = &this->data[this->warmup*this->cols];
 }
 
 string Asset::get_asset_id() const
@@ -145,7 +146,7 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
     }
 
     //set row pointer to first row 
-    this->row = &this->data[0];
+    this->row = &this->data[this->warmup * this->cols];
 
     // set build flag to true after copying data
     this->is_built = true;
@@ -223,7 +224,7 @@ double Asset::get(const std::string &column, size_t row_index) const
 double Asset::get_market_price(bool on_close) const
 {
 
-    #ifdef ARGUS_ASSET_H
+    #ifdef ARGUS_RUNTIME_ASSERT
     //make sure row pointer is not out of bounds
     ptrdiff_t index = this->row - this->data; 
     auto size = this->rows * this->cols;
@@ -241,7 +242,7 @@ double Asset::get_market_price(bool on_close) const
 double Asset::get_asset_feature(const string& column_name, int index)
 {
 
-    #ifdef ARGUS_ASSET_H
+    #ifdef ARGUS_RUNTIME_ASSERT
     //make sure row pointer is not out of bounds
     ptrdiff_t ptr_index = this->row - this->data; 
     auto size = this->rows * this->cols;
@@ -312,5 +313,5 @@ std::shared_ptr<Asset> new_asset(
     const string& broker_id,
     size_t warmup)
 {
-    return std::make_shared<Asset>(asset_id, exchange_id, broker_id);
+    return std::make_shared<Asset>(asset_id, exchange_id, broker_id,warmup);
 }

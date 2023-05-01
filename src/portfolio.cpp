@@ -68,8 +68,11 @@ void Portfolio::reset()
     this->unrealized_pl = 0;
     this->nlv = this->starting_cash;
 
-    //reset portfolio history object
+    // reset portfolio history object
     this->portfolio_history->reset();
+
+    // clear positions map
+    this->positions_map.clear();
 
     //recursively reset all child portfolios
     for(auto& portfolio_pair : this->portfolio_map){
@@ -170,8 +173,7 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
                                 int trade_id)
 {   
     auto asset_rp = this->exchange_map->asset_map.at(asset_id_);
-
-
+  
     // build new smart pointer to shared order
     auto market_order = make_shared<Order>(MARKET_ORDER,
                                            asset_id_,

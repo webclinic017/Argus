@@ -54,7 +54,7 @@ public:
     void build();
 
     /// reset the exchange to the start of the simulation
-    void reset();
+    void reset_exchange();
 
     /// build the market view, return false if all assets listed are done streaming
     bool get_market_view();
@@ -178,11 +178,11 @@ public:
     double get_market_price(const string& asset_id);
 
     /// reset exchange map
-    void reset()
+    void reset_exchange_map()
     {
         for(auto& exchange_pair : this->exchanges)
         {
-            exchange_pair.second->reset();
+            exchange_pair.second->reset_exchange();
         }
     }
 };  

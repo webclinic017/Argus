@@ -158,11 +158,17 @@ void init_position_ext(py::module &m)
         .def("get_trade", &Position::get_trade)
         
         .def("get_average_price", &Position::get_average_price)
+        .def("get_close_price", &Position::get_close_price)
         .def("get_units", &Position::get_units)
         .def("get_nlv", &Position::get_nlv)
         .def("get_unrealized_pl", &Position::get_unrealized_pl)
-        
-        .def("is_open", &Position::get_is_open)
+        .def("get_position_close_time", &Position::get_position_close_time)
+        .def("get_position_open_time", &Position::get_position_open_time)
+        .def("get_asset_id", &Position::get_asset_id)
+        .def("get_exchange_id", &Position::get_exchange_id)
+        .def("get_position_id", &Position::get_position_id)
+
+        .def_readonly("is_open", &Position::is_open)
         .def_readonly("units", &Position::units)
         .def_readonly("average_price", &Position::average_price);
 

@@ -53,7 +53,7 @@ public:
     /**
      * @brief reset broker to it's original state at the start of the simulation
      */
-    void reset();
+    void reset_broker();
 
    /**
     * @brief cancel an order by a given order id

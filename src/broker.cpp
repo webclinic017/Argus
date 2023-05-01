@@ -41,7 +41,7 @@ void Broker::build(
     this->starting_cash = cash;
 }
 
-void Broker::reset()
+void Broker::reset_broker()
 {   
     //reset memeber variables
     this->order_counter = 0;

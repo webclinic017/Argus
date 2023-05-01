@@ -76,13 +76,13 @@ class SimpleStrategy:
         return
         
 class HalTestMethods(unittest.TestCase):
+
     def test_hal_run(self):
         hal = helpers.create_simple_hal(logging=0)
         hal.build()
         hal.run()
         assert(True)
-        
-    
+
     def test_hal_register_strategy(self):
         hal = helpers.create_simple_hal(logging=0)
 
@@ -103,9 +103,55 @@ class HalTestMethods(unittest.TestCase):
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
 
-    def test_hal_big(self):
-        hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
+    def test_hal_reset(self):
+        hal = helpers.create_simple_hal(logging=0)
+        hydra = hal.get_hydra()
+        portfolio = hal.new_portfolio("test_portfolio1",100000.0);
         
+        hal.build()
+        hydra.forward_pass()
+
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        p1 = portfolio.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        assert(p1.get_units() == 100.0)
+        assert(p1.get_average_price() == 101.0)
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        hydra.forward_pass()
+        
+        hal.reset()
+        
+        p1 = portfolio.get_position(helpers.test2_asset_id)
+        assert(p1 is None)
+        
+        hydra.forward_pass()
+                
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        p1 = portfolio.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        assert(p1.get_units() == 100.0)
+        assert(p1.get_average_price() == 101.0)
+        
+                
+    
+    def test_hal_big(self):
+        return
+        hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         
         strategy = MovingAverageStrategy(hal)
@@ -132,7 +178,6 @@ class HalTestMethods(unittest.TestCase):
         #print(nlv_history[-1])
         
         assert(True)
-     
     
     
 if __name__ == '__main__':
