@@ -49,7 +49,18 @@ public:
         exchanges_sp_t exchanges_
         );
 
+    /**
+     * @brief build the portfolio object with a given evaluation size
+     * 
+     * @param portfolio_eval_length amount of memory to allocate to tracking values across the simulation
+     */
     void build(size_t portfolio_eval_length);
+
+    /**
+     * @brief reset a portfolio object to its original state
+     * 
+     */
+    void reset();
 
     /// get the memory addres of the portfolio object
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
@@ -216,6 +227,7 @@ private:
 
     /// cash held by the portfolio
     double cash;
+    double starting_cash;
 
     /// net liquidation value of the portfolio
     double nlv;
@@ -317,9 +329,16 @@ public:
     PortfolioHistory(Portfolio* parent_portfolio_): parent_portfolio(parent_portfolio_){};
     
     // @brief allocate memory for the portfolio evaluation
-    void build(size_t portfolio_eval_length){
+    void build(size_t portfolio_eval_length)
+    {
         this->cash_history.reserve(portfolio_eval_length); 
         this->nlv_history.reserve(portfolio_eval_length); 
+    }
+
+    void reset()
+    {
+        this->cash_history.clear();
+        this->nlv_history.clear();
     }
     
     /// pointer to the parent portfolio

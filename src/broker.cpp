@@ -38,7 +38,24 @@ void Broker::build(
     exchanges_sp_t exchange_map_)
 {
     this->exchange_map = exchange_map_;
+    this->starting_cash = cash;
 }
+
+void Broker::reset()
+{   
+    //reset memeber variables
+    this->order_counter = 0;
+    this->position_counter = 0;
+    this->cash = starting_cash;
+
+    // clear order buffers
+    this->open_orders.clear();
+    this->open_orders_buffer.clear();
+
+    //reset brokers account
+    this->broker_account.reset();
+}
+
 
 void Broker::cancel_order(unsigned int order_id)
 {

@@ -81,6 +81,26 @@ void Exchange::build()
 #endif
 }
 
+void Exchange::reset()
+{
+    this->current_index = 0;
+    this->market_view.clear();
+
+    // reset assets still in the market
+    for(auto & asset_pair : this->market)
+    {
+        asset_pair.second.reset();
+    }
+    // reset assets that were expired and bring them back in to view
+    for(auto & asset_sp : this->expired_assets)
+    {   
+        asset_sp.reset();
+        this->market.insert({asset_sp->get_asset_id(), asset_sp});
+    }
+    this->expired_assets.clear();
+    this->open_orders.clear();
+}
+
 Exchange::~Exchange()
 {
 #ifdef DEBUGGING
@@ -357,12 +377,10 @@ bool Exchange::get_market_view()
         }
     };
     std::for_each(
-        //std::execution::par,
         this->market.begin(), 
         this->market.end(), 
         process_asset);
 
-    
     // move to next datetime and return true showing the market contains at least one
     // asset that is not done streaming
     this->current_index++;

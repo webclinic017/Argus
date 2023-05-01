@@ -20,12 +20,21 @@ public:
     /// @brief unique id of the account
     std::string account_id;
 
-    /// @brief cash held by the portfolio
+    /// @brief cash held by the account
     double cash;
+
+    /// @brief starting cash held by the account
+    double starting_cash;
 
     /// @brief process a filled order for the account
     /// @param filled_order reference to a smart pointer for a filled order
     void on_order_fill(order_sp_t filled_order);
+
+    /**
+     * @brief reset the account to its original state
+     * 
+     */
+    void reset();
 
 private:
     /// @brief map between asset ids and trades

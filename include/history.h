@@ -31,6 +31,13 @@ private:
 public:
     vector<shared_ptr<Position>> test;
 
+    void reset()
+    {
+        this->orders.clear();
+        this->trades.clear();
+        this->positions.clear();
+    }
+
     vector<shared_ptr<Order>>& get_order_history(){       return this->orders;   }
     vector<shared_ptr<Trade>>& get_trade_history(){       return this->trades;   }
     vector<shared_ptr<Position>>& get_position_history(){ return this->positions;}

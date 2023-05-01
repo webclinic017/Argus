@@ -13,6 +13,13 @@ Account::Account(std::string account_id_, double cash_) : trades()
 {
     this->account_id = account_id_;
     this->cash = cash_;
+    this->starting_cash = cash_;
+}
+
+void Account::reset()
+{
+    this->cash = this->starting_cash;
+    this->trades.clear();
 }
 
 void Account::on_order_fill(order_sp_t filled_order)

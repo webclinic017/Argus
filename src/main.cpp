@@ -36,9 +36,10 @@ void init_asset_ext(py::module &m)
              py::return_value_policy::reference);
 
     m.def("new_asset", &new_asset, py::return_value_policy::reference,
-        R"pbdoc(
-            Generate new Asset class instance
-        )pbdoc"
+            py::arg("asset_id"),
+            py::arg("exchange_id"),
+            py::arg("broker_id"),
+            py::arg("warmup") = 0
     );
 
     // Define a function that returns the memory address of a MyClass instance
@@ -79,6 +80,7 @@ void init_hydra_ext(py::module &m)
                 })
         .def("build", &Hydra::build)
         .def("run", &Hydra::run)
+        .def("reset", &Hydra::reset)
 
         #ifdef ARGUS_STRIP
         .def("forward_pass", &Hydra::forward_pass)

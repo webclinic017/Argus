@@ -4,6 +4,7 @@
 
 #ifndef ARGUS_ASSET_H
 #define ARGUS_ASSET_H
+#include <cstddef>
 #include <string>
 #include <memory>
 #include <utility>
@@ -24,10 +25,13 @@ public:
     typedef shared_ptr<Asset> asset_sp_t;
 
     /// asset constructor
-    Asset(string asset_id, string exchange_id, string broker_id);
+    Asset(string asset_id, string exchange_id, string broker_id, size_t warmup = 0);
 
     /// asset destructor
     ~Asset();
+
+    /// reset asset to start of data
+    void reset();
 
     /// unique id of the asset
     string asset_id;
@@ -41,9 +45,13 @@ public:
     /// is the asset's datetime index alligend with it's exchange
     bool is_alligned;
 
+    /// warmup period, i.e. number of rows to skip
+    size_t warmup;
+
     /// is the the last row in the asset
     bool is_last_view() {return this->current_index == this->rows;};
 
+    /// return the memory address of the underlying asset opbject
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
     /// return the number of rows in the asset
@@ -133,7 +141,12 @@ private:
 };
 
 /// function for creating a shared pointer to a asset
-std::shared_ptr<Asset> new_asset(const string &asset_id, const string& exchange_id, const string& broker_id);
+std::shared_ptr<Asset> new_asset(
+    const string &asset_id, 
+    const string& exchange_id, 
+    const string& broker_id,
+    size_t warmup = 0    
+);
 
 /// function for identifying index locations of open and close column
 tuple<::size_t, size_t> parse_headers(const vector<std::string> &columns);

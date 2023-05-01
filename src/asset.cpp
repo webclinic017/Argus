@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -14,15 +15,15 @@ namespace py = pybind11;
 using namespace std;
 
 
-Asset::Asset(string asset_id, string exchange_id, string broker_id) 
-                            :   asset_id(std::move(asset_id)),
-                                exchange_id(std::move(exchange_id)),
-                                broker_id(std::move(broker_id)),
-                                is_built(false),
-                                rows(0),
-                                cols(0),
-                                current_index(0)
+Asset::Asset(string asset_id_, string exchange_id_, string broker_id_, size_t warmup_)              
 {
+    this->asset_id = std::move(asset_id_);
+    this->exchange_id = std::move(exchange_id_);
+    this->broker_id = std::move(broker_id_);
+    this->rows = 0,
+    this->cols = 0,
+    this->current_index = warmup_;
+    this->is_built = false;
 }
 
 Asset::~Asset()
@@ -50,6 +51,13 @@ Asset::~Asset()
 #ifdef DEBUGGING
     printf("MEMORY:   DESTRUCTOR ON: %p COMPLETE \n", this);
 #endif
+}
+
+void Asset::reset()
+{   
+    // move datetime index and data pointer back to start
+    this->current_index = this->warmup;
+    this->row = &this->data[0];
 }
 
 string Asset::get_asset_id() const
@@ -298,7 +306,11 @@ long long *Asset::get_asset_time() const
     }
 }
 
-std::shared_ptr<Asset> new_asset(const string &asset_id, const string& exchange_id, const string& broker_id)
+std::shared_ptr<Asset> new_asset(
+    const string &asset_id,
+    const string& exchange_id,
+    const string& broker_id,
+    size_t warmup)
 {
     return std::make_shared<Asset>(asset_id, exchange_id, broker_id);
 }

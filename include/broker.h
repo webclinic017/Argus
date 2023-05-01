@@ -50,20 +50,50 @@ public:
     /// \param exchanges    container for master exchange map
     void build(exchanges_sp_t exchange_map);
 
-    /// cancel orders by order_id
+    /**
+     * @brief reset broker to it's original state at the start of the simulation
+     */
+    void reset();
+
+   /**
+    * @brief cancel an order by a given order id
+    * 
+    * @param order_id unique id of the order to cancel
+    */
     void cancel_order(unsigned int order_id);
 
-    /// send orders in the open order buffer to their corresponding exchange
+    /**
+     * @brief send orders in the open order buffer to their corresponding exchange
+     * used to send and process orders that were placed with lazy execution method
+     */
     void send_orders();
 
-    /// process a filled order
-    /// \param open_order order that has been filled
+    /**
+     * @brief process a order that has been filled
+     * 
+     * @param filled_order sp to a filled order object
+     */
     void process_filled_order(shared_ptr<Order> filled_order);
 
-    /// process all open orders
+    /**
+     * @brief process all open orders and look for new fills to process, when we find one
+     * we update the corresponding portfolio the order was placed for
+     */
     void process_orders();
 
+    /**
+     * @brief place a new order to the exchanges 
+     * 
+     * @param order sp to a new order object
+     * @param process_fill wether or not to process the order once it has been filled
+     */
     void place_order(shared_ptr<Order> order, bool process_fill = true);
+
+    /**
+     * @brief place a new order into the order buffer to be executed at the end of a timestemp
+     * 
+     * @param order sp to a new order object to place with lazy exectuion
+     */
     void place_order_buffer(shared_ptr<Order> order);
 
     // void place_limit_order();
@@ -85,6 +115,9 @@ private:
 
     /// cash held at the broker
     double cash;
+
+    /// starting cash held at the broker
+    double starting_cash;
 
     /// open orders held at the broker
     vector<order_sp_t> open_orders;

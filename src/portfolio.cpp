@@ -7,11 +7,6 @@
 #include <fmt/core.h>
 #include <vector>
 
-#include "pybind11/gil.h"
-
-namespace py = pybind11;
-
-
 #include "asset.h"
 #include "exchange.h"
 #include "history.h"
@@ -48,17 +43,37 @@ Portfolio::Portfolio(
 
     this->logging = logging_;
     this->cash = cash_;
+    this->starting_cash = cash_;
     this->nlv = cash_;
     this->portfolio_id = std::move(id_);
     this->position_counter = 0;
 }
 
-void Portfolio::build(size_t portfolio_eval_length){
+void Portfolio::build(size_t portfolio_eval_length)
+{
     this->portfolio_history->build(portfolio_eval_length);
 
     //recursively build portfolios with given size
     for(auto& portfolio_pair : this->portfolio_map){
         portfolio_pair.second->build(portfolio_eval_length);
+    }
+}
+
+void Portfolio::reset()
+{
+    // reset starting member variables
+    this->cash = this->starting_cash;
+    this->position_counter = 0;
+    this->trade_counter = 0;
+    this->unrealized_pl = 0;
+    this->nlv = this->starting_cash;
+
+    //reset portfolio history object
+    this->portfolio_history->reset();
+
+    //recursively reset all child portfolios
+    for(auto& portfolio_pair : this->portfolio_map){
+        portfolio_pair.second->reset();
     }
 }
 

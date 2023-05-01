@@ -75,6 +75,23 @@ shared_ptr<Hydra> new_hydra(int logging_)
     return hydra;
 }
 
+void Hydra::reset()
+{
+    this->current_index = 0;
+    
+    //reset exchanges
+    this->exchange_map->reset();
+
+    // reset brokers
+    for (auto it = this->brokers->begin(); it != this->brokers->end(); ++it)
+    {
+        it->second.reset();
+    }
+
+    //reset all portfolio
+    this->master_portfolio->reset();
+}
+
 void Hydra::build()
 {
     // check to see if the exchange has been built before

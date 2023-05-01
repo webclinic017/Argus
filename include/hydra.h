@@ -75,6 +75,9 @@ public:
     /// build all members
     void build();
 
+    /// reset all members
+    void reset();
+
     // process orders that were placed at the open
     void on_open();
 

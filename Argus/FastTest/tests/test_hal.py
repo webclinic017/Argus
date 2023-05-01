@@ -39,7 +39,7 @@ class MovingAverageStrategy:
             self.portfolio1.order_target_size(asset_id, units, "dummy", 
                                     .01,
                                     OrderTargetType.DOLLARS,
-                                    OrderExecutionType.LAZY,
+                                    OrderExecutionType.EAGER,
                                     -1)
 
 class SimpleStrategy:
@@ -114,7 +114,7 @@ class HalTestMethods(unittest.TestCase):
         hal.build()
 
         st = time.time()
-        hal.profile()
+        hal.run()
         et = time.time()
         
         execution_time = et - st
@@ -124,12 +124,12 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")      
         
-        orders = hal.get_order_history()
-        print(orders)
+        #orders = hal.get_order_history()
+        #print(orders)
         
-        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-        nlv_history = portfolio_history.get_nlv_history()
-        print(nlv_history[-1])
+        #portfolio_history = hal.get_portfolio("master").get_portfolio_history()
+        #nlv_history = portfolio_history.get_nlv_history()
+        #print(nlv_history[-1])
         
         assert(True)
      

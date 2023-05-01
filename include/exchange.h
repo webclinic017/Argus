@@ -53,6 +53,9 @@ public:
     /// build the exchange
     void build();
 
+    /// reset the exchange to the start of the simulation
+    void reset();
+
     /// build the market view, return false if all assets listed are done streaming
     bool get_market_view();
 
@@ -173,6 +176,15 @@ public:
 
     // get market price of asset
     double get_market_price(const string& asset_id);
+
+    /// reset exchange map
+    void reset()
+    {
+        for(auto& exchange_pair : this->exchanges)
+        {
+            exchange_pair.second->reset();
+        }
+    }
 };  
 
 /// function for creating a shared pointer to a asset
