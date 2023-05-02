@@ -71,7 +71,7 @@ shared_ptr<Hydra> new_hydra(int logging_)
     return hydra;
 }
 
-void Hydra::reset(bool clear_history)
+void Hydra::reset(bool clear_history, bool clear_strategies)
 {
     if(this->logging)
     {
@@ -91,10 +91,16 @@ void Hydra::reset(bool clear_history)
     //reset all portfolios
     this->master_portfolio->reset();
 
+    // cleat the history if needed
     if(clear_history)
     {
         auto history = this->history;
         history->reset();
+    }
+    // remove existing strategies if needed
+    if(clear_history)
+    {
+        this->strategies.clear();
     }
 
     if(this->logging)
@@ -276,6 +282,19 @@ shared_ptr<Broker> Hydra::get_broker(const std::string &broker_id)
         throw py::key_error(e.what());
     }
 }
+
+py::array_t<long long> Hydra::get_datetime_index_view()
+{
+    if (!this->is_built)
+    {
+        throw std::runtime_error("hydra is not built");
+    }
+    return to_py_array(
+        this->datetime_index,
+        this->datetime_index_length,
+        true);
+}
+
 
 void Hydra::cleanup_asset(const string& asset_id){
     //test to see if position exists with that asset id
@@ -501,7 +520,7 @@ void Hydra::process_order_history(
 void Hydra::replay()
 {
     //reset the hydra to it's original state, but don't clear the history buffer
-    this->reset(false);
+    this->reset(false, false);
 
     //build a new smart pointer to histroy object
     auto new_history = std::make_shared<History>();
@@ -547,7 +566,7 @@ void Hydra::replay()
     }
 ;}
 
-void Hydra::run(){
+void Hydra::run(long long to){
     if(!this->is_built)
     {
         throw std::runtime_error("hydra not built");
@@ -558,7 +577,7 @@ void Hydra::run(){
     }
 
     //core event loop
-    for(int i = 0; i < this->datetime_index_length; i++)
+    for(int i = this->current_index; i < this->datetime_index_length; i++)
     {
         //generate market view and handle broker,exchange objects on open
         this->forward_pass();
@@ -580,6 +599,12 @@ void Hydra::run(){
 
         //cleanup and move forward in time
         this->backward_pass();
+
+        //check if running to specific point in time
+        if(to && this->hydra_time == to)
+        {
+            return;
+        }
     }
     if(this->logging)
     {

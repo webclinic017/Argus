@@ -80,8 +80,11 @@ void init_hydra_ext(py::module &m)
                     return py::capsule(ptr, "void*");
                 })
         .def("build", &Hydra::build)
-        .def("run", &Hydra::run)
-        .def("reset", &Hydra::reset)
+        .def("run", &Hydra::run,
+            py::arg("to") = 0)
+        .def("reset", &Hydra::reset,
+            py::arg("clear_history") = true,
+            py::arg("clear_strategies") = false)
         .def("replay", &Hydra::replay)
 
         #ifdef ARGUS_STRIP
@@ -96,6 +99,7 @@ void init_hydra_ext(py::module &m)
         .def("new_portfolio", &Hydra::new_portfolio, py::return_value_policy::reference)
         
         .def("get_hydra_time", &Hydra::get_hydra_time)
+        .def("get_datetime_index_view", &Hydra::get_datetime_index_view)
         .def("get_candles", &Hydra::get_candles)
         .def("get_broker", &Hydra::get_broker)
         .def("get_master_portfolio", &Hydra::get_master_portflio)

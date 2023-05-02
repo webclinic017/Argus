@@ -76,7 +76,7 @@ public:
     void build();
 
     /// reset all members
-    void reset(bool clear_history = true);
+    void reset(bool clear_history = true, bool clear_strategies = false);
 
     // process orders that were placed at the open
     void on_open();
@@ -87,8 +87,12 @@ public:
     // backward pass of hydra
     void backward_pass();
 
-    // execute simulation
-    void run();
+    /**
+     * @brief run the simulation
+     * 
+     * @param to run to this point in time. If not passed simulated to the end
+     */
+    void run(long long to = 0);
 
     // replay the simulation using the historical order buffer
     void replay();
@@ -127,6 +131,9 @@ public:
 
     /// total number of rows loaded
     size_t get_candles(){return this->candles;}
+
+    /// get numpy array read only view into the simulations's datetime index
+    py::array_t<long long> get_datetime_index_view();
     
     /// handle a asset id that has finished streaming (remove from portfolio and exchange)
     void cleanup_asset(const string& asset_id);

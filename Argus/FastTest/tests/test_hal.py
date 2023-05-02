@@ -161,7 +161,40 @@ class HalTestMethods(unittest.TestCase):
         assert(p1.get_units() == 100.0)
         assert(p1.get_average_price() == 101.0)
         
-                
+    def test_hal_runto(self):
+        hal = helpers.create_simple_hal(logging=0)
+        hydra = hal.get_hydra()
+        portfolio = hal.new_portfolio("test_portfolio1",100000.0);
+        exchange = hal.get_exchange(helpers.test1_exchange_id)
+        
+        hal.build()
+        hydra.forward_pass()
+
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        p1 = portfolio.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        assert(p1.get_units() == 100.0)
+        assert(p1.get_average_price() == 101.0)
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        hal.run(to = "2000-06-08")
+        
+        mp = hal.get_portfolio("master")
+        p1 = mp.get_position(helpers.test2_asset_id)
+        assert(p1.get_unrealized_pl() == 50)
+        
+        exchange_features = {}
+        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        assert(exchange_features[helpers.test2_asset_id] == 101.5)
+        assert(exchange_features[helpers.test1_asset_id] == 105)
+    
     
     def test_hal_big(self):
         return

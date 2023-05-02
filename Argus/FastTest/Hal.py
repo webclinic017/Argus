@@ -23,8 +23,8 @@ class Hal:
         self.hydra.build()
         self.is_built = True
         
-    def reset(self, clear_history = True):
-        self.hydra.reset(clear_history)
+    def reset(self, clear_history = True, clear_strategies = False):
+        self.hydra.reset(clear_history, clear_strategies)
         
     def replay(self):
         self.hydra.replay()
@@ -77,11 +77,15 @@ class Hal:
     def get_hydra_time(self):
         return datetime.fromtimestamp(self.hydra.get_hydra_time())
 
-    def run(self):
+    def run(self, to = ""):
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
-        
-        self.hydra.run()
+        if to == "":
+            to_epoch = 0
+        else:
+            to_epoch = pd.to_datetime(to).value
+            
+        self.hydra.run(to_epoch)
         
     def register_asset_from_df(self,
                             df: Type[pd.DataFrame],
