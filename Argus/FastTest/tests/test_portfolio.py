@@ -205,6 +205,61 @@ class PortfolioTestMethods(unittest.TestCase):
         p1 = portfolio1.get_position(helpers.test2_asset_id)     
         assert(p1 is not None)
         assert(p1.units == 10 / 101)
+        
+    def test_portfolio_close_position(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
+        
+        hydra.build()
+        hydra.forward_pass()
+
+        portfolio1.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        portfolio1.close_position(helpers.test2_asset_id)
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        assert(p1 is  None)
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        
+        portfolio1.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        portfolio1.place_market_order(
+            helpers.test1_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        p2 = portfolio1.get_position(helpers.test1_asset_id)
+        assert(p1 is not None)
+        assert(p2 is not None)
+        
+        portfolio1.close_position()
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        p2 = portfolio1.get_position(helpers.test1_asset_id)
+        assert(p1 is None)
+        assert(p2 is None)
+        
                 
 
 if __name__ == '__main__':

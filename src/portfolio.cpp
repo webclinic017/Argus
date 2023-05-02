@@ -241,6 +241,23 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
     }
 }
 
+void Portfolio::py_close_position(const string& asset_id)
+{
+    // close specific positino
+    if(asset_id != "")
+    {
+        auto orders_nullopt = this->generate_order_inverse(asset_id, false, true);
+    }
+    //close all positions
+    else
+    {
+        for(auto& position_pair : this->positions_map)
+        {
+            auto orders_nullopt = this->generate_order_inverse(position_pair.first, false, true);
+        }
+    }
+}
+
 void Portfolio::on_order_fill(order_sp_t filled_order)
 {
     // log the order if needed

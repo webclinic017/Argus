@@ -191,6 +191,13 @@ public:
                            int tade_id = -1);
 
     /**
+     * @brief close position by asset id, if no id is passed all positions are closed
+     * 
+     * @param asset_id asset id to close positions of, default is to close all
+     */
+    void py_close_position(const string& = "");
+
+    /**
      * @brief add cash to the portfolio, adding cash propogates up portfolio tree
      *  cash added before the simulation begins will affect starting cash set point. 
      *

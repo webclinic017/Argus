@@ -139,10 +139,13 @@ void init_portfolio_ext(py::module &m)
         .def("get_position", &Portfolio::get_position)
         .def("get_portfolio_history", &Portfolio::get_portfolio_history)
 
+        
         .def("get_nlv", &Portfolio::get_nlv)
         .def("get_cash", &Portfolio::get_cash)
         .def("get_unrealized_pl", &Portfolio::get_unrealized_pl)
-        
+
+        .def("close_position", &Portfolio::py_close_position,
+            py::arg("asset_id") = "")
         .def("place_market_order", &Portfolio::place_market_order,
             py::arg("asset_id"),
             py::arg("units"),
