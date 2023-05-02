@@ -81,6 +81,7 @@ void init_hydra_ext(py::module &m)
                 })
         .def("build", &Hydra::build)
         .def("run", &Hydra::run,
+            py::arg("steps") = 0,
             py::arg("to") = 0)
         .def("reset", &Hydra::reset,
             py::arg("clear_history") = true,

@@ -77,7 +77,8 @@ class Hal:
     def get_hydra_time(self):
         return datetime.fromtimestamp(self.hydra.get_hydra_time())
 
-    def run(self, to = ""):
+    def run(self, to : str = "", steps : int = 0):
+        #note, if two conditions passed the first to tragger will casue hault
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
         if to == "":
@@ -85,7 +86,7 @@ class Hal:
         else:
             to_epoch = pd.to_datetime(to).value
             
-        self.hydra.run(to_epoch)
+        self.hydra.run(to_epoch, steps)
         
     def register_asset_from_df(self,
                             df: Type[pd.DataFrame],

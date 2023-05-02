@@ -91,8 +91,9 @@ public:
      * @brief run the simulation
      * 
      * @param to run to this point in time. If not passed simulated to the end
+     * @param steps number of steps to run to
      */
-    void run(long long to = 0);
+    void run(long long to = 0, size_t steps = 0);
 
     // replay the simulation using the historical order buffer
     void replay();

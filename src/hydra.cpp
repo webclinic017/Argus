@@ -566,7 +566,8 @@ void Hydra::replay()
     }
 ;}
 
-void Hydra::run(long long to){
+void Hydra::run(long long to, size_t steps){
+    // make sure the hydra was already been built
     if(!this->is_built)
     {
         throw std::runtime_error("hydra not built");
@@ -575,6 +576,7 @@ void Hydra::run(long long to){
     {
         this->log("\033[1;32mstarting hydra run\033[0m");
     }
+
 
     //core event loop
     for(int i = this->current_index; i < this->datetime_index_length; i++)
@@ -605,7 +607,13 @@ void Hydra::run(long long to){
         {
             return;
         }
+        // check to see if the step count has been reached if passed
+        if(steps && i == steps)
+        {
+            return;
+        }
     }
+
     if(this->logging)
     {
         this->log("hydra run complete");
