@@ -336,7 +336,6 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     #endif
 }
 
-
 class PortfolioHistory{
 public:
     /// portfolio history constructor

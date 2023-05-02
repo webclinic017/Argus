@@ -77,9 +77,8 @@ class MovingAverageStrategy:
                     units,
                     "dummy")
             else:
-                position_units = position.units
                 if cross_value == 1:
-                    if position_units > 0:
+                    if position.units > 0:
                         continue
                     else:
                         self.portfolio.place_market_order(
@@ -87,7 +86,7 @@ class MovingAverageStrategy:
                             200,
                             "dummy")
                 else:
-                    if position_units < 0:
+                    if position.units < 0:
                         continue
                     else:
                         self.portfolio.place_market_order(
@@ -113,16 +112,15 @@ class BT_MA_Cross_Strategy(bt.Strategy):
                     self.buy(data=d, size = 100)
                                     
             else:
-                position_units = self.getposition(d).size
                 #long position
                 if ma_signal == 1:
-                    if position_units > 0:
+                    if self.getposition(d).size > 0:
                         continue
                     else:
                         self.buy(data=d, size = 200)
                 #short position
                 else:
-                    if position_units < 0:
+                    if self.getposition(d).size < 0:
                         continue
                     else:
                         self.sell(data=d, size = 200)
@@ -198,14 +196,17 @@ def test_fasttest(dfs):
     return nlv, et-st
  
 if __name__ == "__main__":
-    count = 100
+    count = 10
     step_count = 10000
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()
+    
+    ft_nlv, ft_time = test_fasttest(dfs)
+    print()
     bt_nlv, bt_time = test_backtrader(dfs)
     print()
-    ft_nlv, ft_time = test_fasttest(dfs)
+
     
     print(f"fastest \033[32m{bt_time / ft_time:.4}x\033[0m faster")
     

@@ -252,18 +252,18 @@ double Asset::get_asset_feature(const string& column_name, int index)
 
     //subtract this->cols to move back row, then get_market_view is called, asset->step()
     //is called so we need to move back a row when accessing asset data
-    auto column_offset = this->headers.at(column_name);
+    auto column_offset = this->headers.find(column_name);
     auto row_offset = static_cast<int>(this->cols) * index;
 
     #ifdef ARGUS_RUNTIME_ASSERT
-    //if(column_offset == this->headers.end()){
-    //    throw std::runtime_error("failed to find column");
-    //}
+    if(column_offset == this->headers.end()){
+        throw std::runtime_error("failed to find column");
+    }
     #endif
 
     //prevent acces index < 0
     assert(row_offset + ptr_index > 0);
-    return *(this->row - this->cols + column_offset + row_offset);
+    return *(this->row - this->cols + column_offset->second + row_offset);
 }
 
 long long *Asset::get_datetime_index() const
