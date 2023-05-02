@@ -608,7 +608,6 @@ void Hydra::run(long long to, size_t steps){
         this->log("\033[1;32mstarting hydra run\033[0m");
     }
 
-
     //core event loop
     for(int i = this->current_index; i < this->datetime_index_length; i++)
     {

@@ -265,7 +265,6 @@ class HalTestMethods(unittest.TestCase):
         
         exchange_features = {}
         exchange.get_exchange_feature(exchange_features, "CLOSE")
-        print(exchange_features)
         assert(exchange_features[helpers.test2_asset_id] == 97)
         assert(exchange_features[helpers.test1_asset_id] == 103)
         
@@ -276,6 +275,10 @@ class HalTestMethods(unittest.TestCase):
         mp = hal.get_portfolio("master")
         p_mp = mp.get_position(helpers.test2_asset_id)
         assert(p_mp.get_unrealized_pl() == -200)
+        
+        portfolio_history = mp.get_portfolio_history()
+        nlv_history = portfolio_history.get_nlv_history()
+        assert(np.array_equal(np.array([99900, 100350, 100350, 99800]),nlv_history))
     
     def test_hal_big(self):
         return
