@@ -4,11 +4,11 @@
 #include <memory>
 #include <pybind11/stl.h>
 #include <stdexcept>
-#include <utility>
+#include "algorithm"
 
-#include "../include/asset.h"
-#include "../include/settings.h"
-#include "../include/utils_string.h"
+#include "asset.h"
+#include "settings.h"
+#include "utils_string.h"
 #include "fmt/core.h"
 #include "pybind11/numpy.h"
 
@@ -329,6 +329,29 @@ long long *Asset::get_asset_time() const
     {
         return &this->datetime_index[this->current_index];
     }
+}
+
+void Asset::goto_datetime(long long datetime)
+{
+    //goto date is beyond the datetime index
+   if(datetime >= this->datetime_index[this->rows-1])
+    {
+        this->current_index = this->rows;
+    }
+    
+    // search for datetime in the index
+    for(int i = this->current_index; i < this->rows; i++)
+    {   
+        //is >= right?
+        if(this->datetime_index[i] >= datetime)
+        {
+            this->row += (this->cols * (i + 1));
+            this->current_index = i + 1;
+            return;
+        }
+    }
+
+    throw std::runtime_error("failed to find datetime in asset goto");    
 }
 
 std::shared_ptr<Asset> new_asset(

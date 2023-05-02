@@ -95,6 +95,13 @@ public:
      */
     void run(long long to = 0, size_t steps = 0);
 
+    /**
+     * @brief move simulation forward to an exact moment in the datetime indx
+     * 
+     * @param datetime ns epoch datetime to go to
+     */
+    void goto_datetime(long long datetime);
+
     // replay the simulation using the historical order buffer
     void replay();
 

@@ -87,6 +87,7 @@ void init_hydra_ext(py::module &m)
             py::arg("clear_history") = true,
             py::arg("clear_strategies") = false)
         .def("replay", &Hydra::replay)
+        .def("goto_datetime", &Hydra::goto_datetime)
 
         #ifdef ARGUS_STRIP
         .def("forward_pass", &Hydra::forward_pass)
@@ -175,6 +176,7 @@ void init_position_ext(py::module &m)
         
         .def("get_average_price", &Position::get_average_price)
         .def("get_close_price", &Position::get_close_price)
+        .def("get_last_price", &Position::get_last_price)
         .def("get_units", &Position::get_units)
         .def("get_nlv", &Position::get_nlv)
         .def("get_unrealized_pl", &Position::get_unrealized_pl)

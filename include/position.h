@@ -133,6 +133,9 @@ public:
     /// \return number of units in the position
     [[nodiscard]] double get_units() const { return this->units; }
 
+    /// get the last price the position was valued at
+    [[nodiscard]] double get_last_price() const {return this->last_price;}
+
     /// get the time the position was opened
     /// \return position open time
     [[nodiscard]] long long get_position_open_time() const { return this->position_open_time; };

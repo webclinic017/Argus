@@ -348,6 +348,28 @@ void Exchange::move_expired_assets(){
     }
 }
 
+void Exchange::goto_datetime(long long datetime)
+{
+    //goto date is beyond the datetime index
+   if(datetime >= this->datetime_index[this->datetime_index_length-1])
+    {
+        this->current_index = this->datetime_index_length;
+    }
+    
+    // search for datetime in the index
+    for(int i = this->current_index; i < this->datetime_index_length; i++)
+    {   
+        //is >= right?
+        if(this->datetime_index[i] >= datetime)
+        {
+            this->current_index = i + 1;
+            return;
+        }
+    }
+
+    throw std::runtime_error("failed to find datetime in asset goto");    
+}
+
 bool Exchange::get_market_view()
 {
     // if the current index is the last then return false, all assets listed on this exchange

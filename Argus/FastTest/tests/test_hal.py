@@ -227,7 +227,6 @@ class HalTestMethods(unittest.TestCase):
         
         mp = hal.get_portfolio("master")
         p_mp = mp.get_position(helpers.test2_asset_id)
-        print(p_mp.get_unrealized_pl())
         assert(p_mp.get_unrealized_pl() == 50)
         
         exchange_features = {}
@@ -238,6 +237,37 @@ class HalTestMethods(unittest.TestCase):
         hal.run()
         
         assert(p_mp.get_unrealized_pl() == -500)
+        
+    def test_hal_gtoto(self):
+        hal = helpers.create_simple_hal(logging=0)
+        hydra = hal.get_hydra()
+        portfolio = hal.new_portfolio("test_portfolio1",100000.0);
+        exchange = hal.get_exchange(helpers.test1_exchange_id)
+        
+        hal.build()
+        hal.goto_datetime("2000-06-07")
+        hydra.forward_pass()
+
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        p1 = portfolio.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        assert(p1.get_units() == 100.0)
+        assert(p1.get_average_price() == 98.0)
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hal.run()
+        
+        mp = hal.get_portfolio("master")
+        p_mp = mp.get_position(helpers.test2_asset_id)
+        assert(p_mp.get_unrealized_pl() == -200)
     
     def test_hal_big(self):
         return

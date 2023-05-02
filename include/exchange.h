@@ -88,6 +88,9 @@ public:
     /// get read only pointer to datetime index
     long long const * get_datetime_index() { return this->datetime_index; }
 
+    /// move exchange to specific point in time
+    void goto_datetime(long long datetime);
+
     /// get read exchange current time
     long long get_datetime() { return this->datetime_index[this->current_index]; }
 

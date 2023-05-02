@@ -29,6 +29,10 @@ class Hal:
     def replay(self):
         self.hydra.replay()
         
+    def goto_datetime(self, datetime : str = ""):
+        to_epoch = pd.to_datetime(datetime).value
+        self.hydra.goto_datetime(to_epoch)
+        
     def get_hydra(self) -> FastTest.Hydra:
         return self.hydra
         

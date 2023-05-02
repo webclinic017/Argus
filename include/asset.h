@@ -65,6 +65,9 @@ public:
     /// reset asset to start of data
     void reset_asset();
 
+    /// move the asset to an exact point in time
+    void goto_datetime(long long datetime);
+
     /// unique id of the asset
     string asset_id;
 

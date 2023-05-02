@@ -566,6 +566,37 @@ void Hydra::replay()
     }
 ;}
 
+void Hydra::goto_datetime(long long datetime)
+{
+    if(!this->is_built)
+    {
+        throw std::runtime_error("hydra must be build first");
+    }
+
+    // move exchanges forward in time
+    for(auto& exchange_pair : this->exchange_map->exchanges)
+    {
+        exchange_pair.second->goto_datetime(datetime);
+    }
+
+    // move the indivual asssets forward in time
+    for(auto& asset_pair : this->exchange_map->asset_map)
+    {
+        asset_pair.second->goto_datetime(datetime);
+    }
+
+    // move the hydra index forward in time
+    for(int i = 0; i < this->datetime_index_length; i++)
+    {
+        if(this->datetime_index[i] == datetime)
+        {
+            this->current_index = i;
+            return;
+        }
+    }
+    throw runtime_error("failed to find datetime in hydra index");
+}
+
 void Hydra::run(long long to, size_t steps){
     // make sure the hydra was already been built
     if(!this->is_built)
