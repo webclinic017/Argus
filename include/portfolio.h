@@ -11,7 +11,6 @@
 
 class Broker;
 
-#include "threaded.h"
 #include "order.h"
 #include "trade.h"
 #include "position.h"
@@ -30,7 +29,7 @@ public:
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
-    typedef ThreadSafeSharedPtr<Portfolio> portfolio_sp_threaded_t;
+    typedef shared_ptr<Portfolio> portfolio_sp_threaded_t;
     typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
     typedef tsl::robin_map<std::string, portfolio_sp_threaded_t> portfolios_map_t;
     typedef shared_ptr<tsl::robin_map<string, shared_ptr<Broker>>> brokers_sp_t;

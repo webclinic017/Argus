@@ -517,7 +517,7 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
 
 shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
     //create new portfolio
-    auto portfolio_ = new Portfolio(
+    auto portfolio_ = std::make_shared<Portfolio>(
              this->logging, 
         cash_, 
         portfolio_id_,
@@ -527,15 +527,14 @@ shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id
         this->exchange_map
         );
     
-    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio_);
     //insert into child portfolio map
-    this->portfolio_map.insert({portfolio_id, portfolio_threaded});
+    this->portfolio_map.insert({portfolio_id, portfolio_});
 
     //update parent portfolio's values
     this->add_cash(portfolio_->get_cash());
 
     //return smart pointer to the new portfolio
-    return portfolio_threaded.get_shared_ptr();
+    return portfolio_;
 }
 
 void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_threaded_t portfolio_)

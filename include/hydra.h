@@ -99,7 +99,7 @@ public:
     void evaluate_portfolio(bool on_close);
 
     /// get sp to master portfolio
-    shared_ptr<Portfolio> get_master_portflio() {return this->master_portfolio.get_shared_ptr();}
+    shared_ptr<Portfolio> get_master_portflio() {return this->master_portfolio;}
 
     /// search for a portfolio in portfolio tree and return it 
     shared_ptr<Portfolio> get_portfolio(const string & portfolio_id);

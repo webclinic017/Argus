@@ -31,7 +31,7 @@ Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
     this->brokers = std::make_shared<Brokers>();
     this->exchange_map = std::make_shared<ExchangeMap>();
 
-    auto portfolio = new Portfolio(
+    this->master_portfolio = std::make_shared<Portfolio> (
             logging_, 
             cash_,
             "master", 
@@ -39,9 +39,6 @@ Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
             nullptr,
             this->brokers,
             this->exchange_map);   
-    
-    //wrap raw pointer in thread safe shared_ptr
-    this->master_portfolio = ThreadSafeSharedPtr<Portfolio>(portfolio);
 }
 
 Hydra::~Hydra()
@@ -159,7 +156,7 @@ void Hydra::build()
 
 shared_ptr<Portfolio> Hydra::get_portfolio(const string& portfolio_id){
     if(portfolio_id == this->master_portfolio->get_portfolio_id()){
-        return this->master_portfolio.get_shared_ptr();
+        return this->master_portfolio;
     }
     else{
         return this->master_portfolio->find_portfolio(portfolio_id);
@@ -173,17 +170,15 @@ shared_ptr<Portfolio> Hydra::new_portfolio(const string & portfolio_id_, double 
         cash_, 
         portfolio_id_,
         this->history,
-        this->master_portfolio.get_shared_ptr().get(),
+        this->master_portfolio.get(),
         this->brokers,
         this->exchange_map
     );
     //this->master_portfolio
     //need to adjust all portfolios starting cash
 
-    auto portfolio_threaded = ThreadSafeSharedPtr<Portfolio>(portfolio);
-    
     //add it to the master portfolio
-    this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio_threaded);
+    this->master_portfolio->add_sub_portfolio(portfolio_id_, portfolio);
 
     //return sp to new child portfolio
     return portfolio;
@@ -236,7 +231,7 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
         cash,
         this->logging,
         this->history,
-        this->master_portfolio.get_shared_ptr());
+        this->master_portfolio);
 
     // insert a clone of the smart pointer into the exchange
     this->brokers->emplace(broker_id, broker);
