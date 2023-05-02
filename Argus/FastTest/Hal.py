@@ -1,5 +1,6 @@
 import sys
 import os
+from datetime import datetime
 from typing import Type, List
 import cProfile
 
@@ -72,16 +73,11 @@ class Hal:
         self.run()
         pr.disable()
         pr.print_stats(sort='cumulative')
+        
+    def get_hydra_time(self):
+        return datetime.fromtimestamp(self.hydra.get_hydra_time())
 
     def run(self):
-        """run the simulation
-
-        Raises:
-            RuntimeError: hal has not been built
-
-        Returns:
-            void: nothing
-        """
         if not self.is_built:
             raise RuntimeError("Hal has not been built")
         
@@ -139,8 +135,7 @@ def asset_from_df(df: Type[pd.DataFrame],
                 broker_id : str,
                 warmup = 0) -> Asset:
     """generate a new asset object from a pandas dataframe. Pandas index must have a datetime
-    index that is int64 nanosecond epoch time. An easy conversion from datetime str as: 
-    df.set_index(pd.to_datetime(df.index).astype(np.int64), inplace=True)
+    index. An easy conversion from datetime str as: df.set_index(pd.to_datetime(df.index).astype(np.int64), inplace=True)
 
     Args:
         df (Type[pd.DataFrame]): new pandas dataframe to create asset with

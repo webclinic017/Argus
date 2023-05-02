@@ -155,4 +155,37 @@ tuple<long long* , int> inline container_sorted_union(
     return std::make_tuple(sorted_array, length);
 }
 
+template <typename T>
+class FixedDeque {
+public:
+    explicit FixedDeque(size_t max_size)
+        : max_size_(max_size) {
+    }
+
+    void push_back(const T& value) {
+        if (data_.size() == max_size_) {
+            data_.pop_front();
+        }
+        data_.push_back(value);
+    }
+
+    size_t size() const {
+        return data_.size();
+    }
+
+    const T& operator[](size_t index) const {
+        return data_[index];
+    }
+
+    T& operator[](size_t index) {
+        return data_[index];
+    }
+
+private:
+    std::deque<T> data_;
+    size_t max_size_;
+};
+
+
 #endif //ARGUS_UTILS_ARRAY_H
+

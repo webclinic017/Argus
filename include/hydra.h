@@ -98,6 +98,9 @@ public:
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
 
+    /// get current simulation time
+    long long get_hydra_time() {return this->hydra_time;}
+
     /// get sp to master portfolio
     shared_ptr<Portfolio> get_master_portflio() {return this->master_portfolio;}
 

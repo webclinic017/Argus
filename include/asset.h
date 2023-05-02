@@ -16,8 +16,40 @@
 #include "utils_array.h"
 
 namespace py = pybind11;
-
 using namespace std;
+
+class Asset;
+
+enum AssetObserverType
+{
+    Volatility,
+    Beta
+};
+
+class AssetObserver
+{
+private:
+    /// pointer to the parent asset
+    Asset* parent_asset = nullptr;
+    
+    /// lookback needed to warmup the observer
+    unsigned int warmup = 0;
+
+    /// step function to be called when asset moves forward in time
+    void step();
+
+    /// fixed length buffer to store historical values needed for calculations
+    FixedDeque<double> fixed_deque;
+
+public:
+    AssetObserver(unsigned int warmup_) : fixed_deque(warmup_){
+        this->warmup = warmup_;
+    }
+
+    /// type of observer it is
+    AssetObserverType observer_type;
+
+};
 
 class Asset
 {
@@ -113,6 +145,9 @@ private:
 
     /// map between column name and column index
     tsl::robin_map<string, size_t> headers;
+
+    /// contaienr of asset observers called on step()
+    std::vector<AssetObserver> asset_observers;
 
     /// datetime index of the asset (ns epoch time stamp)
     long long *datetime_index;

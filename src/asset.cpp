@@ -287,14 +287,6 @@ py::array_t<long long> Asset::get_datetime_index_view()
         true);
 };
 
-void Asset::step(){
-    //move the row pointer forward to the next row
-    this->row += this->cols;
-
-    //move the current index forward
-    this->current_index++; 
-}
-
 long long *Asset::get_asset_time() const
 {
     if (this->current_index == this->rows)
@@ -314,4 +306,23 @@ std::shared_ptr<Asset> new_asset(
     size_t warmup)
 {
     return std::make_shared<Asset>(asset_id, exchange_id, broker_id,warmup);
+}
+
+void Asset::step(){
+    //move the row pointer forward to the next row
+    this->row += this->cols;
+
+    //move the current index forward
+    this->current_index++; 
+
+    for(auto& observer : this->asset_observers)
+    {
+        switch(observer.observer_type)
+        {
+            case AssetObserverType::Volatility:
+                break;
+            case AssetObserverType::Beta:
+                break;
+        }
+    }
 }

@@ -94,6 +94,7 @@ void init_hydra_ext(py::module &m)
         .def("new_broker", &Hydra::new_broker, py::return_value_policy::reference)
         .def("new_portfolio", &Hydra::new_portfolio, py::return_value_policy::reference)
         
+        .def("get_hydra_time", &Hydra::get_hydra_time)
         .def("get_candles", &Hydra::get_candles)
         .def("get_broker", &Hydra::get_broker)
         .def("get_master_portfolio", &Hydra::get_master_portflio)
