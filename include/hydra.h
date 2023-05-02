@@ -78,6 +78,9 @@ public:
     /// reset all members
     void reset(bool clear_history = true, bool clear_strategies = false);
 
+    /// clear all existing strategies 
+    void reset_strategies(){this->strategies.clear();}
+
     // process orders that were placed at the open
     void on_open();
 

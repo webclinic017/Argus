@@ -25,6 +25,9 @@ class Hal:
         
     def reset(self, clear_history = True, clear_strategies = False):
         self.hydra.reset(clear_history, clear_strategies)
+    
+    def reset_strategies(self):
+        self.hydra.reset_strategies()
         
     def replay(self):
         self.hydra.replay()

@@ -279,6 +279,45 @@ class HalTestMethods(unittest.TestCase):
         portfolio_history = mp.get_portfolio_history()
         nlv_history = portfolio_history.get_nlv_history()
         assert(np.array_equal(np.array([99900, 100350, 100350, 99800]),nlv_history))
+        
+    def test_hal_goto_multi(self):
+        hal = helpers.create_simple_hal(logging=1)
+        hydra = hal.get_hydra()
+        portfolio = hal.new_portfolio("test_portfolio1",100000.0);
+        exchange = hal.get_exchange(helpers.test1_exchange_id)
+        
+        hal.build()
+        hydra.forward_pass()
+
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hal.run(to = "2000-06-08")
+        hydra.forward_pass()
+        
+        portfolio.place_market_order(
+            helpers.test2_asset_id,
+            -100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        hydra.on_open()
+        hydra.backward_pass()
+        hal.run()
+        
+        mp = hal.get_portfolio("master")
+        portfolio_history = mp.get_portfolio_history()
+        nlv_history = portfolio_history.get_nlv_history()
+        print(nlv_history)
     
     def test_hal_big(self):
         return

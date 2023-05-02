@@ -345,7 +345,7 @@ void Asset::goto_datetime(long long datetime)
         //is >= right?
         if(this->datetime_index[i] >= datetime)
         {
-            this->row += (this->cols * i);
+            this->row += (this->cols * (i-this->warmup));
             this->current_index = i;
             return;
         }

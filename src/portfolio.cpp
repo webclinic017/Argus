@@ -848,7 +848,7 @@ void Portfolio::log_trade_open(trade_sp_t &new_trade)
 
 void Portfolio::log_order_create(order_sp_t &filled_order)
 {
-    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_fill_time());
+    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_order_create_time());
     fmt::print("{}:  PORTFOLIO {} ORDER CREATED: order id:  {}, asset id: {}, units: {:.3f}, trade id: {}\n",
                datetime_str,
                this->portfolio_id,

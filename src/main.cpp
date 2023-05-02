@@ -83,6 +83,7 @@ void init_hydra_ext(py::module &m)
         .def("run", &Hydra::run,
             py::arg("steps") = 0,
             py::arg("to") = 0)
+        .def("reset_strategies", &Hydra::reset_strategies)
         .def("reset", &Hydra::reset,
             py::arg("clear_history") = true,
             py::arg("clear_strategies") = false)

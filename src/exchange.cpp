@@ -378,9 +378,7 @@ bool Exchange::get_market_view()
     {
         return false;
     }
-    if(this->logging){
-    printf("BUILDING MARKET VIEW\n");
-    }
+    
     // set exchange time to compare to assets
     this->exchange_time = this->datetime_index[this->current_index];
 
