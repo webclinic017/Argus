@@ -289,9 +289,12 @@ void Hydra::cleanup_asset(const string& asset_id){
 
     if(position.has_value()){
         #ifdef ARGUS_STRIP
+        if(this->logging == 1)
+        {
         this->log(fmt::format("found expiring position: {}, units: {}", 
             position.value()->get_asset_id(),
             position.value()->get_units()));
+        }
         #endif
     
         //generate and send orders needed to close the position
@@ -309,7 +312,7 @@ void Hydra::forward_pass()
     this->hydra_time = this->datetime_index[this->current_index];
 
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("executing forward pass...");
     }
@@ -332,7 +335,7 @@ void Hydra::forward_pass()
         exchange_pair.second->process_orders();
     }  
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("forward pass complete");
     }
@@ -345,7 +348,7 @@ void Hydra::on_open(){
     for (auto &broker_pair : *this->brokers)
     {   
         #ifdef ARGUS_STRIP
-        if(this->logging)
+        if(this->logging == 1)
         {
             this->log(
             fmt::format("BROKER: {} sending orders...", 
@@ -358,7 +361,7 @@ void Hydra::on_open(){
         broker_pair.second->send_orders();
 
         #ifdef ARGUS_STRIP
-        if(this->logging)
+        if(this->logging == 1)
         {
             this->log(
             fmt::format("BROKER: {} processing orders...", 
@@ -379,7 +382,7 @@ void Hydra::on_open(){
     }
 
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("evaluating master portfolio...");
     }
@@ -389,7 +392,7 @@ void Hydra::on_open(){
     this->master_portfolio->evaluate(true);
 
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("master portfolio evaluation complete");
     }
@@ -399,7 +402,7 @@ void Hydra::on_open(){
 
 void Hydra::backward_pass(){
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("executing backward pass...");
     }
@@ -454,7 +457,7 @@ void Hydra::backward_pass(){
     this->current_index++;
     
     #ifdef ARGUS_STRIP
-    if(this->logging)
+    if(this->logging == 1)
     {
         this->log("backward pass complete");
     }

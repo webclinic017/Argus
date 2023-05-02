@@ -87,7 +87,12 @@ class Hal:
         
         self.hydra.run()
         
-    def register_asset_from_df(self, df: Type[pd.DataFrame], asset_id : str, exchange_id : str, broker_id : str):
+    def register_asset_from_df(self,
+                            df: Type[pd.DataFrame],
+                            asset_id : str,
+                            exchange_id : str,
+                            broker_id : str,
+                            warmup : int):
         """register an load in a new asset from a pandas dataframe
 
         Args:
@@ -96,7 +101,7 @@ class Hal:
             exchange_id (str): unique id of the exchange to place the asset on
             broker_id (str): unique id of the broker to place the asset on
         """
-        asset = asset_from_df(df, asset_id, exchange_id, broker_id)
+        asset = asset_from_df(df, asset_id, exchange_id, broker_id, warmup)
         self.register_asset(asset, exchange_id)
         
     def get_order_history(self):
@@ -128,7 +133,11 @@ class Hal:
         return self.hydra.get_position_history()
     
            
-def asset_from_df(df: Type[pd.DataFrame], asset_id: str, exchange_id : str, broker_id : str) -> Asset:
+def asset_from_df(df: Type[pd.DataFrame], 
+                asset_id: str,
+                exchange_id : str,
+                broker_id : str,
+                warmup = 0) -> Asset:
     """generate a new asset object from a pandas dataframe. Pandas index must have a datetime
     index that is int64 nanosecond epoch time. An easy conversion from datetime str as: 
     df.set_index(pd.to_datetime(df.index).astype(np.int64), inplace=True)
@@ -146,7 +155,7 @@ def asset_from_df(df: Type[pd.DataFrame], asset_id: str, exchange_id : str, brok
     epoch_index = df.index.values.astype(np.int64)
 
     # load the asset
-    asset = FastTest.new_asset(asset_id, exchange_id, broker_id)
+    asset = FastTest.new_asset(asset_id, exchange_id, broker_id, warmup)
     asset.load_headers(df.columns.tolist())
     asset.load_data(values, epoch_index, df.shape[0], df.shape[1], False)
 

@@ -141,7 +141,12 @@ void init_portfolio_ext(py::module &m)
         .def("get_cash", &Portfolio::get_cash)
         .def("get_unrealized_pl", &Portfolio::get_unrealized_pl)
         
-        .def("place_market_order", &Portfolio::place_market_order)
+        .def("place_market_order", &Portfolio::place_market_order,
+            py::arg("asset_id"),
+            py::arg("units"),
+            py::arg("strategy_id"),
+            py::arg("order_execution_type") = OrderExecutionType::LAZY,
+            py::arg("trade_id") = -1)
         .def("order_target_size", &Portfolio::order_target_size)
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio)
@@ -234,6 +239,9 @@ PYBIND11_MODULE(FastTest, m)
 {
     m.doc() = "Argus bindings"; // optional module docstring
 
+    // build python enum bindings
+    init_enum(m);
+
     // build python asset class bindings
     init_asset_ext(m);
 
@@ -257,7 +265,4 @@ PYBIND11_MODULE(FastTest, m)
 
     // build python position class bindings
     init_position_ext(m);
-
-    // build python enum bindings
-    init_enum(m);
 }
