@@ -6,7 +6,7 @@
 #define ARGUS_BROKER_H
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <tsl/robin_map.h>
 
 
 #include "portfolio.h"
@@ -20,7 +20,7 @@ using namespace std;
 
 class Broker;
 
-typedef std::unordered_map<string, shared_ptr<Broker>> Brokers;
+typedef tsl::robin_map<string, shared_ptr<Broker>> Brokers;
 typedef shared_ptr<Broker> broker_sp_t;
 
 class Broker

@@ -198,8 +198,8 @@ def test_fasttest(dfs):
     return nlv, et-st
  
 if __name__ == "__main__":
-    count = 5
-    step_count = 15000
+    count = 100
+    step_count = 10000
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()
@@ -209,7 +209,9 @@ if __name__ == "__main__":
     
     print(f"fastest \033[32m{bt_time / ft_time:.4}x\033[0m faster")
     
-    plt.plot(bt_nlv, alpha = .5, label = "Backtrader")
-    plt.plot(ft_nlv, alpha = .5, label = "FastTest")
-    plt.legend()
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.plot(bt_nlv, alpha = .5, label = "Backtrader")
+    ax1.plot(ft_nlv, alpha = .5, label = "FastTest")
+    ax1.legend()
     plt.show()

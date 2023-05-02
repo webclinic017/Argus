@@ -90,7 +90,6 @@ def create_big_hal(logging: int = 0, cash: float = 0) -> Hal:
     data_path = os.path.join(dir_path, "SP500_D")
     file_list = [os.path.join(data_path, f) for f in os.listdir(data_path) if os.path.isfile(os.path.join(data_path, f))]
     
-
     for _file in file_list:
         _file_base = os.path.basename(_file)
         asset_id = os.path.splitext(_file_base)[0]

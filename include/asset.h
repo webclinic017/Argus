@@ -9,7 +9,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include <unordered_map>
+#include <tsl/robin_map.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
@@ -112,7 +112,7 @@ private:
     bool is_view = false;
 
     /// map between column name and column index
-    std::unordered_map<string, size_t> headers;
+    tsl::robin_map<string, size_t> headers;
 
     /// datetime index of the asset (ns epoch time stamp)
     long long *datetime_index;

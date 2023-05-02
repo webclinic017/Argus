@@ -29,6 +29,10 @@ project(Argus)
 include_directories(external/fmt/include)
 add_subdirectory(external/fmt)
 
+#robin-map
+find_package(tsl-robin-map REQUIRED)
+include_directories(external/robin-map/include)
+
 #Python
 find_package(Python3 3.9 EXACT COMPONENTS Interpreter Development REQUIRED)
 include_directories(${Python3_INCLUDE_DIRS})
