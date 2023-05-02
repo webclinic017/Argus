@@ -2,6 +2,7 @@ import gc
 import sys
 import os
 import unittest
+from datetime import datetime
 
 import numpy as np
 
@@ -99,6 +100,37 @@ class ExchangeTestMethods(unittest.TestCase):
         exchange_features2 = {}
         exchange.get_exchange_feature(exchange_features2, "CLOSE", -1)
         assert(exchange_features2 == exchange_features)
+        
+    def test_exchange_asset_column(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        exchange = hydra.get_exchange(helpers.test1_exchange_id)
+        
+        asset1 = exchange.get_asset(helpers.test1_asset_id)
+        asset2 = exchange.get_asset(helpers.test2_asset_id)
+                
+        hydra.build()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        
+        col1 = asset2.get_column("CLOSE", 2)
+        assert(np.array_equal(np.array([99,97]), col1))
+        
+        col1 = asset2.get_column("CLOSE", 3)
+        assert(np.array_equal(np.array([101.5, 99,97]), col1))
     
     
 if __name__ == '__main__':

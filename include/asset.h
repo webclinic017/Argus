@@ -131,7 +131,23 @@ public:
     /// get read only numpy array of the asset's datetime index
     py::array_t<long long> get_datetime_index_view();
 
+    /**
+     * @brief Get specific data point from asset object
+     * 
+     * @param column_name name of the column to look at
+     * @param index row index to look at, 0 is current, -1 is previous, ...
+     * @return double value at that location
+     */
     [[nodiscard]] double get_asset_feature(const string& column_name, int index = 0);
+
+    /**
+     * @brief Get a column from the asset, end index is the current value
+     * 
+     * @param column_name name of the column to retrieve
+     * @param length lookback period, i.e. 10 will get last 10 values including current
+     * @return py::array_t<double> column values
+     */
+    [[nodiscard]] py::array_t<double> get_column(const string& column_name, size_t length);
 
     /// step the asset forward in time
     void step();

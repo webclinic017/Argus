@@ -10,6 +10,7 @@
 #include "../include/settings.h"
 #include "../include/utils_string.h"
 #include "fmt/core.h"
+#include "pybind11/numpy.h"
 
 namespace py = pybind11;
 using namespace std;
@@ -265,6 +266,32 @@ double Asset::get_asset_feature(const string& column_name, int index)
     assert(row_offset + ptr_index > 0);
     return *(this->row - this->cols + column_offset->second + row_offset);
 }
+
+py::array_t<double> Asset::get_column(const string& column_name, size_t length)
+{
+    if(length >= this->current_index)
+    {
+        throw std::runtime_error("index out of bounds");
+    }
+
+    auto column_offset = this->headers.at(column_name);
+    auto row_offset = static_cast<int>(this->cols) * length;
+    
+    auto column_start = this->row - this->cols + column_offset - row_offset;
+    return py::array( 
+        py::buffer_info
+            (
+                column_start,                               /* Pointer to buffer */
+                sizeof(double),                          /* Size of one scalar */
+                py::format_descriptor<double>::format(), /* Python struct-style format descriptor */
+                1,                                      /* Number of dimensions */
+                { length },                 /* Buffer dimensions */
+                { sizeof(double) * this->cols}
+            )
+    );
+}
+
+
 
 long long *Asset::get_datetime_index() const
 {

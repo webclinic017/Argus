@@ -29,6 +29,7 @@ void init_asset_ext(py::module &m)
         .def("load_data", &Asset::py_load_data)
         .def("get", &Asset::get)
         .def("get_mem_address", &Asset::get_mem_address)
+        .def("get_column", &Asset::get_column)
 
         //.def("mem_address", []()
         .def("get_datetime_index_view",
