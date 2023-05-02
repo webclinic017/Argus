@@ -238,7 +238,7 @@ class HalTestMethods(unittest.TestCase):
         
         assert(p_mp.get_unrealized_pl() == -500)
         
-    def test_hal_gtoto(self):
+    def test_hal_goto(self):
         hal = helpers.create_simple_hal(logging=0)
         hydra = hal.get_hydra()
         portfolio = hal.new_portfolio("test_portfolio1",100000.0);
@@ -260,7 +260,15 @@ class HalTestMethods(unittest.TestCase):
         assert(p1.get_units() == 100.0)
         assert(p1.get_average_price() == 98.0)
         
+        
         hydra.on_open()
+        
+        exchange_features = {}
+        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        print(exchange_features)
+        assert(exchange_features[helpers.test2_asset_id] == 97)
+        assert(exchange_features[helpers.test1_asset_id] == 103)
+        
         hydra.backward_pass()
         
         hal.run()

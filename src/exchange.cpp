@@ -362,12 +362,12 @@ void Exchange::goto_datetime(long long datetime)
         //is >= right?
         if(this->datetime_index[i] >= datetime)
         {
-            this->current_index = i + 1;
+            this->current_index = i;
             return;
         }
     }
 
-    throw std::runtime_error("failed to find datetime in asset goto");    
+    throw std::runtime_error("failed to find datetime in exchange goto");    
 }
 
 bool Exchange::get_market_view()
@@ -378,7 +378,9 @@ bool Exchange::get_market_view()
     {
         return false;
     }
-
+    if(this->logging){
+    printf("BUILDING MARKET VIEW\n");
+    }
     // set exchange time to compare to assets
     this->exchange_time = this->datetime_index[this->current_index];
 
@@ -408,15 +410,13 @@ bool Exchange::get_market_view()
             // test to see if this is the last row of data for the asset
             if(asset_raw_pointer->is_last_view()){
                 expired_assets.push_back(_asset_pair.second);
-            }
-            
+            } 
         }
         else
         {
             this->market_view[asset_id] = nullptr;
         }
     };
-
     std::for_each(
         this->market.begin(), 
         this->market.end(), 
