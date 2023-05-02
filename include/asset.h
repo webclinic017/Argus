@@ -96,7 +96,7 @@ public:
     [[nodiscard]] string get_asset_id() const;
 
     /// return pointer to the first element of the datetime index;
-    [[nodiscard]] long long *get_datetime_index() const;
+    [[nodiscard]] long long *get_datetime_index(bool warmup_start = false) const;
 
     /// test if the function is built
     [[nodiscard]] bool get_is_built() const;

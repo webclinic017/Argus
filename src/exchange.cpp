@@ -51,9 +51,9 @@ void Exchange::build()
     auto datetime_index_ = container_sorted_union(
         this->market,
         [](const shared_ptr<Asset> &obj)
-        { return obj->get_datetime_index(); },
+        { return obj->get_datetime_index(true); },
         [](const shared_ptr<Asset> &obj)
-        { return obj->get_rows(); });
+        { return obj->get_rows() - obj->warmup; });
 
     this->datetime_index = get<0>(datetime_index_);
     this->datetime_index_length = get<1>(datetime_index_);

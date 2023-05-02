@@ -269,6 +269,7 @@ double Asset::get_asset_feature(const string& column_name, int index)
 
 py::array_t<double> Asset::get_column(const string& column_name, size_t length)
 {
+    fmt::print("{} {}\n", length ,this->current_index);
     if(length >= this->current_index)
     {
         throw std::runtime_error("index out of bounds");
@@ -293,9 +294,16 @@ py::array_t<double> Asset::get_column(const string& column_name, size_t length)
 
 
 
-long long *Asset::get_datetime_index() const
-{
-    return &this->datetime_index[0];
+long long *Asset::get_datetime_index(bool warmup_start) const
+{   
+    if(warmup_start)
+    {
+        return &this->datetime_index[warmup];
+    }
+    else
+    {
+        return &this->datetime_index[0];
+    }
 }
 
 py::array_t<long long> Asset::get_datetime_index_view()
