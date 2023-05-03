@@ -455,8 +455,8 @@ void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column
 double ExchangeMap::get_market_price(const string& asset_id)
 {
     auto& asset = this->asset_map.at(asset_id);
-    auto exchange = this->exchanges.at(asset->exchange_id);
-    return asset->get_market_price(exchange->on_close);
+    auto exchange = this->exchanges.find(asset->exchange_id);
+    return asset->get_market_price(exchange->second->on_close);
 }
 
 shared_ptr<Exchange> new_exchange(const string &exchange_id, int logging_)

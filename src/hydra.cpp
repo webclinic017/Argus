@@ -21,7 +21,7 @@
 namespace py = pybind11;
 using namespace std;
 
-using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+using portfolio_sp_t = Portfolio::portfolio_sp_t;
 using exchanges_sp_t = ExchangeMap::exchanges_sp_t; 
 
 Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)

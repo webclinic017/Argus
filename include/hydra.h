@@ -23,7 +23,7 @@ using namespace std;
 class Hydra
 {
 private:
-    using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+    using portfolio_sp_t = Portfolio::portfolio_sp_t;
     using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
     
     typedef shared_ptr<Brokers> brokers_sp_t;
@@ -35,7 +35,7 @@ private:
     bool is_built{};
 
     /// mapping between broker id and portfolio held at broker
-    portfolio_sp_threaded_t master_portfolio;
+    portfolio_sp_t master_portfolio;
 
     /// container for remembering historical events and structs
     shared_ptr<History> history;

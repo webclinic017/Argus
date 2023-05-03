@@ -29,9 +29,9 @@ public:
     using trade_sp_t = Trade::trade_sp_t;
     using order_sp_t = Order::order_sp_t;
 
-    typedef shared_ptr<Portfolio> portfolio_sp_threaded_t;
+    typedef shared_ptr<Portfolio> portfolio_sp_t;
     typedef tsl::robin_map<std::string, position_sp_t> positions_map_t;
-    typedef tsl::robin_map<std::string, portfolio_sp_threaded_t> portfolios_map_t;
+    typedef tsl::robin_map<std::string, portfolio_sp_t> portfolios_map_t;
     typedef shared_ptr<tsl::robin_map<string, shared_ptr<Broker>>> brokers_sp_t;
 
     /// portfolio constructor
@@ -104,7 +104,7 @@ public:
     /// add new sub portfolio to the portfolio
     /// @param portfolio_id portfolio id of the new sub portfolio
     /// @param portfolio smart pointer to sub portfolio
-    void add_sub_portfolio(const string &portfolio_id, portfolio_sp_threaded_t portfolio);
+    void add_sub_portfolio(const string &portfolio_id, portfolio_sp_t portfolio);
     
     /// create a new sub portfolio to the parent
     /// @param portfolio_id portfolio id of the new sub portfolio
@@ -114,7 +114,7 @@ public:
     /// @brief get smartpointer to a sub portfolio
     /// @param portfolio_id id of the sub portfolio
     /// @return smart pointer to the sub portfolio
-    optional<portfolio_sp_threaded_t>  get_sub_portfolio(const string &portfolio_id);
+    optional<portfolio_sp_t>  get_sub_portfolio(const string &portfolio_id);
 
     /// @brief recursively search through sub portfolios to find by portfolio id
     /// @param portfolio_id unique id of the portfolio

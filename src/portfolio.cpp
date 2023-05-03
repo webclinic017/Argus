@@ -18,7 +18,7 @@
 #include "utils_time.h"
 
 
-using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+using portfolio_sp_t = Portfolio::portfolio_sp_t;
 using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
 using position_sp_t = Position::position_sp_t;
 using order_sp_t = Order::order_sp_t;
@@ -554,7 +554,7 @@ shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id
     return portfolio_;
 }
 
-void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_threaded_t portfolio_)
+void Portfolio::add_sub_portfolio(const string &portfolio_id_, portfolio_sp_t portfolio_)
 {
     auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() != iter)
@@ -594,7 +594,7 @@ void Portfolio::update(){
     }
 }
 
-optional<portfolio_sp_threaded_t> Portfolio::get_sub_portfolio(const string &portfolio_id_)
+optional<portfolio_sp_t> Portfolio::get_sub_portfolio(const string &portfolio_id_)
 {
     auto iter = this->portfolio_map.find(portfolio_id_);
     if (this->portfolio_map.end() == iter)
@@ -622,8 +622,8 @@ void Portfolio::evaluate(bool on_close)
 
         // get the exchange the asset is listed on
         auto exchange_id = position->get_exchange_id();
-        auto exchange = this->exchange_map->exchanges.at(exchange_id);
-        auto market_price = exchange->get_market_price(it->first);
+        auto exchange = this->exchange_map->exchanges.find(exchange_id);
+        auto market_price = exchange->second->get_market_price(it->first);
 
         // asset is not in market view
         if (market_price == 0)

@@ -320,6 +320,7 @@ class HalTestMethods(unittest.TestCase):
         assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
+        return
         hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         

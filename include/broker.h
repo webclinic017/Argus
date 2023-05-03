@@ -27,7 +27,7 @@ class Broker
 {
 
 public:
-    using portfolio_sp_threaded_t = Portfolio::portfolio_sp_threaded_t;
+    using portfolio_sp_t = Portfolio::portfolio_sp_t;
     using position_sp_t = Position::position_sp_t;
     using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
     using trade_sp_t = Trade::trade_sp_t;
@@ -132,7 +132,7 @@ private:
     Account broker_account;
 
     /// master portfolio
-    portfolio_sp_threaded_t master_portfolio;
+    portfolio_sp_t master_portfolio;
 
     /// smart pointer to historical values container
     shared_ptr<History> history;
