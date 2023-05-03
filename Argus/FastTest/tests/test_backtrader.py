@@ -76,25 +76,26 @@ class MovingAverageStrategy:
                     asset_id,
                     units,
                     "dummy")
-            else:
-                if cross_value == 1:
-                    if position.units > 0:
-                        continue
-                    else:
-                        self.portfolio.place_market_order(
-                            asset_id,
-                            200,
-                            "dummy")
+                return
+
+            if cross_value == 1:
+                if position.units > 0:
+                    continue
                 else:
-                    if position.units < 0:
-                        continue
-                    else:
-                        self.portfolio.place_market_order(
-                            asset_id,
-                            -200,
-                            "dummy",
-                            FastTest.OrderExecutionType.EAGER,
-                            -1)
+                    self.portfolio.place_market_order(
+                        asset_id,
+                        200,
+                        "dummy")
+            else:
+                if position.units < 0:
+                    continue
+                else:
+                    self.portfolio.place_market_order(
+                        asset_id,
+                        -200,
+                        "dummy",
+                        FastTest.OrderExecutionType.EAGER,
+                        -1)
                            
 class BT_MA_Cross_Strategy(bt.Strategy):
     def __init__(self) -> None:
@@ -196,8 +197,8 @@ def test_fasttest(dfs):
     return nlv, et-st
  
 if __name__ == "__main__":
-    count = 50
-    step_count = 500
+    count = 100
+    step_count = 10000
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()

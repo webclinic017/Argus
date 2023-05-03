@@ -101,5 +101,5 @@ def create_big_hal(logging: int = 0, cash: float = 0) -> Hal:
         df["FAST_ABOVE_SLOW"] = df["Close"].rolling(50).mean() >  df["Close"].rolling(200).mean()
         df.dropna(inplace = True)
         
-        hal.register_asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id) 
+        hal.register_asset_from_df(df, asset_id, test1_exchange_id, test1_broker_id, warmup = 0) 
     return hal

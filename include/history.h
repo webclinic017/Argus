@@ -5,8 +5,6 @@
 #ifndef ARGUS_HISTORY_H
 #define ARGUS_HISTORY_H
 #include <vector>
-#include <list>
-#include <unordered_map>
 #include <memory>
 
 #include "settings.h"

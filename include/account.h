@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <tsl/robin_map.h>
 
 #include "trade.h"
 #include "order.h"
@@ -38,7 +38,7 @@ public:
 
 private:
     /// @brief map between asset ids and trades
-    std::unordered_map<std::string, Trade> trades;
+    tsl::robin_map<std::string, Trade> trades;
 };
 
 #endif

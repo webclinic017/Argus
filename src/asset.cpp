@@ -274,10 +274,10 @@ py::array_t<double> Asset::get_column(const string& column_name, size_t length)
         throw std::runtime_error("index out of bounds");
     }
 
-    auto column_offset = this->headers.at(column_name);
+    auto column_offset = this->headers.find(column_name);
     auto row_offset = static_cast<int>(this->cols) * length;
     
-    auto column_start = this->row - this->cols + column_offset - row_offset;
+    auto column_start = this->row - this->cols + column_offset->second - row_offset;
     return py::array( 
         py::buffer_info
             (

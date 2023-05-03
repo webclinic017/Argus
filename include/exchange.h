@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 #include <utility>
-#include <unordered_map>
+#include <tsl/robin_map.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
@@ -42,7 +42,7 @@ public:
     Exchange &operator=(Exchange &&) = delete;
 
     /// map between asset id and asset pointer
-    std::unordered_map<string, asset_sp_t> market;
+    tsl::robin_map<string, asset_sp_t> market;
 
     /// total number of rows in the exhange
     size_t candles;
