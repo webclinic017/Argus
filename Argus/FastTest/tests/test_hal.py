@@ -281,7 +281,7 @@ class HalTestMethods(unittest.TestCase):
         assert(np.array_equal(np.array([99900, 100350, 100350, 99800]),nlv_history))
         
     def test_hal_goto_multi(self):
-        hal = helpers.create_simple_hal(logging=1)
+        hal = helpers.create_simple_hal(logging=0)
         hydra = hal.get_hydra()
         portfolio = hal.new_portfolio("test_portfolio1",100000.0);
         exchange = hal.get_exchange(helpers.test1_exchange_id)
@@ -317,7 +317,7 @@ class HalTestMethods(unittest.TestCase):
         mp = hal.get_portfolio("master")
         portfolio_history = mp.get_portfolio_history()
         nlv_history = portfolio_history.get_nlv_history()
-        print(nlv_history)
+        assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
         return
