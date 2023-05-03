@@ -98,7 +98,7 @@ void Hydra::reset(bool clear_history, bool clear_strategies)
         history->reset();
     }
     // remove existing strategies if needed
-    if(clear_history)
+    if(clear_strategies)
     {
         this->strategies.clear();
     }
