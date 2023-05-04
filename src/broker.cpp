@@ -20,11 +20,9 @@ using namespace std;
 Broker::Broker(string broker_id_,
                double cash_,
                int logging_,
-               shared_ptr<History> history_,
                shared_ptr<Portfolio> master_portfolio) : broker_account(broker_id_, cash_),
                                                          master_portfolio(nullptr)
 {
-    this->history = std::move(history_);
     this->master_portfolio = std::move(master_portfolio);
 
     this->broker_id = std::move(broker_id_);
@@ -75,7 +73,6 @@ void Broker::cancel_order(unsigned int order_id)
     if (!order_parent_struct)
     {
         // move canceled order to history
-        this->history->remember_order(std::move(order));
         return;
     }
 
@@ -101,9 +98,6 @@ void Broker::cancel_order(unsigned int order_id)
     {
         this->cancel_order(child_orders->get_order_id());
     }
-
-    // move canceled order to history
-    this->history->remember_order(std::move(order));
 }
 
 void Broker::place_order_buffer(shared_ptr<Order> order)
@@ -185,9 +179,6 @@ void Broker::process_filled_order(order_sp_t filled_order)
 
     // get the portfolio the order was placed for, adjust the sub portfolio accorindly
     filled_order->get_source_portfolio()->on_order_fill(filled_order);
-
-    //remember the order
-    this->history->remember_order(std::move(filled_order));
 
     #ifdef DEBUGGING
     printf("broker filled order processed \n");

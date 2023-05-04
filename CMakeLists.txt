@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_ARCHITECTURES arm64)
 message("Compiler: ${CMAKE_CXX_COMPILER}")
 
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-S")
+set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-S, --gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 

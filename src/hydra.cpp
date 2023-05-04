@@ -15,6 +15,7 @@
 #include "history.h"
 #include "hydra.h"
 #include "order.h"
+#include "portfolio.h"
 #include "settings.h"
 #include "utils_time.h"
 
@@ -27,7 +28,6 @@ using exchanges_sp_t = ExchangeMap::exchanges_sp_t;
 Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
 {   
     this->logging = logging_;
-    this->history = std::make_shared<History>();
     this->brokers = std::make_shared<Brokers>();
     this->exchange_map = std::make_shared<ExchangeMap>();
 
@@ -35,7 +35,6 @@ Hydra::Hydra(int logging_, double cash_) : master_portfolio(nullptr)
             logging_, 
             cash_,
             "master", 
-            this->history,
             nullptr,
             this->brokers,
             this->exchange_map);   
@@ -89,14 +88,8 @@ void Hydra::reset(bool clear_history, bool clear_strategies)
     }
 
     //reset all portfolios
-    this->master_portfolio->reset();
+    this->master_portfolio->reset(clear_history);
 
-    // cleat the history if needed
-    if(clear_history)
-    {
-        auto history = this->history;
-        history->reset();
-    }
     // remove existing strategies if needed
     if(clear_strategies)
     {
@@ -175,7 +168,6 @@ shared_ptr<Portfolio> Hydra::new_portfolio(const string & portfolio_id_, double 
         this->logging, 
         cash_, 
         portfolio_id_,
-        this->history,
         this->master_portfolio.get(),
         this->brokers,
         this->exchange_map
@@ -236,7 +228,6 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
         broker_id,
         cash,
         this->logging,
-        this->history,
         this->master_portfolio);
 
     // insert a clone of the smart pointer into the exchange
@@ -522,15 +513,23 @@ void Hydra::replay()
     //reset the hydra to it's original state, but don't clear the history buffer
     this->reset(false, false);
 
-    //build a new smart pointer to histroy object
-    auto new_history = std::make_shared<History>();
+    // build a new smart pointer to history object
+    auto tracer = this->master_portfolio->get_portfolio_history()->get_tracer(Event);
 
-    //swap it with the full histroy, now the hydra's history is empty
-    std::swap(this->history,new_history);   
+    if(!tracer.has_value())
+    {   
+        throw std::runtime_error("no events recordered");
+    }
 
-    //get the old order history ovject to feed to the hydra
-    auto order_history = new_history->get_order_history(); 
-    
+    // create new history to swap into hydra
+    auto empty_portfolio_history = std::make_shared<PortfolioHistory>(this->master_portfolio.get());
+    auto full_portfolio_history = this->master_portfolio->get_portfolio_history();
+    std::swap(full_portfolio_history,empty_portfolio_history);   
+
+    //get the old order history object to feed to the hydra
+    auto event_tracer = static_cast<EventTracer*>(empty_portfolio_history->get_tracer(Event)->get());
+    auto order_history = event_tracer->get_order_history();
+
     if(order_history.size() == 0)
     {
         return;

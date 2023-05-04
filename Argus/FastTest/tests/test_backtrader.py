@@ -198,8 +198,8 @@ def test_fasttest(dfs):
     return nlv, et-st
  
 if __name__ == "__main__":
-    count = 100
-    step_count = 800
+    count = 1000
+    step_count = 10000
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()

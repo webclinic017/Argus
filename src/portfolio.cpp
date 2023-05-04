@@ -29,17 +29,16 @@ Portfolio::Portfolio(
     int logging_, 
     double cash_, 
     string id_, 
-    shared_ptr<History> history,
     Portfolio* parent_portfolio_,
     brokers_sp_t brokers_,
     exchanges_sp_t exchange_map_) : positions_map()
 {
     this->brokers = brokers_;
     this->parent_portfolio = parent_portfolio_;
-    this->history = history;
     this->exchange_map = exchange_map_;
 
     this->portfolio_history = make_shared<PortfolioHistory>(this);
+    this->event_tracer = nullptr;
 
     this->logging = logging_;
     this->cash = cash_;
@@ -60,7 +59,7 @@ void Portfolio::build(size_t portfolio_eval_length)
     }
 }
 
-void Portfolio::reset()
+void Portfolio::reset(bool clear_history)
 {
     // reset starting member variables
     this->cash = this->starting_cash;
@@ -70,7 +69,7 @@ void Portfolio::reset()
     this->nlv = this->starting_cash;
 
     // reset portfolio history object
-    this->portfolio_history->reset();
+    this->portfolio_history->reset(clear_history);
 
     // clear positions map
     this->positions_map.clear();
@@ -83,11 +82,12 @@ void Portfolio::reset()
 
 std::optional<position_sp_t> Portfolio::get_position(const string &asset_id)
 {
-    if(this->positions_map.count(asset_id)){
-        return this->positions_map[asset_id];
+    auto position = this->positions_map.find(asset_id);
+    if(position == this->positions_map.end()){
+        return nullopt;
     }
     else {
-        return nullopt;
+        return position->second;
     }
 }
 
@@ -332,7 +332,10 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
         }
 
         // remember the trade
-        this->history->remember_trade(std::move(trade));
+        if(this->event_tracer)
+        {
+            this->event_tracer->remember_trade(std::move(trade));
+        }
     }
     //new trade
     else if (trade->get_trade_open_time() == filled_order->get_fill_time()){
@@ -406,7 +409,10 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
 
         // push the trade to history, at this point local trade variable should have use count 1
         // history will validate it when it attempts to push to trade history
-        this->history->remember_trade(std::move(trade));
+        if(this->event_tracer)
+        {
+            this->event_tracer->remember_trade(std::move(trade));
+        }
     }
 
     //remove trades from position
@@ -417,7 +423,10 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
 
     // push position to history
     position->set_is_open(false);
-    this->history->remember_position(position);
+    if(this->event_tracer)
+    {
+        this->event_tracer->remember_position(std::move(position));
+    }
 }
 
 void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){  
@@ -455,8 +464,10 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
         parent->positions_map.erase(trade_sp->get_asset_id());
 
         // remember the postiion of the parent
-        this->history->remember_position(std::move(position));
-    
+        if(this->event_tracer)
+        {
+            this->event_tracer->remember_position(std::move(position));
+        }
     }
 
     //recursively proprate trade up up portfolio tree
@@ -509,10 +520,9 @@ void Portfolio::propogate_trade_open_up(trade_sp_t trade_sp, bool adjust_cash){
 shared_ptr<Portfolio> Portfolio::create_sub_portfolio(const string& portfolio_id_, double cash_){
     //create new portfolio
     auto portfolio_ = std::make_shared<Portfolio>(
-             this->logging, 
+        this->logging, 
         cash_, 
         portfolio_id_,
-        this->history,
         this,
         this->brokers,
         this->exchange_map
@@ -706,8 +716,10 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
             this->on_order_fill(order);
 
             //remember the order
-            this->history->remember_order(std::move(order));
-
+            if(this->event_tracer)
+            {
+                this->event_tracer->remember_order(std::move(order));
+            }
             return std::nullopt;
         }
     }

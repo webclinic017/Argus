@@ -19,6 +19,7 @@ class Broker;
 #include "exchange.h"
 
 class PortfolioHistory;
+class EventTracer;
 
 class Portfolio : public std::enable_shared_from_this<Portfolio>
 {
@@ -42,7 +43,6 @@ public:
         int logging, 
         double cash, 
         string id, 
-        shared_ptr<History> history_,
         Portfolio* parent_portfolio_,
         brokers_sp_t brokers_,
         exchanges_sp_t exchanges_
@@ -59,7 +59,7 @@ public:
      * @brief reset a portfolio object to its original state
      * 
      */
-    void reset();
+    void reset(bool clear_history = true);
 
     /// get the memory addres of the portfolio object
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
@@ -236,6 +236,9 @@ private:
     /// smart pointer to portfolio history object
     shared_ptr<PortfolioHistory> portfolio_history;
 
+    /// smart pointer to event tracer (nullptr if not registered)
+    shared_ptr<EventTracer> event_tracer;
+
     /// position counter for position ids
     unsigned int position_counter = 0;
 
@@ -253,9 +256,6 @@ private:
 
     /// unrealized_pl of the portfolio
     double unrealized_pl = 0;
-
-    // shared pointer to history objects
-    shared_ptr<History> history;
 
     /// @brief modify an existing postion based on a filled order
     /// @param filled_order ref to a sp to a filled order
@@ -334,7 +334,8 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
 
 enum PortfolioTracerType
 {
-    Value
+    Value,
+    Event
 };
 
 class PortfolioTracer
@@ -415,6 +416,49 @@ public:
     }
 };
 
+class EventTracer : public PortfolioTracer
+{
+public:
+    /// ValueTracer constructor
+    EventTracer(Portfolio* parent_portfolio_) : PortfolioTracer(parent_portfolio_){}
+
+    void remember_order( shared_ptr<Order> event){this->orders.push_back(event);}
+    void remember_trade( shared_ptr<Trade> event){this->trades.push_back(event);}
+    void remember_position( shared_ptr<Position> event){this->positions.push_back(event);}
+
+    /// tracer type
+    PortfolioTracerType tracer_type() const {return PortfolioTracerType::Event;}
+
+
+    /// empty stepper
+    void step(){}
+
+    /// build event tracer
+    void build(size_t portfolio_eval_length){}
+
+    /// reset event tracer
+    void reset(){
+        this->orders.clear();
+        this->trades.clear();
+        this->positions.clear();
+    }
+
+    vector<shared_ptr<Order>>& get_order_history(){return this->orders;};
+    vector<shared_ptr<Trade>>& get_trade_history(){return this->trades;};
+    vector<shared_ptr<Position>>& get_position_history(){return this->positions;};
+
+private:
+    /// history of all orders
+    vector<shared_ptr<Order>> orders;
+
+    /// history of all trades
+    vector<shared_ptr<Trade>> trades;
+
+    /// history of all positions
+    vector<shared_ptr<Position>> positions;
+
+};
+
 class PortfolioHistory{
 public:
     /// portfolio history constructor
@@ -423,6 +467,8 @@ public:
     /// container of portfolio tracers applied to this portfolio
     vector<shared_ptr<PortfolioTracer>> tracers;
 
+    void add_tracer(PortfolioTracerType tracer_type);
+    
     /// find portfolio tracer by id
     optional<shared_ptr<PortfolioTracer>> get_tracer(PortfolioTracerType tracer_type);
 
@@ -430,7 +476,7 @@ public:
     void build(size_t portfolio_eval_length);
 
     /// reset the portfolio history tracers
-    void reset();
+    void reset(bool clear_history);
 
     /// pointer to the parent portfolio
     Portfolio* parent_portfolio;

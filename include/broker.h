@@ -10,7 +10,6 @@
 
 
 #include "portfolio.h"
-#include "history.h"
 #include "position.h"
 #include "order.h"
 #include "account.h"
@@ -43,7 +42,6 @@ public:
         string broker_id,
         double cash,
         int logging,
-        shared_ptr<History> history,
         shared_ptr<Portfolio> master_portfolio);
 
     /// build the broker, set member pointers
@@ -134,7 +132,5 @@ private:
     /// master portfolio
     portfolio_sp_t master_portfolio;
 
-    /// smart pointer to historical values container
-    shared_ptr<History> history;
 };
 #endif // ARGUS_BROKER_H

@@ -37,9 +37,7 @@ private:
     /// mapping between broker id and portfolio held at broker
     portfolio_sp_t master_portfolio;
 
-    /// container for remembering historical events and structs
-    shared_ptr<History> history;
-
+    /// current simulation time
     long long hydra_time;
 
     /// master datetime index of the combined exchanges
@@ -148,8 +146,6 @@ public:
     
     /// handle a asset id that has finished streaming (remove from portfolio and exchange)
     void cleanup_asset(const string& asset_id);
-
-    shared_ptr<History> get_history(){return this->history;}
 
     //cast self to void ptr and return
     void* void_ptr() { return static_cast<void*>(this);};

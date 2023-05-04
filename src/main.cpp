@@ -107,20 +107,7 @@ void init_hydra_ext(py::module &m)
         .def("get_broker", &Hydra::get_broker)
         .def("get_master_portfolio", &Hydra::get_master_portflio)
         .def("get_portfolio", &Hydra::get_portfolio)
-        .def("get_exchange", &Hydra::get_exchange)
-
-        .def("get_order_history", [](Hydra& self) {
-            return self.get_history()->get_order_history();},
-            py::return_value_policy::reference_internal
-        )
-        .def("get_trade_history", [](Hydra& self) {
-            return self.get_history()->get_trade_history();},
-            py::return_value_policy::reference_internal
-        )
-        .def("get_position_history", [](Hydra& self) {
-            return self.get_history()->get_position_history();},
-            py::return_value_policy::reference_internal
-        );
+        .def("get_exchange", &Hydra::get_exchange);
 
     m.def("new_hydra", &new_hydra, py::return_value_policy::reference);
 }
@@ -168,6 +155,17 @@ void init_portfolio_ext(py::module &m)
     py::class_<ValueTracer, PortfolioTracer, shared_ptr<ValueTracer>>(m, "ValueTracer")
         .def("get_nlv_history", &ValueTracer::get_nlv_history)
         .def("get_cash_history", &ValueTracer::get_cash_history);
+
+    py::class_<EventTracer, PortfolioTracer, shared_ptr<EventTracer>>(m, "EventTracer")
+        .def("get_order_history",&EventTracer::get_order_history,
+            py::return_value_policy::reference_internal
+        )
+        .def("get_trade_history",&EventTracer::get_trade_history,
+            py::return_value_policy::reference_internal
+        )
+        .def("get_position_history",&EventTracer::get_position_history,
+            py::return_value_policy::reference_internal
+        );
     
     py::class_<PortfolioHistory, std::shared_ptr<PortfolioHistory>>(m, "PortfolioHistory")
         .def("get_tracer", &PortfolioHistory::get_tracer, py::return_value_policy::reference);
