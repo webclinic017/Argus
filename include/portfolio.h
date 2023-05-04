@@ -342,39 +342,70 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     #endif
 }
 
-class PortfolioHistory{
-public:
-    /// portfolio history constructor
-    PortfolioHistory(Portfolio* parent_portfolio_): parent_portfolio(parent_portfolio_){};
-    
-    // @brief allocate memory for the portfolio evaluation
-    void build(size_t portfolio_eval_length)
-    {
-        this->cash_history.reserve(portfolio_eval_length); 
-        this->nlv_history.reserve(portfolio_eval_length); 
-    }
+enum PortfolioTracerType
+{
+    Value
+};
 
-    void reset()
-    {
-        this->cash_history.clear();
-        this->nlv_history.clear();
-    }
-    
+class PortfolioTracer
+{   
+public:
+    /// Tracer constructor
+    PortfolioTracer(Portfolio* parent_portfolio_){this->parent_portfolio = parent_portfolio_;};
+
+    /// Tracer default desctructor
+    virtual ~PortfolioTracer() = default;
+
+    /// pure virtual step function to be called on new step
+    virtual void step() = 0;
+
+    /// pure virtual function to get tracer type
+    virtual PortfolioTracerType tracer_type() const = 0;
+
+    // pure virtual function to build the tracer
+    virtual void build(size_t portfolio_eval_length) = 0;
+
+    // pure virtual function to reset the tracer
+    virtual void reset() = 0;
+
+protected:
     /// pointer to the parent portfolio
-    Portfolio* parent_portfolio;
+    Portfolio* parent_portfolio = nullptr;
+
+};
+
+class ValueTracer : public PortfolioTracer
+{
+public:
+    /// ValueTracer constructor
+    ValueTracer(Portfolio* parent_portfolio_) : PortfolioTracer(parent_portfolio_){}
+
+    /// nlv container
+    std::vector<double> nlv_history;
 
     /// historical cash values of the portfolio
     vector<double> cash_history;
-    
-    /// historical net liquidation values of the portfolio
-    vector<double> nlv_history;
 
-    /// @brief get the historical cash values of the portfolio
-    py::array_t<double> get_cash_history(){
-        return to_py_array(
-        this->cash_history.data(),
-        this->cash_history.size(),
-        true);
+    /// Tracer type
+    PortfolioTracerType tracer_type() const {return PortfolioTracerType::Value;}
+    
+    /// step function
+    void step()
+    {
+        this->cash_history.push_back(this->parent_portfolio->get_cash());
+        this->nlv_history.push_back(this->parent_portfolio->get_nlv());
+    };
+
+    /// build function
+    void build(size_t portfolio_eval_length){
+        this->nlv_history.reserve(portfolio_eval_length);
+        this->cash_history.reserve(portfolio_eval_length);
+    }
+
+    /// build function
+    void reset(){
+        this->nlv_history.clear();
+        this->cash_history.clear();
     }
 
     /// @brief get the historical net liquidation values of the portfolio
@@ -384,13 +415,40 @@ public:
         this->nlv_history.size(),
         true);
     }
+        
+    /// @brief get the historical cash values of the portfolio
+    py::array_t<double> get_cash_history(){
+        return to_py_array(
+        this->cash_history.data(),
+        this->cash_history.size(),
+        true);
+    }
+};
+
+class PortfolioHistory{
+public:
+    /// portfolio history constructor
+    PortfolioHistory(Portfolio* parent_portfolio_);
+    
+    /// container of portfolio tracers applied to this portfolio
+    std::vector<shared_ptr<PortfolioTracer>> tracers;
+
+    /// find portfolio tracer by id
+    optional<shared_ptr<PortfolioTracer>> get_tracer(PortfolioTracerType tracer_type);
+
+    /// build portfolio history tracers    
+    void build(size_t portfolio_eval_length);
+
+    /// reset the portfolio history tracers
+    void reset();
+
+    /// pointer to the parent portfolio
+    Portfolio* parent_portfolio;
 
     /// @brief update historical values with current snapshot
-    void update(){
-        this->cash_history.push_back(this->parent_portfolio->get_cash());
-        this->nlv_history.push_back(this->parent_portfolio->get_nlv());
-    }
+    void update();
 
+    ///is the portfolio history built
     bool is_built;
 
 };

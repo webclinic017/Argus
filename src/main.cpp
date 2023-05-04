@@ -164,9 +164,13 @@ void init_portfolio_ext(py::module &m)
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio)
         .def("find_portfolio", &Portfolio::find_portfolio);
 
+    py::class_<PortfolioTracer, shared_ptr<PortfolioTracer>>(m, "PortfolioTracer");
+    py::class_<ValueTracer, PortfolioTracer, shared_ptr<ValueTracer>>(m, "ValueTracer")
+        .def("get_nlv_history", &ValueTracer::get_nlv_history)
+        .def("get_cash_history", &ValueTracer::get_cash_history);
+    
     py::class_<PortfolioHistory, std::shared_ptr<PortfolioHistory>>(m, "PortfolioHistory")
-        .def("get_cash_history", &PortfolioHistory::get_cash_history,py::return_value_policy::reference)
-        .def("get_nlv_history", &PortfolioHistory::get_nlv_history,py::return_value_policy::reference);
+        .def("get_tracer", &PortfolioHistory::get_tracer, py::return_value_policy::reference);
 
 }
 
@@ -245,6 +249,10 @@ void init_enum(py::module &m){
         .value("UNITS", OrderTargetType::UNITS)
         .value("DOLLARS", OrderTargetType::DOLLARS)
         .value("PCT", OrderTargetType::PCT)
+        .export_values();
+
+    py::enum_<PortfolioTracerType>(m, "PortfolioTracerType")
+        .value("VALUE", PortfolioTracerType::Value)
         .export_values();
 }
 

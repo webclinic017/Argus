@@ -869,4 +869,11 @@ void Portfolio::log_order_fill(order_sp_t &filled_order)
                 filled_order->get_average_price(),
                 filled_order->get_units());
 };
+
+PortfolioHistory::PortfolioHistory(Portfolio* parent_portfolio_): parent_portfolio(parent_portfolio_){
+    //default ad values tracer, change to optional latter
+    this->tracers.push_back(std::make_shared<ValueTracer>(parent_portfolio_));
+};
+
+
 #endif

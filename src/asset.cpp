@@ -374,9 +374,9 @@ void Asset::step(){
     {
         switch(observer.observer_type)
         {
-            case AssetObserverType::Volatility:
+            case AssetTracerType::Volatility:
                 break;
-            case AssetObserverType::Beta:
+            case AssetTracerType::Beta:
                 break;
         }
     }

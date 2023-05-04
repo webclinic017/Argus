@@ -20,7 +20,7 @@ using namespace std;
 
 class Asset;
 
-enum AssetObserverType
+enum AssetTracerType
 {
     Volatility,
     Beta
@@ -46,8 +46,8 @@ public:
         this->warmup = warmup_;
     }
 
-    /// type of observer it is
-    AssetObserverType observer_type;
+    /// type of tracer it is
+    AssetTracerType observer_type;
 
 };
 
