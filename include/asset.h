@@ -62,6 +62,14 @@ public:
     /// asset destructor
     ~Asset();
 
+    /**
+     * @brief fork an asset into a view, the new object will be a new object entirly except for the 
+              data and datetime index pointers, they will point to this existing object (i.e. no dyn alloc)
+     * 
+     * @return asset_sp_t new asset object in a smart pointer
+     */
+    asset_sp_t fork_view();
+
     /// reset asset to start of data
     void reset_asset();
 

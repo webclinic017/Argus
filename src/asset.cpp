@@ -15,6 +15,7 @@
 namespace py = pybind11;
 using namespace std;
 
+using asset_sp_t = Asset::asset_sp_t;
 
 Asset::Asset(string asset_id_, string exchange_id_, string broker_id_, size_t warmup_)              
 {
@@ -86,16 +87,48 @@ void Asset::load_headers(const vector<std::string> &columns)
     }
 }
 
+asset_sp_t Asset::fork_view()
+{
+    // asset must be built in order to be forked
+    if(!this->is_built)
+    {
+        ARGUS_RUNTIME_ERROR("can't fork asset that is not built");
+    }
+
+    auto asset_view = std::make_shared<Asset>(
+        this->asset_id, 
+        this->exchange_id, 
+        this->broker_id, 
+        this->warmup
+    );
+    // set is_view true (don't deallocate memory on destruction)
+    asset_view->is_view = true;
+    asset_view->is_built = true;
+    asset_view->is_alligned = this->is_alligned;
+
+    asset_view->headers = this->headers;
+    asset_view->load_view(
+        this->data, 
+        this->datetime_index,
+        this->rows, 
+        this->cols
+    );
+    asset_view->open_column = this->open_column;
+    asset_view->close_column = this->close_column;
+    asset_view->current_index = this->current_index;
+    asset_view->row = this->row;
+}
+
 void Asset::load_view(double *data_, long long *datetime_index_, size_t rows_, size_t cols_){
 #ifdef DEBUGGING
     printf("MEMORY: CALLING ASSET %s load_data() ON: %p \n", this->asset_id.c_str(), this);
 #endif  
 
-    // allocate data array
+    // set data to point to the existing allocated data
     this->data = data_;
 
-    // allocate datetime index
-    this->datetime_index = new long long[rows_];
+    // set the datetimes index to point to existing datetime index
+    this->datetime_index = datetime_index_;
 
     // set the asset matrix size
     this->rows = rows_;

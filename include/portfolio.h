@@ -15,7 +15,6 @@ class Broker;
 #include "trade.h"
 #include "position.h"
 #include "account.h"
-#include "history.h"
 #include "exchange.h"
 
 class PortfolioHistory;

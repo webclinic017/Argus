@@ -13,7 +13,6 @@
 
 #include "asset.h"
 #include "exchange.h"
-#include "history.h"
 #include "hydra.h"
 #include "order.h"
 #include "portfolio.h"

@@ -14,7 +14,6 @@
 #include "exchange.h"
 #include "account.h"
 #include "portfolio.h"
-#include "history.h"
 #include "broker.h"
 #include "strategy.h"
 

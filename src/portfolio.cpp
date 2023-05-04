@@ -9,7 +9,6 @@
 
 #include "asset.h"
 #include "exchange.h"
-#include "history.h"
 #include "order.h"
 #include "portfolio.h"
 #include "broker.h"

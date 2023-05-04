@@ -90,7 +90,7 @@ class HalTestMethods(unittest.TestCase):
         hal.register_strategy(strategy)
         
         portfolio = hal.get_portfolio("test_portfolio1")
-        portfolio.get_portfolio_history().add_tracer(PortfolioTracerType.EVENT)
+        portfolio.add_tracer(PortfolioTracerType.EVENT)
 
         hal.build()
         hal.run()
@@ -99,9 +99,9 @@ class HalTestMethods(unittest.TestCase):
         nlv_actual = np.array([100000, 100000, 100000, 100450, 100450, 100450.0,])
         
         for portfolio in ["master", "test_portfolio1"]:
-            portfolio_history = hal.get_portfolio(portfolio).get_portfolio_history()
-            cash_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
-            nlv_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
+            portfolio = hal.get_portfolio(portfolio)
+            cash_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
+            nlv_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
             
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
@@ -112,9 +112,9 @@ class HalTestMethods(unittest.TestCase):
         nlv_actual = np.array([100000, 100000, 100000, 100450, 100450, 100450.0,])
         
         for portfolio in ["master", "test_portfolio1"]:
-            portfolio_history = hal.get_portfolio(portfolio).get_portfolio_history()
-            cash_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
-            nlv_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
+            portfolio = hal.get_portfolio(portfolio)
+            cash_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
+            nlv_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
             
             assert(np.array_equal(nlv_actual, nlv_history))
             assert(np.array_equal(cash_actual, cash_history))
@@ -278,8 +278,7 @@ class HalTestMethods(unittest.TestCase):
         p_mp = mp.get_position(helpers.test2_asset_id)
         assert(p_mp.get_unrealized_pl() == -200)
         
-        portfolio_history = mp.get_portfolio_history()
-        nlv_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
+        nlv_history = mp.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
         assert(np.array_equal(np.array([99900, 100350, 100350, 99800]),nlv_history))
         
     def test_hal_goto_multi(self):
@@ -317,8 +316,7 @@ class HalTestMethods(unittest.TestCase):
         hal.run()
         
         mp = hal.get_portfolio("master")
-        portfolio_history = mp.get_portfolio_history()
-        nlv_history = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
+        nlv_history = mp.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
         assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
