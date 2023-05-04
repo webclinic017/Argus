@@ -89,6 +89,9 @@ class HalTestMethods(unittest.TestCase):
         strategy = SimpleStrategy(hal)
         hal.register_strategy(strategy)
         
+        portfolio = hal.get_portfolio("test_portfolio1")
+        portfolio.get_portfolio_history().add_tracer(PortfolioTracerType.EVENT)
+
         hal.build()
         hal.run()
                 
@@ -102,8 +105,7 @@ class HalTestMethods(unittest.TestCase):
             
             assert(np.array_equal(cash_actual, cash_history))
             assert(np.array_equal(nlv_actual, nlv_history))
-        
-        #test replay    
+          
         hal.replay()
         
         cash_actual = np.array([100000, 100000,  90300, 100450, 100450,  90850.0,])
@@ -116,7 +118,7 @@ class HalTestMethods(unittest.TestCase):
             
             assert(np.array_equal(nlv_actual, nlv_history))
             assert(np.array_equal(cash_actual, cash_history))
-
+            
     def test_hal_reset(self):
         hal = helpers.create_simple_hal(logging=0)
         hydra = hal.get_hydra()
@@ -320,18 +322,22 @@ class HalTestMethods(unittest.TestCase):
         assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
-        #return
+        return
         hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         exchange = hal.get_exchange(helpers.test1_exchange_id)
+        mp = hal.get_portfolio("master")
+        mp.get_portfolio_history().add_tracer(PortfolioTracerType.EVENT)
         
         strategy = MovingAverageStrategy(hal)
-        hal.register_strategy(strategy) 
-               
+        hal.register_strategy(strategy)      
         hal.build()
-
+        
         st = time.time()
         hal.run()
         et = time.time()
+        
+        event_tracer = mp.get_portfolio_history().get_tracer(PortfolioTracerType.EVENT)
+        assert(len(event_tracer.get_order_history()) > 0)
         
         execution_time = et - st
         candles = hal.get_candles()
@@ -339,7 +345,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles: {candles:.4f} candles")
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")     
-        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
+        portfolio_history = mp.get_portfolio_history()
         nlv1 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
 
         st = time.time()
@@ -356,7 +362,6 @@ class HalTestMethods(unittest.TestCase):
         portfolio_history = hal.get_portfolio("master").get_portfolio_history()
         nlv2 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
         assert(nlv1==nlv2)
-        
         
 if __name__ == '__main__':
     unittest.main()

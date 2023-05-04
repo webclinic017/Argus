@@ -76,7 +76,8 @@ void Portfolio::reset(bool clear_history)
 
     //recursively reset all child portfolios
     for(auto& portfolio_pair : this->portfolio_map){
-        portfolio_pair.second->reset();
+        //force clear of child portfolio histories
+        portfolio_pair.second->reset(true);
     }
 }
 
@@ -159,6 +160,11 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
                                            strategy_id_,
                                            trade_id);
 
+    if(this->event_tracer)
+    {
+        this->event_tracer->remember_order(market_order);
+    }
+    
     auto broker = this->brokers->at(asset_rp->broker_id);
 
     #ifdef ARGUS_STRIP
@@ -170,7 +176,7 @@ void Portfolio::place_market_order(const string &asset_id_, double units_,
     if (order_execution_type == EAGER)
     {
         // place order directly and process
-        broker->place_order(std::move(market_order));
+        broker->place_order(market_order);
     }
     else
     {
@@ -197,16 +203,20 @@ void Portfolio::place_limit_order(const string &asset_id_, double units_, double
                                           strategy_id_,
                                           trade_id);
 
+    if(this->event_tracer)
+    {
+        this->event_tracer->remember_order(limit_order);
+    }
+
     // set the limit of the order
     limit_order->set_limit(limit_);
 
     auto broker = this->brokers->at(asset_rp->broker_id);
 
-
     if (order_execution_type == EAGER)
     {
         // place order directly and process
-        broker->place_order(std::move(limit_order));
+        broker->place_order(limit_order);
     }
     else
     {
@@ -782,6 +792,31 @@ void Portfolio::add_cash(double cash_)
         return;
     }
     this->parent_portfolio->add_cash(cash_);
+}
+
+void Portfolio::consolidate_order_history(vector<shared_ptr<Order>>& orders)
+{
+    // search through all portfolios for order histories
+    for(auto& portfolio_pair : this->portfolio_map)
+    {
+        portfolio_pair.second->consolidate_order_history(orders);
+    }
+
+    // get order tracer if exists
+    auto tracer = this->portfolio_history->get_tracer(Event);
+    if(!tracer)
+    {
+        return;
+    }
+
+    // copy sp to orders into the vector
+    auto event_tracer = static_cast<EventTracer*>(tracer.get());
+    int i = 0;
+    for(auto& order : event_tracer->get_order_history())
+    {
+        orders.push_back(order);
+        i ++;
+    }
 }
 
 #ifdef ARGUS_STRIP

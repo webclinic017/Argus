@@ -9,6 +9,7 @@
 #include <memory>
 #include <fmt/core.h>
 #include <thread>
+#include <vector>
 
 #include "asset.h"
 #include "exchange.h"
@@ -431,9 +432,18 @@ void Hydra::backward_pass(){
         broker_pair.second->process_orders();
     }
 
+    if(this->logging == 1)
+    {
+        this->log("order processing complete");
+    }
         
     //update historicals values
     this->master_portfolio->update();
+
+    if(this->logging == 1)
+    {
+        this->log("master portfolio updated");
+    }
 
     // hanndle any assets done streaming
     if(this->current_index < datetime_index_length - 1)
@@ -510,29 +520,15 @@ void Hydra::process_order_history(
 
 void Hydra::replay()
 {
-    //reset the hydra to it's original state, but don't clear the history buffer
-    this->reset(false, false);
-
-    // build a new smart pointer to history object
-    auto tracer = this->master_portfolio->get_portfolio_history()->get_tracer(Event);
-
-    if(!tracer.has_value())
-    {   
-        throw std::runtime_error("no events recordered");
-    }
-
-    // create new history to swap into hydra
-    auto empty_portfolio_history = std::make_shared<PortfolioHistory>(this->master_portfolio.get());
-    auto full_portfolio_history = this->master_portfolio->get_portfolio_history();
-    std::swap(full_portfolio_history,empty_portfolio_history);   
-
-    //get the old order history object to feed to the hydra
-    auto event_tracer = static_cast<EventTracer*>(empty_portfolio_history->get_tracer(Event)->get());
-    auto order_history = event_tracer->get_order_history();
+    std::vector<shared_ptr<Order>> order_history;
+    this->master_portfolio->consolidate_order_history(order_history);
+    
+    // reset the hydra to it's original state, but don't clear the history buffer
+    this->reset(true, true);
 
     if(order_history.size() == 0)
     {
-        return;
+        throw std::runtime_error("no orders to replay");
     }
     
     if(this->logging)

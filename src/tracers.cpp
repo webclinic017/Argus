@@ -1,3 +1,4 @@
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -7,8 +8,9 @@
 void PortfolioHistory::add_tracer(PortfolioTracerType tracer_type)
 {
     // test to see if tracer exists
-    auto tracer_exists = this->get_tracer(tracer_type);
-    if(tracer_exists.has_value())
+
+    auto tracer = this->get_tracer(tracer_type);
+    if(tracer)
     {
         throw std::runtime_error("tracer already exists");
     }
@@ -17,23 +19,28 @@ void PortfolioHistory::add_tracer(PortfolioTracerType tracer_type)
     {
         case PortfolioTracerType::Value:
             this->tracers.push_back(std::make_shared<ValueTracer>(this->parent_portfolio));
+            break;
         case PortfolioTracerType::Event:
-            this->tracers.push_back(std::make_shared<EventTracer>(this->parent_portfolio));
+            auto event_tracer = std::make_shared<EventTracer>(this->parent_portfolio);
+            this->parent_portfolio->set_event_tracer(event_tracer);
+            this->tracers.push_back(event_tracer);
+            break;
     }
 }
 
-
-optional<shared_ptr<PortfolioTracer>> PortfolioHistory::get_tracer(PortfolioTracerType tracer_type){
+shared_ptr<PortfolioTracer> PortfolioHistory::get_tracer(PortfolioTracerType tracer_type){
     auto it = std::find_if(
         this->tracers.begin(),
         this->tracers.end(), 
             [tracer_type](auto tracer) { return tracer->tracer_type() == tracer_type; });
-    if(it == this->tracers.end())
+    
+    if(it != this->tracers.end())
+    {
+        return *it;
+    }
+    else
     {
         return nullptr;
-    }
-    else{
-        return *it;
     }
 };
 
@@ -53,7 +60,7 @@ void PortfolioHistory::reset(bool clear_history)
         {
             if(clear_history)
             {
-                tracer.reset();
+                tracer->reset();
             }
         }
         else

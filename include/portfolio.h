@@ -21,6 +21,12 @@ class Broker;
 class PortfolioHistory;
 class EventTracer;
 
+enum PortfolioTracerType
+{
+    Value,
+    Event
+};
+
 class Portfolio : public std::enable_shared_from_this<Portfolio>
 {
 public:
@@ -128,6 +134,9 @@ public:
     /// @brief recursivly populate PortfolioHistory object with current portfolio values
     void update();
 
+    /// @brief set the portfolio event tracer when/if it is registered
+    void set_event_tracer(shared_ptr<EventTracer> event_tracer_){this->event_tracer = event_tracer_;}
+
     /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
     /// @param nlv_adjustment adjustment size
     void nlv_adjust(double nlv_adjustment) {this->nlv += nlv_adjustment;};
@@ -140,7 +149,6 @@ public:
         const string & asset_id,
         bool send_orders,
         bool send_collapse);
-
 
     /**
      * @brief place a new order that when executed will create or modify a position to the given size
@@ -205,8 +213,23 @@ public:
      */
     void add_cash(double cash);
 
+    /**
+     * @brief Get the portfolio id of the object
+     * 
+     * @return const string& unique id of the portfolio
+     */
     const string & get_portfolio_id() const {return this->portfolio_id;}
+
+    /**
+     * @brief does the portfolio contain any positions (not including parent portfolios)
+     * 
+     * @return true
+     * @return false 
+     */
     bool is_empty() const {return this->positions_map.size() > 0;}
+
+    /// generate a vectory of all order histories placed
+    void consolidate_order_history(vector<shared_ptr<Order>>& orders);
 
 private:
     /// unique id of the portfolio
@@ -332,12 +355,6 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     #endif
 }
 
-enum PortfolioTracerType
-{
-    Value,
-    Event
-};
-
 class PortfolioTracer
 {   
 public:
@@ -420,7 +437,7 @@ class EventTracer : public PortfolioTracer
 {
 public:
     /// ValueTracer constructor
-    EventTracer(Portfolio* parent_portfolio_) : PortfolioTracer(parent_portfolio_){}
+    EventTracer(Portfolio* parent_portfolio_) : PortfolioTracer(parent_portfolio_){};
 
     void remember_order( shared_ptr<Order> event){this->orders.push_back(event);}
     void remember_trade( shared_ptr<Trade> event){this->trades.push_back(event);}
@@ -428,7 +445,6 @@ public:
 
     /// tracer type
     PortfolioTracerType tracer_type() const {return PortfolioTracerType::Event;}
-
 
     /// empty stepper
     void step(){}
@@ -456,7 +472,6 @@ private:
 
     /// history of all positions
     vector<shared_ptr<Position>> positions;
-
 };
 
 class PortfolioHistory{
@@ -464,13 +479,10 @@ public:
     /// portfolio history constructor
     PortfolioHistory(Portfolio* parent_portfolio_);
     
-    /// container of portfolio tracers applied to this portfolio
-    vector<shared_ptr<PortfolioTracer>> tracers;
-
     void add_tracer(PortfolioTracerType tracer_type);
     
     /// find portfolio tracer by id
-    optional<shared_ptr<PortfolioTracer>> get_tracer(PortfolioTracerType tracer_type);
+    shared_ptr<PortfolioTracer> get_tracer(PortfolioTracerType tracer_type);
 
     /// build portfolio history tracers    
     void build(size_t portfolio_eval_length);
@@ -486,6 +498,10 @@ public:
 
     ///is the portfolio history built
     bool is_built;
+
+    /// container of portfolio tracers applied to this portfolio
+    vector<shared_ptr<PortfolioTracer>> tracers;
+
 };
 
 
