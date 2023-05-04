@@ -320,7 +320,7 @@ class HalTestMethods(unittest.TestCase):
         assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
-        return
+        #return
         hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         
@@ -330,7 +330,7 @@ class HalTestMethods(unittest.TestCase):
         hal.build()
 
         st = time.time()
-        hal.profile()
+        hal.run()
         et = time.time()
         
         execution_time = et - st
@@ -340,7 +340,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")     
         portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-        nlv1 = portfolio_history.get_nlv_history()[-1]
+        nlv1 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
 
         st = time.time()
         hal.replay()
@@ -354,7 +354,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")   
         
         portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-        nlv2 = portfolio_history.get_nlv_history()[-1]
+        nlv2 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
         assert(nlv1==nlv2)
         
         

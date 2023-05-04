@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath('..'))
 
 from Hal import Hal
 import FastTest
+from FastTest import PortfolioTracerType
 
 import backtrader as bt
 import backtrader.feeds as btfeeds
@@ -187,7 +188,7 @@ def test_fasttest(dfs):
     
     cps_bt = candle_count / (et-st)
     portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-    nlv = portfolio_history.get_nlv_history()
+    nlv = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
         
     print(f"FastTest loaded in {lt-st:.6f} seconds")
     print(f"FastTest completed in {et-st:.6f} seconds")
@@ -198,7 +199,7 @@ def test_fasttest(dfs):
  
 if __name__ == "__main__":
     count = 100
-    step_count = 10000
+    step_count = 800
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()
