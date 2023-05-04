@@ -5,6 +5,22 @@
 
 #include "portfolio.h"
 
+
+void Portfolio::add_tracer(PortfolioTracerType tracer_type)
+{
+    this->portfolio_history->add_tracer(tracer_type);
+}
+
+shared_ptr<PortfolioTracer> Portfolio::get_tracer(PortfolioTracerType tracer_type)
+{
+    auto tracer =  this->portfolio_history->get_tracer(tracer_type);
+    if(!tracer)
+    {
+        throw std::runtime_error("tracer does not exist");
+    }
+    return tracer;
+}
+
 void PortfolioHistory::add_tracer(PortfolioTracerType tracer_type)
 {
     // test to see if tracer exists

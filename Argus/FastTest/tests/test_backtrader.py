@@ -175,6 +175,9 @@ def test_fasttest(dfs):
     broker = hal.new_broker("test",0.0)
     exchange = hal.new_exchange("test")
     
+    portfolio = hal.get_portfolio("master")
+    portfolio.add_tracer(PortfolioTracerType.EVENT)
+
     for asset_id, df in dfs.items():
         hal.register_asset_from_df(df, asset_id, "test", "test", warmup = 1) 
         
@@ -187,8 +190,7 @@ def test_fasttest(dfs):
     et = time.time()
     
     cps_bt = candle_count / (et-st)
-    portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-    nlv = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
+    nlv = portfolio.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
         
     print(f"FastTest loaded in {lt-st:.6f} seconds")
     print(f"FastTest completed in {et-st:.6f} seconds")
@@ -198,8 +200,8 @@ def test_fasttest(dfs):
     return nlv, et-st
  
 if __name__ == "__main__":
-    count = 1000
-    step_count = 10000
+    count = 500
+    step_count = 250
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()

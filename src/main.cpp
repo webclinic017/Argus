@@ -133,6 +133,9 @@ void init_portfolio_ext(py::module &m)
         .def("get_position", &Portfolio::get_position)
         .def("get_portfolio_history", &Portfolio::get_portfolio_history)
 
+        .def("add_tracer", &Portfolio::add_tracer, py::return_value_policy::reference)
+        .def("get_tracer", &Portfolio::get_tracer, py::return_value_policy::reference)
+
         .def("get_nlv", &Portfolio::get_nlv)
         .def("get_cash", &Portfolio::get_cash)
         .def("get_unrealized_pl", &Portfolio::get_unrealized_pl)
@@ -165,11 +168,6 @@ void init_portfolio_ext(py::module &m)
         .def("get_position_history",&EventTracer::get_position_history,
             py::return_value_policy::reference_internal
         );
-    
-    py::class_<PortfolioHistory, std::shared_ptr<PortfolioHistory>>(m, "PortfolioHistory")
-        .def("add_tracer", &PortfolioHistory::add_tracer, py::return_value_policy::reference)
-        .def("get_tracer", &PortfolioHistory::get_tracer, py::return_value_policy::reference);
-
 }
 
 void init_position_ext(py::module &m)

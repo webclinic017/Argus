@@ -19,6 +19,7 @@ class Broker;
 #include "exchange.h"
 
 class PortfolioHistory;
+class PortfolioTracer;
 class EventTracer;
 
 enum PortfolioTracerType
@@ -227,6 +228,21 @@ public:
      * @return false 
      */
     bool is_empty() const {return this->positions_map.size() > 0;}
+
+    /**
+    * @brief add new tracer to the portfolio
+    * 
+    * @param tracer_type the tracer type of the new tracer, used for static casting to child classes
+    */
+    void add_tracer(PortfolioTracerType tracer_type);
+
+    /**
+     * @brief Get a tracer object from the portfolio
+     * 
+     * @param tracer_type type of the tracer
+     * @return shared_ptr<PortfolioTracer> shared pointer to the portfolio tracer
+     */
+    shared_ptr<PortfolioTracer> get_tracer(PortfolioTracerType tracer_type);
 
     /// generate a vectory of all order histories placed
     void consolidate_order_history(vector<shared_ptr<Order>>& orders);
@@ -479,6 +495,11 @@ public:
     /// portfolio history constructor
     PortfolioHistory(Portfolio* parent_portfolio_);
     
+    /** @private
+     * @brief add a new tracer to a portfolio history object, called through portfolio object
+     * 
+     * @param tracer_type type of the new tracer
+     */
     void add_tracer(PortfolioTracerType tracer_type);
     
     /// find portfolio tracer by id
