@@ -91,32 +91,6 @@ std::optional<position_sp_t> Portfolio::get_position(const string &asset_id)
     }
 }
 
-void Portfolio::delete_position(const string &asset_id)
-{   
-    if (!this->positions_map.count(asset_id))
-    {
-        ARGUS_RUNTIME_ERROR("Portfolio::delete_position position does not exist");
-    };
-
-    #ifdef ARGUS_RUNTIME_ASSERT
-    //auto position = iter->second;
-    //auto trade_count = position->get_trade_count();
-    //assert(trade_count == 0);
-    #endif 
-
-    this->positions_map.erase(asset_id);
-}
-
-void Portfolio::add_position(const string &asset_id, Portfolio::position_sp_t position)
-{
-    auto iter = this->positions_map.find(asset_id);
-    if (this->positions_map.end() != iter)
-    {
-        ARGUS_RUNTIME_ERROR("Portfolio::add_position position already exists");
-    }
-    this->positions_map.insert({asset_id, position});
-}
-
 void Portfolio::order_target_size(const string &asset_id_, double size,
                                 const string &strategy_id,
                                 double epsilon,
@@ -439,7 +413,7 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
     position->get_trades().clear();
 
     // remove the position from portfolio
-    this->delete_position(asset_id);
+    this->positions_map.erase(asset_id);
 
     // push position to history
     position->set_is_open(false);
@@ -478,7 +452,7 @@ void Portfolio::propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash){
         #endif
 
         // remove position from parent portfolio if there are no more trades
-        parent->delete_position(trade_sp->get_asset_id());
+        parent->positions_map.erase(trade_sp->get_asset_id());
 
         // remember the postiion of the parent
         this->history->remember_position(std::move(position));

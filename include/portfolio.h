@@ -208,7 +208,6 @@ public:
     const string & get_portfolio_id() const {return this->portfolio_id;}
     bool is_empty() const {return this->positions_map.size() > 0;}
 
-
 private:
     /// unique id of the portfolio
     std::string portfolio_id;
@@ -257,15 +256,6 @@ private:
 
     // shared pointer to history objects
     shared_ptr<History> history;
-
-    /// @brief add new position to the map by asset id
-    /// @param asset_id asset id of the position to add
-    /// @param position new position smart pointer
-    inline void add_position(const string &asset_id, position_sp_t position);
-
-    /// @brief remove a position from the map by asset id
-    /// @param asset_id asset id of the position to delete
-    inline void delete_position(const string &asset_id);
 
     /// @brief modify an existing postion based on a filled order
     /// @param filled_order ref to a sp to a filled order
@@ -316,7 +306,7 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     this->position_counter++;
 
     // insert the new position into the portfolio object
-    this->add_position(open_obj->get_asset_id(), position);
+    this->positions_map.insert({open_obj->get_asset_id(), position});
 
     //propgate the new trade up portfolio tree
     auto trade_sp = position->get_trades().begin()->second;
@@ -431,7 +421,7 @@ public:
     PortfolioHistory(Portfolio* parent_portfolio_);
     
     /// container of portfolio tracers applied to this portfolio
-    std::vector<shared_ptr<PortfolioTracer>> tracers;
+    vector<shared_ptr<PortfolioTracer>> tracers;
 
     /// find portfolio tracer by id
     optional<shared_ptr<PortfolioTracer>> get_tracer(PortfolioTracerType tracer_type);
@@ -445,12 +435,11 @@ public:
     /// pointer to the parent portfolio
     Portfolio* parent_portfolio;
 
-    /// @brief update historical values with current snapshot
+    /// update historical values with current snapshot
     void update();
 
     ///is the portfolio history built
     bool is_built;
-
 };
 
 
