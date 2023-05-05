@@ -13,6 +13,7 @@
 #include "portfolio.h"
 #include "broker.h"
 #include "position.h"
+#include "pybind11/pytypes.h"
 #include "settings.h"
 #include "utils_time.h"
 
@@ -90,6 +91,42 @@ std::optional<position_sp_t> Portfolio::get_position(const string &asset_id)
         return position->second;
     }
 }
+void Portfolio::order_target_allocations(py::dict allocations, 
+                        const string &strategy_id,
+                        double epsilon,
+                        OrderExecutionType order_execution_type,
+                        OrderTargetType order_target_type,
+                        bool clear_missing)
+{
+    // if clear_missing, then close positions that exist which are not in the allocation map
+    if(clear_missing)
+    {
+        for(auto& position_pair : this->positions_map)
+        {
+            if(!allocations.contains(position_pair.first))
+            {
+                std::vector<order_sp_t> orders;
+                auto orders_nullopt = this->generate_order_inverse(position_pair.first, false, true);
+                
+            }
+        }
+    }
+    // iterate over allocations and process them as needed 
+    for(auto& allocation_pair : allocations)
+    {
+        std::string asset_id = py::str(allocation_pair.first);
+        auto allocation = py::cast<double>(allocation_pair.second);
+
+        // place the allocation using the order_target_size function (provides same functionality for indivual targets)
+        this->order_target_size(
+            asset_id, 
+            allocation, 
+            strategy_id, 
+            epsilon, 
+            order_target_type
+        );
+    }
+}
 
 void Portfolio::order_target_size(const string &asset_id_, double size,
                                 const string &strategy_id,
@@ -123,7 +160,7 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
         units -= existing_units;
 
         // check to see if units needed to adjust position to correct size is greater then the epsilon passed
-        double offset = (existing_units - units) / units;
+        double offset = abs(existing_units - units) / units;
         if(offset < epsilon)
         {
             return;

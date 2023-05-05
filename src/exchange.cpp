@@ -268,8 +268,8 @@ void Exchange::process_order(shared_ptr<Order> &order)
 
     // check to see if asset is currently streaming
     if (!asset)
-    {
-        ARGUS_RUNTIME_ERROR("failed to find asset in market view");
+    {   
+        ARGUS_RUNTIME_ERROR(fmt::format("failed to find asset: {} in market view",asset_id));
     }
 
     // switch on order type and process accordingly
@@ -510,6 +510,11 @@ py::dict Exchange::get_exchange_feature(
     std::sort(asset_pairs.begin(), asset_pairs.end(),
               [](const auto& a, const auto& b) { return a.second < b.second; });
 
+    if(number_assets > asset_pairs.size())
+    {
+        number_assets = asset_pairs.size();
+    }
+
     switch (query_type) {
         case ExchangeQueryType::NSmallest:
             for(size_t i = 0; i < number_assets; i++)
@@ -517,12 +522,14 @@ py::dict Exchange::get_exchange_feature(
                 auto pair = asset_pairs[i];
                 py_dict[pair.first.c_str()] = pair.second;
             }
+            break;
         case ExchangeQueryType::NLargest:
             for(size_t i = 0; i < number_assets; i++)
             {
                 auto pair = asset_pairs[asset_pairs.size()-i-1];
                 py_dict[pair.first.c_str()] = pair.second;
             }
+            break;
         case ExchangeQueryType::NExtreme: //skips integer reaminder (i.e. N=3 returns 2 assets)
             for(size_t i = 0; i < std::floor(number_assets/2); i++)
             {
@@ -534,6 +541,7 @@ py::dict Exchange::get_exchange_feature(
                 auto pair = asset_pairs[asset_pairs.size()-i-1];
                 py_dict[pair.first.c_str()] = pair.second;
             }
+            break;
         case ExchangeQueryType::Default:
             break;
     }

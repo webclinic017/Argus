@@ -84,13 +84,6 @@ public:
     /// @param filled_order a sp to a new filled order recieved from a broker
     void on_order_fill(order_sp_t filled_order);
 
-    /// generate a iterator begin and end for the position map
-    /// \return pair of iteratores, begin and end, for postion map
-    auto get_iterator()
-    {
-        return std::make_pair(this->positions_map.begin(), this->positions_map.end());
-    }
-
     /// does the portfolio contain a position with the given asset id
     /// @param asset_id unique id of the asset
     /// \return does the position exist
@@ -104,7 +97,7 @@ public:
     /// \return smart pointer to the existing position
     std::optional<position_sp_t> get_position(const string &asset_id);
 
-    /// set the parent portfolio pointer
+    /// get the parent portfolio pointer
     Portfolio* get_parent_portfolio(){return this->parent_portfolio;}
 
     /// add new sub portfolio to the portfolio
@@ -167,7 +160,26 @@ public:
                            OrderTargetType order_target_type,
                            OrderExecutionType order_execution_type = LAZY,
                            int trade_id = -1
-                    );
+    );
+
+    /**
+     * @brief generate new orders to get portfolio allocation to match the passed allocation dictionary
+     * 
+     * @param allocations           dictionary mapping asset id to portfolio allocation
+     * @param strategy_id           unique id of the strategy placing the order
+     * @param epsilon               the minimum pct difference in new size relatvie to exisitng to where the order is executed eg (.01)
+     * @param order_execution_type  order exectuion type (lazy or eager)
+     * @param order_target_type     type of allocation, raw units, dollars, or pct of nlv
+     * @param clear_missing         clear positions that do not have an allocation
+     */
+    void order_target_allocations(
+        py::dict allocations, 
+        const string &strategy_id,
+        double epsilon, 
+        OrderExecutionType order_execution_type = OrderExecutionType::LAZY,
+        OrderTargetType order_target_type = OrderTargetType::PCT,
+        bool clear_missing = true
+    );
 
     /**
      * @brief place a new market order

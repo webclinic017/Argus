@@ -9,6 +9,7 @@ import numpy as np
 sys.path.append(os.path.abspath('..'))
 
 import FastTest
+from FastTest import ExchangeQueryType
 import helpers
 
 class ExchangeTestMethods(unittest.TestCase):
@@ -97,6 +98,29 @@ class ExchangeTestMethods(unittest.TestCase):
         
         exchange_features2 = exchange.get_exchange_feature("CLOSE", -1)
         assert(exchange_features2 == exchange_features)
+        
+    def test_exchange_exchange_feature_sorted(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        exchange = hydra.get_exchange(helpers.test1_exchange_id)
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",100.0);  
+        
+        hydra.build()
+        hydra.forward_pass()
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        
+        exchange_features =  exchange.get_exchange_feature("CLOSE", query_type = ExchangeQueryType.NLARGEST, N = 1)
+        assert(exchange_features == {helpers.test1_asset_id : 101.0})
+        
+        exchange_features =  exchange.get_exchange_feature("CLOSE", query_type = ExchangeQueryType.NSMALLEST, N = 1)
+        assert(exchange_features == {helpers.test2_asset_id : 99.0})
+        
         
     def test_exchange_asset_column(self):
         hydra = helpers.create_simple_hydra(logging=0)

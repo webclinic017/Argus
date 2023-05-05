@@ -150,6 +150,13 @@ void init_portfolio_ext(py::module &m)
             py::arg("strategy_id"),
             py::arg("order_execution_type") = OrderExecutionType::LAZY,
             py::arg("trade_id") = -1)
+        .def("order_target_allocations",&Portfolio::order_target_allocations,
+            py::arg("allocations"),
+            py::arg("strategy_id"),
+            py::arg("epsilon"),
+            py::arg("order_execution_type") = OrderExecutionType::LAZY,
+            py::arg("order_target_type") = OrderTargetType::PCT,
+            py::arg("clear_missing") = true)
         .def("order_target_size", &Portfolio::order_target_size)
         
         .def("create_sub_portfolio", &Portfolio::create_sub_portfolio)
@@ -258,7 +265,7 @@ void init_enum(py::module &m){
         .value("DEFAULT", ExchangeQueryType::Default)
         .value("NLARGEST", ExchangeQueryType::NLargest)
         .value("NSMALLEST", ExchangeQueryType::NSmallest)
-        .value("EXTREME", ExchangeQueryType::NExtreme)
+        .value("NEXTREME", ExchangeQueryType::NExtreme)
         .export_values();       
 }
 
