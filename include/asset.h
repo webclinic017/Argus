@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <cmath>
 #include <tsl/robin_map.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -19,37 +20,8 @@ namespace py = pybind11;
 using namespace std;
 
 class Asset;
+class AssetTracer;
 
-enum AssetTracerType
-{
-    Volatility,
-    Beta
-};
-
-class AssetObserver
-{
-private:
-    /// pointer to the parent asset
-    Asset* parent_asset = nullptr;
-    
-    /// lookback needed to warmup the observer
-    unsigned int warmup = 0;
-
-    /// step function to be called when asset moves forward in time
-    void step();
-
-    /// fixed length buffer to store historical values needed for calculations
-    FixedDeque<double> fixed_deque;
-
-public:
-    AssetObserver(unsigned int warmup_) : fixed_deque(warmup_){
-        this->warmup = warmup_;
-    }
-
-    /// type of tracer it is
-    AssetTracerType observer_type;
-
-};
 
 class Asset
 {
@@ -64,7 +36,7 @@ public:
 
     /**
      * @brief fork an asset into a view, the new object will be a new object entirly except for the 
-              data and datetime index pointers, they will point to this existing object (i.e. no dyn alloc)
+     *        data and datetime index pointers, they will point to this existing object (i.e. no dyn alloc)
      * 
      * @return asset_sp_t new asset object in a smart pointer
      */
@@ -90,6 +62,12 @@ public:
 
     /// warmup period, i.e. number of rows to skip
     size_t warmup = 0;
+
+    /// index of the open column;
+    size_t open_column;
+
+    /// index of the close column
+    size_t close_column;
 
     /// is the the last row in the asset
     bool is_last_view() {return this->current_index == this->rows;};
@@ -128,7 +106,7 @@ public:
         bool is_view);
 
     /// get data point from current asset row
-    [[nodiscard]] double c_get(const string &column) const;
+    [[nodiscard]] double c_get(size_t column_offset) const;
 
     /// get data point from asset
     [[nodiscard]] double get(const string &column, size_t row_index) const;
@@ -174,7 +152,7 @@ private:
     tsl::robin_map<string, size_t> headers;
 
     /// contaienr of asset observers called on step()
-    std::vector<AssetObserver> asset_observers;
+    //std::vector<AssetTracer> tracers;
 
     /// datetime index of the asset (ns epoch time stamp)
     long long *datetime_index;
@@ -193,12 +171,6 @@ private:
 
     /// index of the current row the asset is at
     size_t current_index;
-
-    /// index of the open column;
-    size_t open_column;
-
-    /// index of the close column
-    size_t close_column;
 
 };
 

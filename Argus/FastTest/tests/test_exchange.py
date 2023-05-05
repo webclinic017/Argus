@@ -81,24 +81,21 @@ class ExchangeTestMethods(unittest.TestCase):
         hydra.forward_pass()
         hydra.on_open()
         
-        exchange_features = {}
-        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        exchange_features = exchange.get_exchange_feature("CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 101.5)
         assert(helpers.test1_asset_id not in exchange_features)
         
         hydra.backward_pass()
         hydra.forward_pass()
         
-        exchange_features = {}
-        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        exchange_features =  exchange.get_exchange_feature("CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 99.0)
         assert(exchange_features[helpers.test1_asset_id] == 101.0)
         
         hydra.backward_pass()
         hydra.forward_pass()
         
-        exchange_features2 = {}
-        exchange.get_exchange_feature(exchange_features2, "CLOSE", -1)
+        exchange_features2 = exchange.get_exchange_feature("CLOSE", -1)
         assert(exchange_features2 == exchange_features)
         
     def test_exchange_asset_column(self):

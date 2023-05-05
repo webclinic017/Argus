@@ -243,12 +243,17 @@ public:
      */
     shared_ptr<PortfolioTracer> get_tracer(PortfolioTracerType tracer_type);
 
-    /// generate a vectory of all order histories placed
+    /**
+     * @brief generate a consolidated order history for all child portfolios this will
+     *        search through child portfolios and look for event tracers and copy the orders
+     *        into the new vector 
+     * @param orders reference to vector holding the consolidated order feed
+     */
     void consolidate_order_history(vector<shared_ptr<Order>>& orders);
 
 private:
     /// unique id of the portfolio
-    std::string portfolio_id;
+    string portfolio_id;
 
     /// logging level
     int logging;
@@ -322,7 +327,7 @@ private:
     /// @brief propogate a trade close up the portfolio tree
     void propogate_trade_close_up(trade_sp_t trade_sp, bool adjust_cash);
 
-    // logging helper functions
+    //============== logging helper functions ==============//
     void log_order_create(order_sp_t &filled_order);
     void log_order_fill(order_sp_t &filled_order);
     void log_position_open(shared_ptr<Position> &new_position);
@@ -393,8 +398,7 @@ public:
 
 protected:
     /// pointer to the parent portfolio
-    Portfolio* parent_portfolio = nullptr;
-
+    Portfolio* parent_portfolio;
 };
 
 class ValueTracer : public PortfolioTracer
@@ -419,7 +423,7 @@ public:
         this->nlv_history.push_back(this->parent_portfolio->get_nlv());
     };
 
-    /// build function
+    /// build function, reserve space for vector to prevent extra
     void build(size_t portfolio_eval_length){
         this->nlv_history.reserve(portfolio_eval_length);
         this->cash_history.reserve(portfolio_eval_length);

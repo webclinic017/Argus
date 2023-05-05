@@ -117,6 +117,7 @@ asset_sp_t Asset::fork_view()
     asset_view->close_column = this->close_column;
     asset_view->current_index = this->current_index;
     asset_view->row = this->row;
+    return asset_view;
 }
 
 void Asset::load_view(double *data_, long long *datetime_index_, size_t rows_, size_t cols_){
@@ -217,21 +218,10 @@ void Asset::py_load_data(
     }
 }
 
-double Asset::c_get(const std::string &column) const
+double Asset::c_get(size_t column_index) const
 {
-    // fetch the column index of it exists
-    size_t column_index;
-    try
-    {
-        column_index = this->headers.at(column);
-    }
-    catch (const std::out_of_range &e)
-    {
-        throw std::runtime_error("failed to find column");
-    }
-    
     // derefence data pointer at current row plus column offset
-    return *(this->row -this->cols + column_index);
+    return *(this->row - this->cols + column_index);
 }
 
 double Asset::get(const std::string &column, size_t row_index) const
@@ -402,15 +392,4 @@ void Asset::step(){
 
     //move the current index forward
     this->current_index++; 
-
-    for(auto& observer : this->asset_observers)
-    {
-        switch(observer.observer_type)
-        {
-            case AssetTracerType::Volatility:
-                break;
-            case AssetTracerType::Beta:
-                break;
-        }
-    }
 }

@@ -436,20 +436,22 @@ double Exchange::get_asset_feature(const string& asset_id, const string& column_
     return asset_sp->get_asset_feature(column_name, index);
 }
 
-void Exchange::get_exchange_feature(py::dict& feature_dict, const string& column, int row)
+py::dict Exchange::get_exchange_feature(const string& column, int row)
 {
+    py::dict py_dict;
     for(auto it = this->market_view.begin(); it != this->market_view.end(); it++){
         //check if asset is streaming
         auto asset_sp = it->second;
         if(asset_sp)
         {
-            feature_dict[it->first.c_str()] = asset_sp->get_asset_feature(column, row);
+            py_dict[it->first.c_str()] = asset_sp->get_asset_feature(column, row);
         }
         else
         {
             continue;        
         }
     }
+    return py_dict;
 }
 
 double ExchangeMap::get_market_price(const string& asset_id)

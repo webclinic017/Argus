@@ -27,9 +27,7 @@ class MovingAverageStrategy:
         return
     
     def on_close(self) -> None:
-        cross_dict = {}
-        
-        self.exchange.get_exchange_feature(cross_dict, "FAST_ABOVE_SLOW")
+        cross_dict = self.exchange.get_exchange_feature("FAST_ABOVE_SLOW")
 
         for asset_id, cross_value in cross_dict.items():
             if cross_value == 1:    
@@ -192,8 +190,7 @@ class HalTestMethods(unittest.TestCase):
         p_mp = mp.get_position(helpers.test2_asset_id)
         assert(p_mp.get_unrealized_pl() == 50)
         
-        exchange_features = {}
-        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        exchange_features = exchange.get_exchange_feature("CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 101.5)
         assert(exchange_features[helpers.test1_asset_id] == 105)
         
@@ -231,8 +228,7 @@ class HalTestMethods(unittest.TestCase):
         p_mp = mp.get_position(helpers.test2_asset_id)
         assert(p_mp.get_unrealized_pl() == 50)
         
-        exchange_features = {}
-        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        exchange_features = exchange.get_exchange_feature("CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 101.5)
         assert(exchange_features[helpers.test1_asset_id] == 105)
         
@@ -265,8 +261,7 @@ class HalTestMethods(unittest.TestCase):
         
         hydra.on_open()
         
-        exchange_features = {}
-        exchange.get_exchange_feature(exchange_features, "CLOSE")
+        exchange_features = exchange.get_exchange_feature("CLOSE")
         assert(exchange_features[helpers.test2_asset_id] == 97)
         assert(exchange_features[helpers.test1_asset_id] == 103)
         
@@ -320,11 +315,11 @@ class HalTestMethods(unittest.TestCase):
         assert(np.array_equal(nlv_history,np.array([100050,  99800,  99600, 100050, 100000, 100000.0])))
     
     def test_hal_big(self):
-        return
+        #return
         hal = helpers.create_big_hal(logging = 0, cash = 100000.0)
         exchange = hal.get_exchange(helpers.test1_exchange_id)
         mp = hal.get_portfolio("master")
-        mp.get_portfolio_history().add_tracer(PortfolioTracerType.EVENT)
+        mp.add_tracer(PortfolioTracerType.EVENT)
         
         strategy = MovingAverageStrategy(hal)
         hal.register_strategy(strategy)      
@@ -334,7 +329,7 @@ class HalTestMethods(unittest.TestCase):
         hal.run()
         et = time.time()
         
-        event_tracer = mp.get_portfolio_history().get_tracer(PortfolioTracerType.EVENT)
+        event_tracer = mp.get_tracer(PortfolioTracerType.EVENT)
         assert(len(event_tracer.get_order_history()) > 0)
         
         execution_time = et - st
@@ -343,8 +338,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: candles: {candles:.4f} candles")
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")     
-        portfolio_history = mp.get_portfolio_history()
-        nlv1 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
+        nlv1 = mp.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
 
         st = time.time()
         hal.replay()
@@ -357,8 +351,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")   
         
-        portfolio_history = hal.get_portfolio("master").get_portfolio_history()
-        nlv2 = portfolio_history.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
+        nlv2 = mp.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
         assert(nlv1==nlv2)
         
 if __name__ == '__main__':

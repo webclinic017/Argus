@@ -169,6 +169,11 @@ public:
         data_.push_back(value);
     }
 
+    void clear()
+    {
+        this->data_.clear();
+    }
+
     size_t size() const {
         return data_.size();
     }

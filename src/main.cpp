@@ -58,7 +58,6 @@ void init_exchange_ext(py::module &m)
         .def("get_asset", &Exchange::get_asset, py::return_value_policy::reference)
         .def("get_exchange_feature", 
             &Exchange::get_exchange_feature, 
-            py::arg("feature_dict"),
             py::arg("column_name"),
             py::arg("row") = 0)
 
