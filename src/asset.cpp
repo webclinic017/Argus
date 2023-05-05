@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <memory>
 #include <pybind11/stl.h>
@@ -263,7 +264,7 @@ double Asset::get_market_price(bool on_close) const
         return *(this->row - this->cols + this->open_column);
 }
 
-double Asset::get_asset_feature(const string& column_name, int index)
+optional<double> Asset::get_asset_feature(const string& column_name, int index)
 {
 
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -281,7 +282,7 @@ double Asset::get_asset_feature(const string& column_name, int index)
 
     #ifdef ARGUS_RUNTIME_ASSERT
     if(column_offset == this->headers.end()){
-        throw std::runtime_error("failed to find column");
+        return nullopt;
     }
     #endif
 

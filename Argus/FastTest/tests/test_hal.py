@@ -28,7 +28,6 @@ class MovingAverageStrategy:
     
     def on_close(self) -> None:
         cross_dict = self.exchange.get_exchange_feature("FAST_ABOVE_SLOW")
-
         for asset_id, cross_value in cross_dict.items():
             if cross_value == 1:    
                 units = 1

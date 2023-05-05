@@ -20,7 +20,13 @@
 using namespace std;
 namespace py = pybind11;
 
-// forward exchange class definition for typedef
+enum ExchangeQueryType
+{
+    Default,
+    NLargest,
+    NSmallest,
+    NExtreme
+};
 
 class Exchange
 {
@@ -101,10 +107,15 @@ public:
     [[nodiscard]] size_t get_rows() const { return this->datetime_index_length; }
 
     /// get a values from asset data by column and row, (index 0 is current, row -1 is previous row)
-    double get_asset_feature(const string& asset_id, const string& column, int index = 0);
+    optional<double> get_asset_feature(const string& asset_id, const string& column, int index = 0);
 
     /// get series of values for all asset's listed on the exchange
-    py::dict get_exchange_feature(const string& column, int row = 0);
+    py::dict get_exchange_feature(
+        const string& column, 
+        int row = 0, 
+        ExchangeQueryType query_type = ExchangeQueryType::Default,
+        int N = -1
+    );
 
     inline double get_market_price(const string &asset_id)
     {

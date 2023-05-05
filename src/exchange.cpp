@@ -3,14 +3,17 @@
 //
 #include <algorithm>
 #include <cstdio>
+#include <cmath>
 #include <execution>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
-#include "exchange.h"
-#include "asset.h"
+
 #include "fmt/core.h"
 #include "pybind11/pytypes.h"
+
+#include "exchange.h"
+#include "asset.h"
 #include "utils_array.h"
 #include "settings.h"
 
@@ -426,30 +429,113 @@ bool Exchange::get_market_view()
     return true;
 }
 
-double Exchange::get_asset_feature(const string& asset_id, const string& column_name, int index){
+optional<double> Exchange::get_asset_feature(const string& asset_id, const string& column_name, int index){
     auto asset_sp = this->market_view.at(asset_id);
     
     #ifdef ARGUS_RUNTIME_ASSERT
     assert(asset_sp);
     #endif
 
-    return asset_sp->get_asset_feature(column_name, index);
+    auto asset_value = asset_sp->get_asset_feature(column_name, index);
+    if(asset_value.has_value())
+    {
+        return *asset_value;
+    }
+    else 
+    {
+        return nullopt;
+    }
 }
 
-py::dict Exchange::get_exchange_feature(const string& column, int row)
+py::dict Exchange::get_exchange_feature(
+    const string& column, 
+    int row,
+    ExchangeQueryType query_type,
+    int N)
 {
+    size_t number_assets;
+    if(N == -1)
+    {
+        number_assets = this->market_view.size();
+    }
+    else 
+    {
+        number_assets = static_cast<size_t>(N);
+    }
+
     py::dict py_dict;
-    for(auto it = this->market_view.begin(); it != this->market_view.end(); it++){
+    // default query type implies just find all assets with the feature
+    if(query_type == ExchangeQueryType::Default)
+    {
+        int i = 0;
+        for(auto it = this->market_view.begin(); it != this->market_view.end(); it++)
+        {
+            if(i == number_assets)
+            {
+                return py_dict;
+            }
+            //check if asset is streaming
+            auto asset_sp = it->second;
+            if(asset_sp)
+            {
+                //place the value in the dict if the asset has that feature, else skip
+                auto asset_value = asset_sp->get_asset_feature(column, row);
+                if(asset_value.has_value()){py_dict[it->first.c_str()] = *asset_value;}
+            }
+            else
+            {
+                continue;        
+            }
+            i++;
+        }
+        return py_dict;
+    }
+    // query needs to be sorted, therefore we need to look at all possible assets
+    std::vector<std::pair<std::string, double>> asset_pairs;
+    for(auto it = this->market_view.begin(); it != this->market_view.end(); it++)
+    {
         //check if asset is streaming
         auto asset_sp = it->second;
         if(asset_sp)
         {
-            py_dict[it->first.c_str()] = asset_sp->get_asset_feature(column, row);
+            //place the value in the dict if the asset has that feature, else skip
+            auto asset_value = asset_sp->get_asset_feature(column, row);
+            if(asset_value.has_value())
+            {
+                asset_pairs.emplace_back(std::make_pair(it->first.c_str(),*asset_value));
+            }
         }
-        else
-        {
-            continue;        
-        }
+    }
+    // sort the asset feature pairs using the feature 
+    std::sort(asset_pairs.begin(), asset_pairs.end(),
+              [](const auto& a, const auto& b) { return a.second < b.second; });
+
+    switch (query_type) {
+        case ExchangeQueryType::NSmallest:
+            for(size_t i = 0; i < number_assets; i++)
+            {
+                auto pair = asset_pairs[i];
+                py_dict[pair.first.c_str()] = pair.second;
+            }
+        case ExchangeQueryType::NLargest:
+            for(size_t i = 0; i < number_assets; i++)
+            {
+                auto pair = asset_pairs[asset_pairs.size()-i-1];
+                py_dict[pair.first.c_str()] = pair.second;
+            }
+        case ExchangeQueryType::NExtreme: //skips integer reaminder (i.e. N=3 returns 2 assets)
+            for(size_t i = 0; i < std::floor(number_assets/2); i++)
+            {
+                auto pair = asset_pairs[i];
+                py_dict[pair.first.c_str()] = pair.second;
+            }
+            for(size_t i = 0; i < std::floor(number_assets/2); i++)
+            {
+                auto pair = asset_pairs[asset_pairs.size()-i-1];
+                py_dict[pair.first.c_str()] = pair.second;
+            }
+        case ExchangeQueryType::Default:
+            break;
     }
     return py_dict;
 }

@@ -16,6 +16,7 @@
 #include "order.h"
 #include "portfolio.h"
 #include "position.h"
+#include "pybind11/cast.h"
 #include "settings.h"
 
 namespace py = pybind11;
@@ -59,7 +60,9 @@ void init_exchange_ext(py::module &m)
         .def("get_exchange_feature", 
             &Exchange::get_exchange_feature, 
             py::arg("column_name"),
-            py::arg("row") = 0)
+            py::arg("row") = 0,
+            py::arg("query_type") = ExchangeQueryType::Default,
+            py::arg("N") = -1)
 
         .def("get_asset_feature", 
             &Exchange::get_asset_feature, 
@@ -250,6 +253,13 @@ void init_enum(py::module &m){
         .value("VALUE", PortfolioTracerType::Value)
         .value("EVENT", PortfolioTracerType::Event)
         .export_values();
+
+    py::enum_<ExchangeQueryType>(m, "ExchangeQueryType")
+        .value("DEFAULT", ExchangeQueryType::Default)
+        .value("NLARGEST", ExchangeQueryType::NLargest)
+        .value("NSMALLEST", ExchangeQueryType::NSmallest)
+        .value("EXTREME", ExchangeQueryType::NExtreme)
+        .export_values();       
 }
 
 PYBIND11_MODULE(FastTest, m)

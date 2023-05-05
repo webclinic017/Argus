@@ -127,7 +127,7 @@ public:
      * @param index row index to look at, 0 is current, -1 is previous, ...
      * @return double value at that location
      */
-    [[nodiscard]] double get_asset_feature(const string& column_name, int index = 0);
+    [[nodiscard]] optional<double> get_asset_feature(const string& column_name, int index = 0);
 
     /**
      * @brief Get a column from the asset, end index is the current value
@@ -150,9 +150,6 @@ private:
 
     /// map between column name and column index
     tsl::robin_map<string, size_t> headers;
-
-    /// contaienr of asset observers called on step()
-    //std::vector<AssetTracer> tracers;
 
     /// datetime index of the asset (ns epoch time stamp)
     long long *datetime_index;
