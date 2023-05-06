@@ -107,6 +107,13 @@ public:
 
     void process_order_history(vector<shared_ptr<Order>>& order_history, bool on_close, size_t& current_order_index);
 
+    /**
+     * @brief get a consolidated vector of all orders placed from portfolio's with event tracers
+     * 
+     * @return vector<shared_ptr<Order>> vector of orders placed
+     */
+    vector<shared_ptr<Order>> get_order_history();
+    
     /// evaluate the portfolio at the current market prices
     void evaluate_portfolio(bool on_close);
 

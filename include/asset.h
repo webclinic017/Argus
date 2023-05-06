@@ -111,8 +111,8 @@ public:
     /// get data point from asset
     [[nodiscard]] double get(const string &column, size_t row_index) const;
 
-    /// get the current index of the asset
-    [[nodiscard]] double get_market_price(bool on_close) const;
+    /// get fixed point rep of current market price
+    [[nodiscard]] long get_market_price(bool on_close) const;
 
     /// get the current datetime of the asset
     [[nodiscard]] long long *get_asset_time() const;
@@ -159,6 +159,12 @@ private:
 
     /// @brief pointer to the current row
     double * row;
+
+    /// fixed point closing price array
+    long long * fixed_point_close_price;
+
+    /// fixed point opening price array
+    long long * fixed_point_open_price;
 
     /// number of rows in the asset data
     size_t rows;

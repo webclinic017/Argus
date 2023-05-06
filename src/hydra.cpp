@@ -344,6 +344,13 @@ void Hydra::forward_pass()
     {
         this->log("forward pass complete");
     }
+
+    //evaluate master portfolio at open
+    this->master_portfolio->evaluate(false);
+
+    //update historicals values
+    this->master_portfolio->update();
+
     #endif 
 }
 
@@ -436,9 +443,6 @@ void Hydra::backward_pass(){
         this->log("order processing complete");
     }
         
-    //update historicals values
-    this->master_portfolio->update();
-
     if(this->logging == 1)
     {
         this->log("master portfolio updated");
@@ -517,10 +521,16 @@ void Hydra::process_order_history(
     }
 }
 
-void Hydra::replay()
+vector<shared_ptr<Order>> Hydra::get_order_history()
 {
     std::vector<shared_ptr<Order>> order_history;
     this->master_portfolio->consolidate_order_history(order_history);
+    return order_history;
+}
+
+void Hydra::replay()
+{
+    auto order_history = this->get_order_history();
     
     // reset the hydra to it's original state, but don't clear the history buffer
     this->reset(true, true);

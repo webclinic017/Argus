@@ -28,7 +28,6 @@ Broker::Broker(string broker_id_,
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
     this->logging = logging_;
-    this->position_counter = 0;
 }
 
 void Broker::build(
@@ -41,7 +40,6 @@ void Broker::build(
 void Broker::reset_broker()
 {   
     //reset memeber variables
-    this->position_counter = 0;
     this->cash = starting_cash;
 
     // clear order buffers
@@ -156,6 +154,11 @@ void Broker::send_orders()
 
         // send order to rest on the exchange
         exchange->place_order(order);
+
+        if(this->logging)
+        {
+            this->log_order_place(order);
+        }
 
         if (order->get_order_state() == FILLED)
         {

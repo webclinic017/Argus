@@ -105,9 +105,6 @@ private:
     /// unique id of the broker
     string broker_id;
 
-    /// positions counter
-    unsigned int position_counter;
-
     /// cash held at the broker
     double cash;
 

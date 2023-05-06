@@ -43,9 +43,8 @@ Portfolio::Portfolio(
     this->logging = logging_;
     this->cash = cash_;
     this->starting_cash = cash_;
-    this->nlv = cash_;
+    this->nlv = to_fixed_point(cash_);
     this->portfolio_id = std::move(id_);
-    this->position_counter = 0;
 }
 
 void Portfolio::build(size_t portfolio_eval_length)
@@ -63,7 +62,6 @@ void Portfolio::reset(bool clear_history)
 {
     // reset starting member variables
     this->cash = this->starting_cash;
-    this->position_counter = 0;
     this->unrealized_pl = 0;
     this->nlv = this->starting_cash;
 
@@ -294,6 +292,11 @@ void Portfolio::on_order_fill(order_sp_t filled_order)
     if (!this->position_exists(filled_order->get_asset_id()))
     {   
         this->open_position(filled_order, true);
+        
+        // set the trade's source portfolio
+        auto position_sp = this->positions_map.at(filled_order->get_asset_id());
+        auto trade_sp = position_sp->get_trades().begin()->second;
+        trade_sp->set_source_position(position_sp.get());
     }
     else
     {
@@ -390,6 +393,10 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
     }
     //new trade
     else if (trade->get_trade_open_time() == filled_order->get_fill_time()){
+        // set the trade's source portfolio
+        trade->set_source_position(position.get());
+
+        // propogate new trade up portfolio tree
         this->propogate_trade_open_up(trade, true);
     }
 
@@ -399,6 +406,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
     // adjust cash for modifying position
     this->cash -= order_units * order_fill_price;
+    this->nlv += order_units * (order_fill_price - position->average_price);
 }
 
 void Portfolio::close_position(shared_ptr<Order> filled_order)
@@ -660,14 +668,17 @@ void Portfolio::evaluate(bool on_close)
 
     // evaluate all positions in the master portfolio. Note valuation will propogate down from whichever
     // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
+    if(!on_close)
+    {
+        fmt::print("\n here: nlv: {}\n",this->nlv);
+    }
     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
     {
         auto position = it->second;
 
         // get the exchange the asset is listed on
         auto exchange_id = position->get_exchange_id();
-        auto exchange = this->exchange_map->exchanges.find(exchange_id);
-        auto market_price = exchange->second->get_market_price(it->first);
+        auto market_price = this->exchange_map->get_market_price(it->first);
 
         // asset is not in market view
         if (market_price == 0)
@@ -681,13 +692,23 @@ void Portfolio::evaluate(bool on_close)
             auto trade = trade_pair.second;
 
             //update source portfolio values nlv and unrealized pl
-            auto nlv_new = market_price * trade->get_units();
             auto source_portfolio = trade->get_source_portfolio();
+            auto source_position = trade->get_source_position();
+
+            // if the source is the master portfolio don't need to manually adjust
+            if(!source_portfolio->get_parent_portfolio())
+            {
+                continue;
+            }
+
+            auto nlv_new = to_fixed_point(trade->get_units()) * market_price;
             source_portfolio->nlv_adjust(nlv_new - trade->get_nlv());
+            source_position->nlv_adjust(nlv_new - trade->get_nlv());
             
             auto unrealized_pl_new = trade->get_units() * (market_price - trade->get_average_price());
             source_portfolio->unrealized_adjust(unrealized_pl_new - trade->get_unrealized_pl());
-            
+            source_position->unrealized_adjust(unrealized_pl_new - trade->get_unrealized_pl());
+
             //update trade values to new evaluations
             trade->set_unrealized_pl(unrealized_pl_new);
             trade->set_nlv(nlv_new);
@@ -700,8 +721,16 @@ void Portfolio::evaluate(bool on_close)
         }
 
         position->evaluate(market_price, on_close);
-
-        this->nlv += position->get_nlv();
+        if(!on_close)
+        {
+            fmt::print("nlv: {}, adjusting: {}\n",this->nlv, position->get_nlv());
+        }
+        auto position_nlv_fp = to_fixed_point(position->get_nlv());
+        this->nlv += position_nlv_fp;
+        if(!on_close)
+        {
+            fmt::print("nlv: {}\n",this->nlv);
+        }
         this->unrealized_pl += position->get_unrealized_pl();
     }
 }

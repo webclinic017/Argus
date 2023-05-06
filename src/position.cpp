@@ -16,12 +16,15 @@ using trade_sp_t = Trade::trade_sp_t;
 
 Position::Position(trade_sp_t trade){
     //populate common position values
+    this->position_id = this->positition_counter;
+    this->positition_counter++;
     this->asset_id = trade->get_asset_id();
     this->exchange_id = trade->get_exchange_id();
     this->units = trade->get_units();
 
     // populate order values
     this->is_open = true;
+    this->nlv = to_fixed_point(trade->get_units() * trade->get_average_price());
     this->average_price = trade->get_average_price();
     this->last_price = trade->get_average_price();
     this->position_open_time = trade->get_trade_open_time();
@@ -36,12 +39,15 @@ Position::Position(trade_sp_t trade){
 Position::Position(shared_ptr<Order> filled_order_)
 {   
     //populate common position values
+    this->position_id = this->positition_counter;
+    this->positition_counter++;
     this->asset_id = filled_order_->get_asset_id();
     this->exchange_id = filled_order_->get_exchange_id();
     this->units = filled_order_->get_units();
     this->is_open = true;
 
     // populate order values
+    this->nlv = filled_order_->get_units() * filled_order_->get_average_price();
     this->average_price = filled_order_->get_average_price();
     this->last_price = filled_order_->get_average_price();
     this->position_open_time = filled_order_->get_fill_time();

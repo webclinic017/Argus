@@ -16,6 +16,7 @@ class Broker;
 #include "position.h"
 #include "account.h"
 #include "exchange.h"
+#include "settings.h"
 
 class PortfolioHistory;
 class PortfolioTracer;
@@ -71,11 +72,11 @@ public:
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
     /// @brief the amount of cash held by the portfolio (recursive sum of all child portfolios)
-    double get_cash() const {return this->cash;}
+    double get_cash() const {return to_double(this->cash);}
 
     /// @brief get the net liquidation as last calculated
     /// @return the net liquidation value of the portfolio
-    double get_nlv() const {return this->nlv;}
+    double get_nlv() const {return to_double(this->nlv);}
 
     /// @brief get the net liquidation as last calculated
     double get_unrealized_pl() const {return this->unrealized_pl;}
@@ -294,17 +295,14 @@ private:
     /// smart pointer to event tracer (nullptr if not registered)
     shared_ptr<EventTracer> event_tracer;
 
-    /// position counter for position ids
-    unsigned int position_counter = 0;
-
-    /// cash held by the portfolio
+    /// fixed point cash held by the portfolio
     double cash;
 
     /// starting cash of the portfolio
-    double starting_cash;
+    long long starting_cash;
 
-    /// net liquidation value of the portfolio
-    double nlv;
+    /// fixed point net liquidation value of the portfolio
+    long long nlv;
 
     /// unrealized_pl of the portfolio
     double unrealized_pl = 0;
@@ -354,14 +352,13 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     #endif
     // build the new position and increment position counter used to set ids
     auto position = make_shared<Position>(open_obj);
-    position->set_position_id(this->position_counter);
-    this->position_counter++;
 
     // insert the new position into the portfolio object
     this->positions_map.insert({open_obj->get_asset_id(), position});
 
     //propgate the new trade up portfolio tree
     auto trade_sp = position->get_trades().begin()->second;
+
     this->propogate_trade_open_up(trade_sp, adjust_cash);
 
     // adjust cash held by broker accordingly

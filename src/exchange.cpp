@@ -202,20 +202,22 @@ void Exchange::place_order(shared_ptr<Order> &order_)
 
 void Exchange::process_market_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price_fp = this->get_market_price(open_order->get_asset_id());
+    fmt::print("{}\n",market_price_fp);
+    auto market_price = to_double(market_price_fp);
     if (market_price == 0)
     {
-        throw std::invalid_argument("received order for which asset is not currently streaming");
+        ARGUS_RUNTIME_ERROR("received order for which asset is not currently streaming");
     }
     open_order->fill(market_price, this->exchange_time);
 }
 
 void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
-    if (market_price == 0)
+    auto market_price_fp = this->get_market_price(open_order->get_asset_id());
+    auto market_price = to_double(market_price_fp);    if (market_price == 0)
     {
-        throw std::invalid_argument("received order for which asset is not currently streaming");
+        ARGUS_RUNTIME_ERROR("received order for which asset is not currently streaming");
     }
     if ((open_order->get_units() > 0) & (market_price <= open_order->get_limit()))
     {
@@ -229,10 +231,11 @@ void Exchange::process_limit_order(shared_ptr<Order> &open_order)
 
 void Exchange::process_stop_loss_order(shared_ptr<Order> &open_order)
 {
-    auto market_price = this->get_market_price(open_order->get_asset_id());
+    auto market_price_fp = this->get_market_price(open_order->get_asset_id());
+    auto market_price = to_double(market_price_fp);
     if (market_price == 0)
     {
-        throw std::invalid_argument("received order for which asset is not currently streaming");
+        ARGUS_RUNTIME_ERROR("received order for which asset is not currently streaming");
     }
     if ((open_order->get_units() < 0) & (market_price <= open_order->get_limit()))
     {
@@ -538,7 +541,7 @@ py::dict Exchange::get_exchange_feature(
     return py_dict;
 }
 
-double ExchangeMap::get_market_price(const string& asset_id)
+long ExchangeMap::get_market_price(const string& asset_id)
 {
     auto& asset = this->asset_map.at(asset_id);
     auto exchange = this->exchanges.find(asset->exchange_id);

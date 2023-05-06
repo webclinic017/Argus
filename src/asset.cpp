@@ -48,6 +48,8 @@ Asset::~Asset()
 
     // delete the underlying data
     delete[] this->data;
+    delete[] this->fixed_point_close_price;
+    delete[] this->fixed_point_open_price;
 
     // delete the datetime index
     delete[] this->datetime_index;
@@ -159,6 +161,8 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
 
     // allocate data array
     this->data = new double[rows_ * cols_];
+    this->fixed_point_open_price = new long long[rows_];
+    this->fixed_point_close_price = new long long[rows_];
 
     // allocate datetime index
     this->datetime_index = new long long[rows_];
@@ -171,7 +175,17 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
     for (int j = 0; j < cols_; j++) {
         auto input_col_start = j * rows_;
         for (int i = 0; i < rows_; i++) {
-            data[i * cols_ + j] = data_[input_col_start + i];
+            auto value = data_[input_col_start + i];
+            data[i * cols_ + j] = value;
+
+            if(j == this->open_column)
+            {
+                this->fixed_point_open_price[i] = to_fixed_point(value);
+            }
+            else if(j == this->close_column)
+            {
+                this->fixed_point_close_price[i] = to_fixed_point(value);
+            }
         }
     }
 
@@ -200,6 +214,11 @@ void Asset::py_load_data(
     size_t cols_,
     bool is_view)
 {
+    if(headers.size() == 0)
+    {   
+        throw std::runtime_error("headers must be loaded before data");
+    }
+
     py::buffer_info data_info = py_data.request();
     py::buffer_info datetime_index_info = py_datetime_index.request();
 
@@ -246,7 +265,7 @@ double Asset::get(const std::string &column, size_t row_index) const
     return this->data[row_index * this->cols + column_index];
 }
 
-double Asset::get_market_price(bool on_close) const
+long Asset::get_market_price(bool on_close) const
 {
 
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -259,9 +278,9 @@ double Asset::get_market_price(bool on_close) const
     //subtract this->cols to move back row, then get_market_view is called, asset->step()
     //is called so we need to move back a row when accessing asset data
     if (on_close)
-        return *(this->row - this->cols + this->close_column);
+        return this->fixed_point_close_price[this->current_index-1];
     else
-        return *(this->row - this->cols + this->open_column);
+        return this->fixed_point_open_price[this->current_index-1];
 }
 
 double Asset::get_asset_feature(const string& column_name, int index)

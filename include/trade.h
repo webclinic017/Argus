@@ -2,6 +2,8 @@
 // Created by Nathan Tormaschy on 4/21/23.
 //
 #pragma once
+#include "position.h"
+#include "settings.h"
 #include <cstddef>
 #ifndef ARGUS_TRADE_H
 #define ARGUS_TRADE_H
@@ -105,19 +107,24 @@ public:
     vector<order_sp_t> &get_open_orders() { return this->open_orders; }
 
     Portfolio* get_source_portfolio() {return this->source_portfolio;}
+    Position* get_source_position() {return this->source_position;}
 
     /// @brief generate the inverse order needed to close out a trade, (MARKET_ORDER)
     /// @return a smart pointer to a order that when placed will close out the trade
     order_sp_t generate_order_inverse();
 
     /// set the trade source portfolio 
+    /// @param pointer to source position of the trade
+    void set_source_position(Position* source_position_) {this->source_position = source_position_;};
+
+    /// set the trade source position 
     /// @param pointer to source portfolio of the trade
     void set_source_portfolio(Portfolio* source_portfolio_) {this->source_portfolio = source_portfolio_;};
 
     double get_last_price(){return this->last_price;}
-    double get_nlv(){return this->nlv;}
+    double get_nlv(){return to_double(this->nlv);}
     double get_unrealized_pl(){return this->unrealized_pl;}
-    void set_nlv(double nlv_){this->nlv = nlv_;}
+    void set_nlv(long long nlv_){this->nlv = nlv_;}
     void set_last_price(double last_price_){this->last_price = last_price_;}
     void set_unrealized_pl(double unrealized_pl_){this->unrealized_pl = unrealized_pl_;}
 
@@ -131,6 +138,9 @@ private:
     /// pointer to the source portfolio if the trade, i.e. the deepest portfolio in the
     /// portfolio tree to contain the trade that essentially "owns it"
     Portfolio* source_portfolio;
+
+    /// pointer to the source poisition of the trade, position that "owns" the trade
+    Position* source_position;
 
     /// unique id of the trade
     unsigned int trade_id;
@@ -148,7 +158,7 @@ private:
     string strategy_id;
 
     /// net liquidation value of the trade
-    double nlv;
+    long long nlv;
 
     /// how many units in the trade
     double units;

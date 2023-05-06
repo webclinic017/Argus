@@ -14,12 +14,15 @@ class Position;
 class Portfolio;
 
 #include "trade.h"
+#include "settings.h"
 
 using namespace std;
 
 class Position
 {
 private:
+    static inline unsigned int positition_counter;
+
     /// unique id of the position
     unsigned int position_id;
 
@@ -30,19 +33,19 @@ private:
     string exchange_id;
 
     /// net liquidation value of the position
-    double nlv; 
+    long long nlv = 0; 
 
     /// closing price of the position
-    double close_price = 0;
+    long long close_price = 0;
 
     /// last price the position was evaluated at
-    double last_price = 0;
+    long long last_price = 0;
 
     /// unrealized pl of the position
-    double unrealized_pl = 0;
+    long long unrealized_pl = 0;
 
     /// realized pl of the position
-    double realized_pl = 0;
+    long long realized_pl = 0;
 
     /// time the position was opened
     long long position_open_time;
@@ -72,7 +75,6 @@ public:
     /// \param position_close_time time the trade was closed out at
     void close(double market_price, long long position_close_time);
 
-
     trade_sp_t adjust_order(order_sp_t filled_order,  Portfolio* portfolio);
     
     trade_sp_t adjust_trade(trade_sp_t new_trade);
@@ -81,7 +83,7 @@ public:
     double units;
 
     /// average price of the position
-    double average_price = 0;
+    long long average_price = 0;
 
      /// is the position currently open
     bool is_open;
@@ -100,7 +102,7 @@ public:
 
     /// @brief get the positions net liquidation value as last calculated
     /// @return net liquidation value of the position
-    double get_nlv() const {return this->nlv;}
+    double get_nlv() const {return to_double(this->nlv);}
 
     /// @brief get the positions unrealized pl
     double get_unrealized_pl() const {return this->unrealized_pl;}
@@ -156,9 +158,17 @@ public:
     /// @param ref to vector to hold inverse orders
     void generate_order_inverse(std::vector<order_sp_t>& orders);
 
+    /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
+    /// @param nlv_adjustment adjustment size
+    void nlv_adjust(long long nlv_adjustment) {this->nlv += nlv_adjustment;};
+
+    /// @brief adjust unrealized_pl by amount, allows trades to adjust source position values
+    /// @param nlv_adjustment adjustment size
+    void unrealized_adjust(double unrealized_adjustment) {this->unrealized_pl += unrealized_adjustment;};
+
     /// @private
     /// evaluate a position and it's child trades at the given market price
-    inline void evaluate(double market_price, bool on_close)
+    inline void evaluate(long long market_price, bool on_close)
     {
         this->last_price = market_price;
         this->unrealized_pl = this->units * (market_price - this->average_price);

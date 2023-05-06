@@ -105,6 +105,7 @@ void init_hydra_ext(py::module &m)
         
         .def("get_hydra_time", &Hydra::get_hydra_time)
         .def("get_datetime_index_view", &Hydra::get_datetime_index_view)
+        .def("get_order_history", &Hydra::get_order_history)
         .def("get_candles", &Hydra::get_candles)
         .def("get_broker", &Hydra::get_broker)
         .def("get_master_portfolio", &Hydra::get_master_portflio)
