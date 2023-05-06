@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 
 sys.path.append(os.path.abspath('..'))
 
@@ -99,7 +100,6 @@ class MovingAverageStrategy:
 class BT_MA_Cross_Strategy(bt.Strategy):
     def __init__(self) -> None:
         super().__init__()
-    
     """
     def notify_order(self, order):
         # Check if an order has been completed
@@ -110,8 +110,8 @@ class BT_MA_Cross_Strategy(bt.Strategy):
                 f"Price: {order.executed.price:6.4f} "
                 f"Size: {order.created.size:9.4f} "
             )
-    """
                 
+    """
     def next(self):
         ma_signal = {d : d.ma_signal[0] for d in self.datas}
         
@@ -216,14 +216,59 @@ def test_fasttest(dfs):
     orders = hal.get_order_history()        
     return nlv, cash, et-st, orders 
  
-if __name__ == "__main__":
-    count = 4
+def test_fp_error():
+    count = 1
     step_count = 203
     
-    candles = []
-    ft_times = []
-    bt_times = []
+    n_trials = 10
+    counts = [1,10,20,30,60,100,150,200,250,500]
+    ft_errors = []
+    bt_errors = []
     
+    for count in counts:
+        print(count)
+        ft_error = 0
+        bt_error = 0
+        for i in range(n_trials):
+            dfs = load_data(count, step_count)
+            #print(f"{count * step_count:,} candles loaded\n")
+            #print()
+            
+            ft_nlv, ft_cash, ft_time, orders = test_fasttest(dfs)
+            #print()
+            bt_nlv, bt_time = test_backtrader(dfs)
+            #print()
+
+            #print(f"fastest \033[32m{bt_time / ft_time:.4}x\033[0m faster")
+            
+            pls = {asset_id  : dfs[asset_id]["Open"].diff().values[2] for asset_id in list(dfs.keys())}
+            df_pls = pd.DataFrame(pls.items(), columns = ["asset_id","pl"])
+                        
+            orders = pd.merge(orders, df_pls, how = "left", on = "asset_id")
+            true_nlv = 100000 + sum(orders["units"] * orders["pl"])
+
+            ft_error += (true_nlv - ft_nlv[1])
+            bt_error += (true_nlv - bt_nlv[1])
+            
+        ft_errors.append((ft_error / n_trials)/ 100000)
+        bt_errors.append((bt_error / n_trials)/ 100000)
+        
+    #print(f"ft error {true_nlv - ft_nlv[1]}")
+    #print(f"bt error {true_nlv - bt_nlv[1]}")
+
+    fig, ax1 = plt.subplots()
+    ax1.plot(counts,bt_errors, alpha = .5, label = "Backtrader")
+    ax1.plot(counts,ft_errors, alpha = .5, label = "FastTest")
+    ax1.yaxis.set_major_formatter(mtick.PercentFormatter())
+    plt.ylabel('error (pct of total nlv)')
+    plt.ylabel('# Assets')
+    plt.title("One Step Floating Point Error")
+    ax1.legend()
+    plt.show()
+    
+if __name__ == "__main__":
+    count = 200
+    step_count = 3000
     dfs = load_data(count, step_count)
     print(f"{count * step_count:,} candles loaded\n")
     print()
@@ -233,21 +278,11 @@ if __name__ == "__main__":
     bt_nlv, bt_time = test_backtrader(dfs)
     print()
 
-    
     print(f"fastest \033[32m{bt_time / ft_time:.4}x\033[0m faster")
     
-    pls = {asset_id  : dfs[asset_id]["Open"].diff().values[2] for asset_id in list(dfs.keys())}
-    df_pls = pd.DataFrame(pls.items(), columns = ["asset_id","pl"])
-    
-    orders = pd.merge(orders, df_pls, how = "left", on = "asset_id")
-    true_nlv = 100000 + sum(orders["units"] * orders["pl"])
-
-    print(true_nlv)
-    print(true_nlv - ft_nlv[1])
-    
-    #fig, ax1 = plt.subplots()
-    #ax2 = ax1.twinx()
-    #ax1.plot(bt_nlv, alpha = .5, label = "Backtrader")
-    #ax1.plot(ft_nlv, alpha = .5, label = "FastTest")
-    #ax1.legend()
-    #plt.show()
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.plot(bt_nlv, alpha = .5, label = "Backtrader")
+    ax1.plot(ft_nlv, alpha = .5, label = "FastTest")
+    ax1.legend()
+    plt.show()

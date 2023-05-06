@@ -76,7 +76,7 @@ public:
 
     /// @brief get the net liquidation as last calculated
     /// @return the net liquidation value of the portfolio
-    double get_nlv() const {return this->nlv;}
+    double get_nlv() const {return to_double(this->nlv);}
 
     /// @brief get the net liquidation as last calculated
     double get_unrealized_pl() const {return this->unrealized_pl;}
@@ -133,7 +133,7 @@ public:
 
     /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
     /// @param nlv_adjustment adjustment size
-    void nlv_adjust(double nlv_adjustment) {this->nlv += nlv_adjustment;};
+    void nlv_adjust(double nlv_adjustment) {this->nlv += to_fixed_point(nlv_adjustment);};
     void cash_adjust(double cash_adjustment) {this->cash += cash_adjustment;};
     void unrealized_adjust(double unrealized_adjustment) {this->unrealized_pl += unrealized_adjustment;};
 
@@ -302,7 +302,7 @@ private:
     double starting_cash;
 
     /// net liquidation value of the portfolio
-    double nlv;
+    long long nlv;
 
     /// unrealized_pl of the portfolio
     double unrealized_pl = 0;

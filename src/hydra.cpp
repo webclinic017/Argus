@@ -348,9 +348,6 @@ void Hydra::forward_pass()
     //evaluate master portfolio at open
     this->master_portfolio->evaluate(false);
 
-    //update historicals values
-    this->master_portfolio->update();
-
     #endif 
 }
 
@@ -442,6 +439,9 @@ void Hydra::backward_pass(){
     {
         this->log("order processing complete");
     }
+
+    //update historicals values
+    this->master_portfolio->update();
         
     if(this->logging == 1)
     {

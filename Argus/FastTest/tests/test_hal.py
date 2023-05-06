@@ -112,7 +112,7 @@ class HalTestMethods(unittest.TestCase):
             portfolio = hal.get_portfolio(portfolio)
             cash_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
             nlv_history = portfolio.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
-            
+        
             assert(np.array_equal(nlv_actual, nlv_history))
             assert(np.array_equal(cash_actual, cash_history))
             

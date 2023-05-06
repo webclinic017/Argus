@@ -43,7 +43,7 @@ Portfolio::Portfolio(
     this->logging = logging_;
     this->cash = cash_;
     this->starting_cash = cash_;
-    this->nlv = cash_;
+    this->nlv = to_fixed_point(cash_);
     this->portfolio_id = std::move(id_);
 }
 
@@ -63,7 +63,7 @@ void Portfolio::reset(bool clear_history)
     // reset starting member variables
     this->cash = this->starting_cash;
     this->unrealized_pl = 0;
-    this->nlv = this->starting_cash;
+    this->nlv = to_fixed_point(this->starting_cash);
 
     // reset portfolio history object
     this->portfolio_history->reset(clear_history);
@@ -144,7 +144,7 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
             units /= market_price;
             break;
         case PCT:
-            units = (size * this->nlv) / market_price;
+            units = (size * this->get_nlv()) / market_price;
             break;
     }
 
@@ -406,7 +406,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
     // adjust cash for modifying position
     this->cash -= order_units * order_fill_price;
-    this->nlv += order_units * (order_fill_price - position->average_price);
+    this->nlv_adjust(order_units * (order_fill_price - position->average_price));
 }
 
 void Portfolio::close_position(shared_ptr<Order> filled_order)
@@ -663,15 +663,11 @@ void Portfolio::evaluate(bool on_close)
     assert(!this->parent_portfolio);
     #endif
 
-    this->nlv = this->cash;
+    this->nlv = to_fixed_point(this->cash);
     this->unrealized_pl = 0;
 
     // evaluate all positions in the master portfolio. Note valuation will propogate down from whichever
     // portfolio it was called on, i.e. all trades in child portfolios will be evaluated already
-    if(!on_close)
-    {
-        fmt::print("\n here: nlv: {}\n",this->nlv);
-    }
     for(auto it = this->positions_map.begin(); it != positions_map.end(); ++it) 
     {
         auto position = it->second;
@@ -721,15 +717,7 @@ void Portfolio::evaluate(bool on_close)
         }
 
         position->evaluate(market_price, on_close);
-        if(!on_close)
-        {
-            fmt::print("nlv: {}, adjusting: {}\n",this->nlv, position->get_nlv());
-        }
-        this->nlv += position->get_nlv();
-        if(!on_close)
-        {
-            fmt::print("nlv: {}\n",this->nlv);
-        }
+        this->nlv += to_fixed_point(position->get_nlv());
         this->unrealized_pl += position->get_unrealized_pl();
     }
 }
