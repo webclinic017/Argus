@@ -264,7 +264,7 @@ double Asset::get_market_price(bool on_close) const
         return *(this->row - this->cols + this->open_column);
 }
 
-optional<double> Asset::get_asset_feature(const string& column_name, int index)
+double Asset::get_asset_feature(const string& column_name, int index)
 {
 
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -282,7 +282,7 @@ optional<double> Asset::get_asset_feature(const string& column_name, int index)
 
     #ifdef ARGUS_RUNTIME_ASSERT
     if(column_offset == this->headers.end()){
-        return nullopt;
+        throw ARGUS_RUNTIME_ASSERT("missing column");
     }
     #endif
 

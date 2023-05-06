@@ -437,14 +437,7 @@ optional<double> Exchange::get_asset_feature(const string& asset_id, const strin
     #endif
 
     auto asset_value = asset_sp->get_asset_feature(column_name, index);
-    if(asset_value.has_value())
-    {
-        return *asset_value;
-    }
-    else 
-    {
-        return nullopt;
-    }
+    return asset_value;
 }
 
 py::dict Exchange::get_exchange_feature(
@@ -462,7 +455,7 @@ py::dict Exchange::get_exchange_feature(
     {
         number_assets = static_cast<size_t>(N);
     }
-
+    
     py::dict py_dict;
     // default query type implies just find all assets with the feature
     if(query_type == ExchangeQueryType::Default)
@@ -479,8 +472,7 @@ py::dict Exchange::get_exchange_feature(
             if(asset_sp)
             {
                 //place the value in the dict if the asset has that feature, else skip
-                auto asset_value = asset_sp->get_asset_feature(column, row);
-                if(asset_value.has_value()){py_dict[it->first.c_str()] = *asset_value;}
+                py_dict[it->first.c_str()] = asset_sp->get_asset_feature(column, row);
             }
             else
             {
@@ -500,10 +492,8 @@ py::dict Exchange::get_exchange_feature(
         {
             //place the value in the dict if the asset has that feature, else skip
             auto asset_value = asset_sp->get_asset_feature(column, row);
-            if(asset_value.has_value())
-            {
-                asset_pairs.emplace_back(std::make_pair(it->first.c_str(),*asset_value));
-            }
+            asset_pairs.emplace_back(std::make_pair(it->first.c_str(),asset_value));
+            
         }
     }
     // sort the asset feature pairs using the feature 

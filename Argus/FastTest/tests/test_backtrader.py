@@ -62,9 +62,7 @@ class MovingAverageStrategy:
         return
     
     def on_open(self) -> None:
-        
-        cross_dict = {}
-        self.exchange.get_exchange_feature(cross_dict, "ma_signal", -1)
+        cross_dict = self.exchange.get_exchange_feature("ma_signal", -1)
 
         for asset_id, cross_value in cross_dict.items():
             position = self.portfolio.get_position(asset_id)
@@ -201,7 +199,7 @@ def test_fasttest(dfs):
  
 if __name__ == "__main__":
     count = 100
-    step_count = 500
+    step_count = 5000
     
     candles = []
     ft_times = []
