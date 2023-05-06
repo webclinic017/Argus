@@ -371,13 +371,11 @@ void Portfolio::open_position(T open_obj, bool adjust_cash)
     }
 
     // log the position if needed
-    #ifdef ARGUS_STRIP
     if (this->logging > 0)
     {
         this->log_position_open(position);
         this->log_trade_open(trade_sp);
     }
-    #endif
 
     #ifdef DEBUGGING
     fmt::print("Portfolio::open_position: {} done\n",this->portfolio_id);

@@ -28,7 +28,6 @@ Broker::Broker(string broker_id_,
     this->broker_id = std::move(broker_id_);
     this->cash = cash_;
     this->logging = logging_;
-    this->order_counter = 0;
     this->position_counter = 0;
 }
 
@@ -42,7 +41,6 @@ void Broker::build(
 void Broker::reset_broker()
 {   
     //reset memeber variables
-    this->order_counter = 0;
     this->position_counter = 0;
     this->cash = starting_cash;
 
@@ -105,22 +103,33 @@ void Broker::place_order_buffer(shared_ptr<Order> order)
     this->open_orders_buffer.push_back(order);
 }
 
+void Broker::log_order_place(shared_ptr<Order> &filled_order)
+{
+    auto datetime_str = nanosecond_epoch_time_to_string(filled_order->get_order_create_time());
+    fmt::print("{}:  BROKER {} ORDER PLACED: order id:  {}, asset id: {}, units: {:.3f}, trade id: {}\n",
+               datetime_str,
+               this->broker_id,
+               filled_order->get_order_id(),
+               filled_order->get_asset_id(),
+               filled_order->get_units(),
+               filled_order->get_trade_id());
+};
+
 void Broker::place_order(shared_ptr<Order> order, bool process_fill)
 {
     // get smart pointer to the right exchange
     auto exchange = this->exchange_map->exchanges.at(order->get_exchange_id());
 
-    // set the order id
-    order->set_order_id(this->order_counter);
-
     // set wether the ored was placed on the close or open
     order->set_placed_on_close(exchange->on_close);
 
-    //increment the static global broker order counter
-    this->order_counter++;
-
     // send the order
     exchange->place_order(order);
+
+    if(this->logging)
+    {
+        this->log_order_place(order);
+    }
 
     // if the order was filled then process fill
     if (order->get_order_state() == FILLED)

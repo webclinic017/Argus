@@ -260,6 +260,47 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(p1 is None)
         assert(p2 is None)
         
+    def test_parent_portfolio_close(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+        portfolio1 = hydra.new_portfolio("test_portfolio1",100000.0);
+        portfolio2 = hydra.new_portfolio("test_portfolio2",100000.0);
+        
+        hydra.build()
+        hydra.forward_pass()
+        
+        portfolio1.place_market_order(
+            helpers.test2_asset_id,
+            100.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        portfolio2.place_market_order(
+            helpers.test2_asset_id,
+            -50.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        mp.place_market_order(
+            helpers.test2_asset_id,
+            -50.0,
+            "dummy",
+            FastTest.OrderExecutionType.EAGER,
+            -1
+        )
+        
+        mp = mp.get_position(helpers.test2_asset_id)
+        p1 = portfolio1.get_position(helpers.test2_asset_id)
+        p2 = portfolio2.get_position(helpers.test2_asset_id)
+        assert(mp is None)
+        assert(p1 is None)
+        assert(p2 is None)
+        
     def test_portfolio_target_allocations(self):
         hydra = helpers.create_simple_hydra(logging=0)
         mp = hydra.get_master_portfolio()
@@ -284,6 +325,7 @@ class PortfolioTestMethods(unittest.TestCase):
         hydra.forward_pass()
         hydra.on_open()
         
+        print()
         allocations = {helpers.test1_asset_id : .4, helpers.test2_asset_id : .6}
         portfolio2.order_target_allocations(
             allocations,
@@ -308,39 +350,63 @@ class PortfolioTestMethods(unittest.TestCase):
         assert(mp_p2.units == p2.units + 100)
         
         hydra.forward_pass()
-        nlv = mp.get_nlv()
+        nlv = portfolio2.get_nlv()
         
         allocations = {helpers.test1_asset_id : .6, helpers.test2_asset_id : .4}
-        mp.order_target_allocations(
+        print()
+        portfolio2.order_target_allocations(
             allocations,
             "dummy",
             .0,
         )
         hydra.on_open()
         
-        mp_p1 = mp.get_position(helpers.test1_asset_id)
-        mp_p2 = mp.get_position(helpers.test2_asset_id)
-        assert(mp_p1 is not None)
-        assert(mp_p2 is not None)
-        assert(mp_p2.units == (nlv * .4)/98)
-        assert(mp_p1.units == (nlv * .6)/102)
+        p1 = portfolio2.get_position(helpers.test1_asset_id)
+        mp_p2 = portfolio2.get_position(helpers.test2_asset_id)
+        assert(p1 is not None)
+        assert(p2 is not None)
+        assert(p2.units == (nlv * .4)/98)
+        assert(p1.units == (nlv * .6)/102)
         
         hydra.backward_pass()
         hydra.forward_pass()
         
         allocations = {}
-        mp.order_target_allocations(
+        portfolio2.order_target_allocations(
             allocations,
             "dummy",
             .0,
         )
         hydra.on_open()
         
-        for portfolio_ in [mp, portfolio1, portfolio2]:
-            mp_p1 = portfolio_.get_position(helpers.test1_asset_id)
-            mp_p2 = portfolio_.get_position(helpers.test2_asset_id)
-            assert(mp_p1 is None)
-            assert(mp_p2 is None)
+        mp_p1 = portfolio2.get_position(helpers.test1_asset_id)
+        mp_p2 = portfolio2.get_position(helpers.test2_asset_id)
+        assert(mp_p1 is None)
+        assert(mp_p2 is None)
+        
+            
+    def test_portfolio_target_allocations_short(self):
+        hydra = helpers.create_simple_hydra(logging=0)
+        mp = hydra.get_master_portfolio()
+        
+         
+        hydra.build()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        hydra.backward_pass()
+        
+        hydra.forward_pass()
+        hydra.on_open()
+        
+        allocations = {helpers.test1_asset_id : -.4, helpers.test2_asset_id : .6}
+        mp.order_target_allocations(
+            allocations,
+            "dummy",
+            .01,
+        )
+        
+        hydra.backward_pass()
                     
 
 if __name__ == '__main__':

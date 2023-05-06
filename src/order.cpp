@@ -78,7 +78,6 @@ void OrderConsolidated::fill_child_orders(){
     }
 }
 
-
 Order::Order(OrderType order_type_, string asset_id_, double units_, string exchange_id_,
              string broker_id_, Portfolio* source_portfolio, string strategy_id_, int trade_id_)
 {
@@ -98,7 +97,8 @@ Order::Order(OrderType order_type_, string asset_id_, double units_, string exch
     this->source_portfolio = source_portfolio;
 
     // set the order id to 0 (it will be populated by the broker object who sent it
-    this->order_id = 0;
+    this->order_id = this->order_counter;
+    this->order_counter++;
 
     // set the limit to 0, broker will populate of the order type is tp or sl
     this->limit = 0;

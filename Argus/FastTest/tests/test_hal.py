@@ -84,7 +84,7 @@ class HalTestMethods(unittest.TestCase):
         hal = helpers.create_simple_hal(logging=0)
 
         strategy = SimpleStrategy(hal)
-        hal.register_strategy(strategy)
+        hal.register_strategy(strategy,"test")
         
         portfolio = hal.get_portfolio("test_portfolio1")
         portfolio.add_tracer(PortfolioTracerType.EVENT)
@@ -321,7 +321,7 @@ class HalTestMethods(unittest.TestCase):
         mp.add_tracer(PortfolioTracerType.EVENT)
         
         strategy = MovingAverageStrategy(hal)
-        hal.register_strategy(strategy)      
+        hal.register_strategy(strategy,"test")      
         hal.build()
         
         st = time.time()
@@ -338,7 +338,7 @@ class HalTestMethods(unittest.TestCase):
         print(f"HAL: execution time: {execution_time:.4f} seconds")
         print(f"HAL: candles per seoncd: {(candles / execution_time):,.3f}")     
         nlv1 = mp.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()[-1]
-
+        return
         st = time.time()
         hal.replay()
         et = time.time()

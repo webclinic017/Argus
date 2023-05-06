@@ -165,7 +165,7 @@ void Exchange::register_asset(const shared_ptr<Asset> &asset_)
     string asset_id = asset_->get_asset_id();
 
 #ifdef DEBUGGING
-    printf("EXCHANGE: exchange %s registering asset: %s \n", this->exchange_id, asset_id);
+    fmt::print("EXCHANGE: exchange {} registering asset: {} \n", this->exchange_id, asset_id);
 #endif
 
     if (this->market.count(asset_id))

@@ -105,9 +105,6 @@ private:
     /// unique id of the broker
     string broker_id;
 
-    /// order counter
-    unsigned int order_counter;
-
     /// positions counter
     unsigned int position_counter;
 
@@ -132,5 +129,6 @@ private:
     /// master portfolio
     portfolio_sp_t master_portfolio;
 
+    void log_order_place(shared_ptr<Order> &filled_order);
 };
 #endif // ARGUS_BROKER_H

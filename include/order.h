@@ -93,6 +93,9 @@ private:
 class Order
 {
 private:
+    /// static trade counter shared by all trade objects
+    static inline unsigned int order_counter = 0;
+
     /// type of the order
     OrderType order_type;
 

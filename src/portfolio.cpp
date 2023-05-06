@@ -105,8 +105,8 @@ void Portfolio::order_target_allocations(py::dict allocations,
             if(!allocations.contains(position_pair.first))
             {
                 std::vector<order_sp_t> orders;
-                auto orders_nullopt = this->generate_order_inverse(position_pair.first, false, true);
-                
+                auto orders_nullopt = this->generate_order_inverse(position_pair.first, true, false);
+                if(this->logging){printf("\n");}
             }
         }
     }
@@ -134,7 +134,6 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
                                 OrderExecutionType order_execution_type,
                                 int trade_id)
 {
-    //auto asset_rp = this->exchange_map->asset_map.at(asset_id_);
     double units = size;
     auto position = this->get_position(asset_id_);
     
@@ -159,11 +158,15 @@ void Portfolio::order_target_size(const string &asset_id_, double size,
         units -= existing_units;
 
         // check to see if units needed to adjust position to correct size is greater then the epsilon passed
-        double offset = abs(existing_units - units) / units;
+        double offset = abs((existing_units - units) / units);
         if(offset < epsilon)
         {
             return;
         }
+
+        // if no trade id is passed, set it equal to the first trade id in position, prevent continuous  
+        // reallignments from spam generating small trades
+        trade_id = position.value()->get_trades().begin()->first;
     }
 
     // position is already at target size
@@ -354,6 +357,7 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
         //propgate trade close up portfolio tree
         auto portfolio_source = trade->get_source_portfolio();
+
         //find the source portfolio of the trade then propgate up trade closing
         if(portfolio_source->get_portfolio_id() != this->portfolio_id){
             //get the portfolio source
@@ -364,6 +368,15 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
 
             //propgate trade close up the portfolio tree
             source_portfolio->propogate_trade_close_up(trade, true);
+
+            // propogate_trade_close_up does not adjust the source, need to adjust the source portfolio
+            auto source_position = source_portfolio->get_position(trade->get_asset_id()).value();
+            source_position->adjust_trade(trade);
+            if(!source_position->is_open)
+            {
+                source_portfolio->positions_map.erase(trade->get_asset_id());
+                if(source_portfolio->event_tracer){source_portfolio->event_tracer->remember_position(position);}
+            }
         }
         else{
             this->propogate_trade_close_up(trade, true);
@@ -432,6 +445,15 @@ void Portfolio::close_position(shared_ptr<Order> filled_order)
 
             //propgate  trade close up the portfolio tree
             source_portfolio->propogate_trade_close_up(trade, true);
+
+            // propogate_trade_close_up does not adjust the source, need to adjust the source portfolio
+            auto source_position = source_portfolio->get_position(trade->get_asset_id()).value();
+            source_position->adjust_trade(trade);
+            if(!source_position->is_open)
+            {
+                source_portfolio->positions_map.erase(trade->get_asset_id());
+                if(source_portfolio->event_tracer){source_portfolio->event_tracer->remember_position(position);}
+            }
         }
 
         //this is the source portfolio of the trade
@@ -741,7 +763,7 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
         return std::nullopt;
     }
-    if (send_orders){
+    else if (send_orders){
         for(auto& order : orders){
             auto broker_id = order->get_broker_id();
             auto broker = this->brokers->at(broker_id);
@@ -749,9 +771,6 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 
             //make sure the order was filled
             assert(order->get_order_state() == FILLED);
-
-            //process filled order
-            this->on_order_fill(order);
 
             //remember the order
             if(this->event_tracer)
@@ -765,31 +784,13 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
 }
 
 void Portfolio::trade_cancel_order(Broker::trade_sp_t &trade_sp)
-{
-    #ifdef ARGUS_STRIP
-    if(this->logging > 0){
-        fmt::print("PORTFOLIO: {} canceling orders for trade: {} \n",
-            this->portfolio_id, 
-            trade_sp->get_trade_id()
-        );
-    }
-    #endif
-    
+{    
     for (auto &order : trade_sp->get_open_orders())
     {   
         // get corresponding broker for the order then cancel it
         auto broker = this->brokers->at(order->get_broker_id());
         broker->cancel_order(order->get_order_id());
     }
-
-    #ifdef ARGUS_STRIP
-    if(this->logging > 0){
-        fmt::print("PORTFOLIO: {} order canceled for trade: {} \n",
-            this->portfolio_id, 
-            trade_sp->get_trade_id()
-        );
-    }
-    #endif
 }
 
 shared_ptr<Portfolio> Portfolio::find_portfolio(const string &portfolio_id_){

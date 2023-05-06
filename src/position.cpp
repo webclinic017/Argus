@@ -116,6 +116,7 @@ shared_ptr<Trade> Position::adjust_trade(trade_sp_t trade){
     {
         this->close_price = trade->get_close_price();
         this->position_close_time = trade->get_trade_close_time();
+        this->is_open = false;
     }
 
     return trade;

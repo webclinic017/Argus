@@ -241,7 +241,7 @@ shared_ptr<Broker> Hydra::new_broker(const std::string &broker_id, double cash)
     #endif
 
 #ifdef DEBUGGING
-    printf("new exchange %s: exchange is built at: %p\n", exchange_id.c_str(), exchange.get());
+    //fmt::print("new exchange {}: exchange is built at: {}\n", exchange_id.c_str(), exchange.get());
 #endif
 
     // return the shared pointer to calling function, lifetime of exchange is now linked to they hydra class
