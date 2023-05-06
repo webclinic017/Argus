@@ -683,6 +683,12 @@ void Portfolio::evaluate(bool on_close)
             //update source portfolio values nlv and unrealized pl
             auto nlv_new = market_price * trade->get_units();
             auto source_portfolio = trade->get_source_portfolio();
+
+            if(!source_portfolio->parent_portfolio)
+            {
+                continue;
+            }
+
             source_portfolio->nlv_adjust(nlv_new - trade->get_nlv());
             
             auto unrealized_pl_new = trade->get_units() * (market_price - trade->get_average_price());

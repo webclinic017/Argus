@@ -75,7 +75,7 @@ class MovingAverageStrategy:
                     asset_id,
                     units,
                     "dummy")
-                return
+                continue
 
             if cross_value == 1:
                 if position.units > 0:
@@ -99,6 +99,18 @@ class MovingAverageStrategy:
 class BT_MA_Cross_Strategy(bt.Strategy):
     def __init__(self) -> None:
         super().__init__()
+    
+    """
+    def notify_order(self, order):
+        # Check if an order has been completed
+        if order.status in [order.Completed]:
+            print(
+                f"{self.datetime.date()} "
+                f"{order.data._name:<6} {('BUY' if order.isbuy() else 'SELL'):<5} "
+                f"Price: {order.executed.price:6.4f} "
+                f"Size: {order.created.size:9.4f} "
+            )
+    """
                 
     def next(self):
         ma_signal = {d : d.ma_signal[0] for d in self.datas}
@@ -151,14 +163,17 @@ def test_backtrader(dfs):
     results = cerebro.run()
     et = time.time()
     
+    thestrat = results[0]
+    nlv = np.array(thestrat.observers.value.lines.value.array)
+    
+    
     cps_bt = candle_count / (et-st)
     print(f"Backtrader loaded in {lt-st:.6f} seconds")
     print(f"Backtrader completed in {et-st:.6f} seconds")
     print(f"Backtrader candles per seconds: {cps_bt:,.2f}")   
     print(f"Backtrader Final Portfolio Value: {cerebro.broker.getvalue():,.4f}")
-    
-    thestrat = results[0]
-    nlv = np.array(thestrat.observers.value.lines.value.array)
+    print(f"Backtrader Initial Portfolio Value: {nlv[1]:,.4f}")
+
     return nlv, et-st
 
 
@@ -180,7 +195,7 @@ def test_fasttest(dfs):
         hal.register_asset_from_df(df, asset_id, "test", "test", warmup = 1) 
         
     strategy = MovingAverageStrategy(hal)
-    hal.register_strategy(strategy) 
+    hal.register_strategy(strategy, " test") 
     
     hal.build()
     lt = time.time()
@@ -189,17 +204,21 @@ def test_fasttest(dfs):
     
     cps_bt = candle_count / (et-st)
     nlv = portfolio.get_tracer(PortfolioTracerType.VALUE).get_nlv_history()
-        
+    cash = portfolio.get_tracer(PortfolioTracerType.VALUE).get_cash_history()
+    
+    
     print(f"FastTest loaded in {lt-st:.6f} seconds")
     print(f"FastTest completed in {et-st:.6f} seconds")
     print(f"FastTest candles per seconds: {cps_bt:,.2f}")  
     print(f"FastTest Final Portfolio Value: {nlv[-1]:,.4f}")
-        
-    return nlv, et-st
+    print(f"FastTest Initial Portfolio Value: {nlv[1]:,.4f}")
+
+    orders = hal.get_order_history()        
+    return nlv, cash, et-st, orders 
  
 if __name__ == "__main__":
-    count = 100
-    step_count = 5000
+    count = 9
+    step_count = 203
     
     candles = []
     ft_times = []
@@ -209,7 +228,7 @@ if __name__ == "__main__":
     print(f"{count * step_count:,} candles loaded\n")
     print()
     
-    ft_nlv, ft_time = test_fasttest(dfs)
+    ft_nlv, ft_cash, ft_time, orders = test_fasttest(dfs)
     print()
     bt_nlv, bt_time = test_backtrader(dfs)
     print()
@@ -217,9 +236,18 @@ if __name__ == "__main__":
     
     print(f"fastest \033[32m{bt_time / ft_time:.4}x\033[0m faster")
     
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-    ax1.plot(bt_nlv, alpha = .5, label = "Backtrader")
-    ax1.plot(ft_nlv, alpha = .5, label = "FastTest")
-    ax1.legend()
-    plt.show()
+    pls = {asset_id  : dfs[asset_id]["Open"].diff().values[2] for asset_id in list(dfs.keys())}
+    df_pls = pd.DataFrame(pls.items(), columns = ["asset_id","pl"])
+    
+    orders = pd.merge(orders, df_pls, how = "left", on = "asset_id")
+    true_nlv = 100000 + sum(orders["units"] * orders["pl"])
+
+    print(true_nlv)
+    print(true_nlv - ft_nlv[1])
+    
+    #fig, ax1 = plt.subplots()
+    #ax2 = ax1.twinx()
+    #ax1.plot(bt_nlv, alpha = .5, label = "Backtrader")
+    #ax1.plot(ft_nlv, alpha = .5, label = "FastTest")
+    #ax1.legend()
+    #plt.show()

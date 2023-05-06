@@ -103,6 +103,7 @@ void init_hydra_ext(py::module &m)
         .def("new_broker", &Hydra::new_broker, py::return_value_policy::reference)
         .def("new_portfolio", &Hydra::new_portfolio, py::return_value_policy::reference)
         
+        .def("get_order_history", &Hydra::get_order_history)
         .def("get_hydra_time", &Hydra::get_hydra_time)
         .def("get_datetime_index_view", &Hydra::get_datetime_index_view)
         .def("get_candles", &Hydra::get_candles)
