@@ -16,7 +16,7 @@ class Hal:
     def __init__(self, logging : int, cash : float = 0.0) -> None:
         self.hydra = FastTest.Hydra(logging, cash)
         self.logging = logging        
-        
+        self.strategies = {}
         self.is_built = False
         
     def build(self):
@@ -24,6 +24,8 @@ class Hal:
         self.is_built = True
         
     def reset(self, clear_history = True, clear_strategies = False):
+        if clear_strategies:
+            self.strategies = {}
         self.hydra.reset(clear_history, clear_strategies)
     
     def reset_strategies(self):
@@ -65,11 +67,14 @@ class Hal:
         exchange = self.hydra.get_exchange(exchange_id)
         exchange.register_asset(asset)
         
-    def register_strategy(self, py_strategy) -> None:
+    def register_strategy(self, py_strategy, strategy_id : str) -> None:
         for attr in ["on_open","on_close","build"]:
             if not hasattr(py_strategy, attr):
                 raise RuntimeError(f"strategy must implement {attr}()")
-        
+            
+        if strategy_id in self.strategies.keys():
+            raise RuntimeError("strategy id already exists")
+            
         strategy = self.hydra.new_strategy()
         strategy.on_open = py_strategy.on_open
         strategy.on_close = py_strategy.on_close    

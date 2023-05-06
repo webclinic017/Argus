@@ -297,9 +297,6 @@ private:
     /// position counter for position ids
     unsigned int position_counter = 0;
 
-    /// trade counter shared
-    unsigned int trade_counter = 0;
-
     /// cash held by the portfolio
     double cash;
 

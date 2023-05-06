@@ -64,7 +64,6 @@ void Portfolio::reset(bool clear_history)
     // reset starting member variables
     this->cash = this->starting_cash;
     this->position_counter = 0;
-    this->trade_counter = 0;
     this->unrealized_pl = 0;
     this->nlv = this->starting_cash;
 
@@ -343,13 +342,6 @@ void Portfolio::modify_position(shared_ptr<Order> filled_order)
     // get the position and account to modify
     auto asset_id = filled_order->get_asset_id();
     auto position = this->get_position(asset_id).value();
-
-    // check to see if a trade id was passed, if not assign new trade id
-    if(filled_order->get_trade_id() == 1){
-        filled_order->set_trade_id(this->trade_counter);
-        this->trade_counter++;
-    }
-
 
     // adjust position and close out trade if needed
     auto trade = position->adjust_order(filled_order, this);
@@ -732,8 +724,8 @@ optional<vector<order_sp_t>> Portfolio::generate_order_inverse(
         auto broker_id = orders[0]->get_broker_id();
         auto broker = this->brokers->at(broker_id);
         auto parent_order = orders_consolidated.get_parent_order();
-        broker->place_order(parent_order, false);
 
+        broker->place_order(parent_order, false);
 
         //make sure the order was filled
         assert(parent_order->get_order_state() == FILLED);

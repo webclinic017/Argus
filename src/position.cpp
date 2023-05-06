@@ -150,9 +150,16 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
         return this->trades.at(trade->get_trade_id());
     }
     else
-    {   
+    {  
         // found the trade currently open
-        auto trade = this->trades[filled_order->get_trade_id()];
+        auto trade_iter = this->trades.find(filled_order->get_trade_id());
+        if(trade_iter == this->trades.end())
+        {
+            ARGUS_RUNTIME_ERROR(
+                fmt::format("failed to find trade id: {} in trades\n",filled_order->get_trade_id())
+            );
+        }
+        auto trade = trade_iter->second;
         trade->adjust(filled_order);
 
         // if the adjustment causes the trade to close remove from position child trades
@@ -161,6 +168,7 @@ shared_ptr<Trade> Position::adjust_order(order_sp_t filled_order, Portfolio* por
             this->trades.erase(trade->get_trade_id());
         }
         return trade;
+        
     }
 }
 
@@ -176,6 +184,7 @@ std::optional<trade_sp_t> Position::get_trade(unsigned int trade_id)
 
 void Position::generate_order_inverse(std::vector<order_sp_t>& orders){
     for(auto &trade_pair : this->trades){
-        orders.push_back(trade_pair.second->generate_order_inverse());
+        auto order = trade_pair.second->generate_order_inverse();
+        orders.push_back(order);
     }
 }
