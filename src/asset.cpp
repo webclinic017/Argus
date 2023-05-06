@@ -48,8 +48,6 @@ Asset::~Asset()
 
     // delete the underlying data
     delete[] this->data;
-    delete[] this->fixed_point_close_price;
-    delete[] this->fixed_point_open_price;
 
     // delete the datetime index
     delete[] this->datetime_index;
@@ -161,8 +159,6 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
 
     // allocate data array
     this->data = new double[rows_ * cols_];
-    this->fixed_point_open_price = new long long[rows_];
-    this->fixed_point_close_price = new long long[rows_];
 
     // allocate datetime index
     this->datetime_index = new long long[rows_];
@@ -177,15 +173,6 @@ void Asset::load_data(const double *data_, const long long *datetime_index_, siz
         for (int i = 0; i < rows_; i++) {
             auto value = data_[input_col_start + i];
             data[i * cols_ + j] = value;
-
-            if(j == this->open_column)
-            {
-                this->fixed_point_open_price[i] = to_fixed_point(value);
-            }
-            else if(j == this->close_column)
-            {
-                this->fixed_point_close_price[i] = to_fixed_point(value);
-            }
         }
     }
 
@@ -265,7 +252,7 @@ double Asset::get(const std::string &column, size_t row_index) const
     return this->data[row_index * this->cols + column_index];
 }
 
-long Asset::get_market_price(bool on_close) const
+double Asset::get_market_price(bool on_close) const
 {
 
     #ifdef ARGUS_RUNTIME_ASSERT
@@ -278,9 +265,9 @@ long Asset::get_market_price(bool on_close) const
     //subtract this->cols to move back row, then get_market_view is called, asset->step()
     //is called so we need to move back a row when accessing asset data
     if (on_close)
-        return this->fixed_point_close_price[this->current_index-1];
+        return *(this->row - this->cols + this->close_column);
     else
-        return this->fixed_point_open_price[this->current_index-1];
+        return *(this->row - this->cols + this->open_column);
 }
 
 double Asset::get_asset_feature(const string& column_name, int index)

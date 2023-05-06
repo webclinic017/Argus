@@ -24,7 +24,7 @@ Position::Position(trade_sp_t trade){
 
     // populate order values
     this->is_open = true;
-    this->nlv = to_fixed_point(trade->get_units() * trade->get_average_price());
+    this->nlv = trade->get_units() * trade->get_average_price();
     this->average_price = trade->get_average_price();
     this->last_price = trade->get_average_price();
     this->position_open_time = trade->get_trade_open_time();

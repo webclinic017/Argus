@@ -117,7 +117,7 @@ public:
         int N = -1
     );
 
-    inline long get_market_price(const string &asset_id)
+    inline double get_market_price(const string &asset_id)
     {
         // get pointer to asset, nullptr if asset is not currently streaming
         auto asset_raw_pointer = this->market_view.at(asset_id);
@@ -189,7 +189,7 @@ public:
     std::unordered_map<string, Asset*> asset_map;
 
     // get market price of asset
-    long get_market_price(const string& asset_id);
+    double get_market_price(const string& asset_id);
 
     /// reset exchange map
     void reset_exchange_map()

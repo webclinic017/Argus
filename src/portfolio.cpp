@@ -43,7 +43,7 @@ Portfolio::Portfolio(
     this->logging = logging_;
     this->cash = cash_;
     this->starting_cash = cash_;
-    this->nlv = to_fixed_point(cash_);
+    this->nlv = cash_;
     this->portfolio_id = std::move(id_);
 }
 
@@ -701,7 +701,7 @@ void Portfolio::evaluate(bool on_close)
                 continue;
             }
 
-            auto nlv_new = to_fixed_point(trade->get_units()) * market_price;
+            auto nlv_new = trade->get_units() * market_price;
             source_portfolio->nlv_adjust(nlv_new - trade->get_nlv());
             source_position->nlv_adjust(nlv_new - trade->get_nlv());
             
@@ -725,8 +725,7 @@ void Portfolio::evaluate(bool on_close)
         {
             fmt::print("nlv: {}, adjusting: {}\n",this->nlv, position->get_nlv());
         }
-        auto position_nlv_fp = to_fixed_point(position->get_nlv());
-        this->nlv += position_nlv_fp;
+        this->nlv += position->get_nlv();
         if(!on_close)
         {
             fmt::print("nlv: {}\n",this->nlv);

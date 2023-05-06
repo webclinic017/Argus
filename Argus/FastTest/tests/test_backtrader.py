@@ -217,7 +217,7 @@ def test_fasttest(dfs):
     return nlv, cash, et-st, orders 
  
 if __name__ == "__main__":
-    count = 94
+    count = 4
     step_count = 203
     
     candles = []

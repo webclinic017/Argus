@@ -72,11 +72,11 @@ public:
     auto get_mem_address(){return reinterpret_cast<std::uintptr_t>(this); }
     
     /// @brief the amount of cash held by the portfolio (recursive sum of all child portfolios)
-    double get_cash() const {return to_double(this->cash);}
+    double get_cash() const {return this->cash;}
 
     /// @brief get the net liquidation as last calculated
     /// @return the net liquidation value of the portfolio
-    double get_nlv() const {return to_double(this->nlv);}
+    double get_nlv() const {return this->nlv;}
 
     /// @brief get the net liquidation as last calculated
     double get_unrealized_pl() const {return this->unrealized_pl;}
@@ -295,14 +295,14 @@ private:
     /// smart pointer to event tracer (nullptr if not registered)
     shared_ptr<EventTracer> event_tracer;
 
-    /// fixed point cash held by the portfolio
+    /// cash held by the portfolio
     double cash;
 
     /// starting cash of the portfolio
-    long long starting_cash;
+    double starting_cash;
 
-    /// fixed point net liquidation value of the portfolio
-    long long nlv;
+    /// net liquidation value of the portfolio
+    double nlv;
 
     /// unrealized_pl of the portfolio
     double unrealized_pl = 0;

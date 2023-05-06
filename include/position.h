@@ -33,19 +33,19 @@ private:
     string exchange_id;
 
     /// net liquidation value of the position
-    long long nlv = 0; 
+    double nlv = 0; 
 
     /// closing price of the position
-    long long close_price = 0;
+    double close_price = 0;
 
     /// last price the position was evaluated at
-    long long last_price = 0;
+    double last_price = 0;
 
     /// unrealized pl of the position
-    long long unrealized_pl = 0;
+    double unrealized_pl = 0;
 
     /// realized pl of the position
-    long long realized_pl = 0;
+    double realized_pl = 0;
 
     /// time the position was opened
     long long position_open_time;
@@ -83,7 +83,7 @@ public:
     double units;
 
     /// average price of the position
-    long long average_price = 0;
+    double average_price = 0;
 
      /// is the position currently open
     bool is_open;
@@ -102,7 +102,7 @@ public:
 
     /// @brief get the positions net liquidation value as last calculated
     /// @return net liquidation value of the position
-    double get_nlv() const {return to_double(this->nlv);}
+    double get_nlv() const {return this->nlv;}
 
     /// @brief get the positions unrealized pl
     double get_unrealized_pl() const {return this->unrealized_pl;}
@@ -160,7 +160,7 @@ public:
 
     /// @brief adjust nlv by amount, allows trades to adjust source portfolio values
     /// @param nlv_adjustment adjustment size
-    void nlv_adjust(long long nlv_adjustment) {this->nlv += nlv_adjustment;};
+    void nlv_adjust(double nlv_adjustment) {this->nlv += nlv_adjustment;};
 
     /// @brief adjust unrealized_pl by amount, allows trades to adjust source position values
     /// @param nlv_adjustment adjustment size
@@ -168,7 +168,7 @@ public:
 
     /// @private
     /// evaluate a position and it's child trades at the given market price
-    inline void evaluate(long long market_price, bool on_close)
+    inline void evaluate(double market_price, bool on_close)
     {
         this->last_price = market_price;
         this->unrealized_pl = this->units * (market_price - this->average_price);
